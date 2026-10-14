@@ -74,6 +74,7 @@ function initWorkspace() {
     if (ev.key === "Escape" && wsCoTheDong) wsDongManChon();
   });
   window.addEventListener("langchange", () => {
+    wsCapNhatTieuDe();
     if (el("wsOverlay").hidden) return;
     if (wsWizard) wsGomBuoc();   // chữ đang gõ dở không được mất khi đổi ngôn ngữ
     wsVe();
@@ -81,11 +82,28 @@ function initWorkspace() {
   callApi("get_workspace_state").then((res) => {
     if (!res.ok) return;
     wsTrangThai = res.data;
+    /* Nhãn từ vựng của workspace (xem nhan_ws.py / I18N.applyLabels): chỉ vẽ lại
+       khi KHÁC mặc định trường học, nên trường học thường không thấy gì đổi. Lấy từ
+       get_workspace_state chứ không get_workspace_config vì hàm sau tắt khi chạy với
+       đường dẫn CSDL riêng, mà nhãn của CSDL đó vẫn phải áp. */
+    window.I18N.applyLabels(wsTrangThai.config && wsTrangThai.config.labels);
     wsVeTenHienTai();
+    wsCapNhatTieuDe();
     /* Chưa chọn (có nhiều workspace lúc khởi động) thì màn chọn hiện ngay,
        đè lên trên và KHÔNG đóng được cho tới khi mở một workspace. */
     if (wsTrangThai.enabled && !wsTrangThai.chon) wsMoManChon(false);
   });
+}
+
+/* Tiêu đề cửa sổ: "<tên danh từ chỗ xếp> — <tên workspace>". Trình duyệt dự phòng lấy
+   từ document.title; cửa sổ gốc pywebview thì phải nhờ backend đổi (dat_tieu_de_cua_so).
+   Chạy với đường dẫn CSDL riêng thì giữ tiêu đề cũ, không đụng gì. */
+function wsCapNhatTieuDe() {
+  if (!wsTrangThai || !wsTrangThai.enabled) return;
+  const tieuDe = window.I18N.nounText("slot", "", window.I18N.getLang()) + " — " +
+    (wsTrangThai.name || wsTrangThai.slug || "");
+  document.title = tieuDe;
+  callApi("dat_tieu_de_cua_so", tieuDe);
 }
 
 function wsVeTenHienTai() {
@@ -244,6 +262,7 @@ function wsLuuSua(w, kieu, ten, kemDuLieu) {
     if (kieu === "doi_ten" && wsTrangThai && wsTrangThai.slug === w.slug) {
       wsTrangThai.name = ten;
       wsVeTenHienTai();
+      wsCapNhatTieuDe();
     }
     return wsLamMoiDanhSach();
   });

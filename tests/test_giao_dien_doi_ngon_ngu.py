@@ -24,6 +24,7 @@ pytest.importorskip("playwright", reason="chưa cài playwright")
 from playwright.sync_api import sync_playwright  # noqa: E402
 
 import browser_host  # noqa: E402
+import nhan_ws  # noqa: E402
 
 GOC = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MAU = os.path.join(GOC, "mau_csv")
@@ -48,6 +49,11 @@ def _cap_chuoi_vi_en():
         re.findall(r'^\s{6}([a-z0-9_]+):\s*"((?:[^"\\]|\\.)*)"', d, re.M)
     )
     vi, en = lay(khoi_vi), lay(khoi_en)
+    # Chuỗi nay mang chỗ giữ {person}, {slot}… (nhãn của workspace); trên màn hình chúng
+    # đã là chữ của MẶC ĐỊNH TRƯỜNG HỌC, nên điền mặc định trước khi so — kiểm tra
+    # nghiêm ngặt y như khi chuỗi còn ghi cứng.
+    vi = {k: nhan_ws.dien(v, None, "vi") for k, v in vi.items()}
+    en = {k: nhan_ws.dien(v, None, "en") for k, v in en.items()}
     # Chuỗi ngắn dễ trùng với dữ liệu trường nhập (tên CLB…) nên bỏ qua.
     return {k: v for k, v in vi.items()
             if en.get(k) and en[k] != v and len(v) > 12}

@@ -11,6 +11,7 @@ hiện NGUYÊN VĂN, không tính, không thêm dấu nháy như bản CSV phả
 Cũng ở đó, `lam_sach` bỏ ký tự Excel cấm và cắt ô quá dài — xem hàm ấy.
 """
 
+from nhan_ws import dien as dien_nhan
 from openpyxl.cell.cell import ILLEGAL_CHARACTERS_RE
 from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
@@ -50,13 +51,25 @@ def lam_sach(gia_tri):
 
 
 class Trang:
-    """Một trang tính, ghi từ trên xuống: `hang` là dòng trống kế tiếp."""
+    """Một trang tính, ghi từ trên xuống: `hang` là dòng trống kế tiếp.
 
-    def __init__(self, ws):
+    `nhan`: nhãn từ vựng của workspace (xem nhan_ws.py), được TRUYỀN VÀO chứ không đọc từ
+    đâu khác. Chữ ĐỌC được do phần mềm viết — tên trang, tiêu đề, ghi chú, nhãn dòng,
+    tiêu đề cột — có thể mang chỗ giữ `{person_l}`, `{slot_sl}`… và được điền ở đây,
+    đúng một lần. DỮ LIỆU của người dùng (các dòng của `bang`, giá trị của `dong`) thì
+    KHÔNG BAO GIỜ được điền: một CLB đặt tên "{slot}" phải hiện nguyên như vậy.
+    """
+
+    def __init__(self, ws, nhan=None):
         self.ws = ws
+        self.nhan = nhan
         self.hang = 1
         self.rong: dict[int, int] = {}
         self.so_cot = 1
+
+    def n(self, chu):
+        """Điền chỗ giữ danh từ vào một câu chữ do phần mềm viết."""
+        return dien_nhan(chu, self.nhan, "vi") if isinstance(chu, str) else chu
 
     # ---- ô ----
     def o(self, hang, cot, gia_tri, do_rong=True):
@@ -75,26 +88,28 @@ class Trang:
     # ---- khối chữ ----
     def tieu_de(self, chinh: str, phu: str = ""):
         """Dòng 1 tên trang, dòng 2 một câu nói trang dùng để làm gì."""
-        self.o(1, 1, chinh, do_rong=False).font = CHU_TIEU_DE
+        self.o(1, 1, self.n(chinh), do_rong=False).font = CHU_TIEU_DE
         if phu:
-            self.o(2, 1, phu, do_rong=False).font = CHU_PHU
+            self.o(2, 1, self.n(phu), do_rong=False).font = CHU_PHU
         self.hang = 4
 
     def muc(self, chu: str):
         """Tên một phần trong trang, cách phần trước một dòng trống."""
         if self.hang > 4:
             self.hang += 1
-        self.o(self.hang, 1, chu, do_rong=False).font = CHU_MUC
+        self.o(self.hang, 1, self.n(chu), do_rong=False).font = CHU_MUC
         self.hang += 1
 
     def ghi_chu(self, chu: str, font=CHU_PHU):
-        self.o(self.hang, 1, chu, do_rong=False).font = font
+        self.o(self.hang, 1, self.n(chu), do_rong=False).font = font
         self.hang += 1
 
     def dong(self, *cac_o, dam=False):
-        """Một dòng nhãn — giá trị. Căn trái để số đứng sát nhãn của nó."""
+        """Một dòng nhãn — giá trị. Căn trái để số đứng sát nhãn của nó.
+
+        Chỉ ô ĐẦU (nhãn) được điền chỗ giữ danh từ; các ô sau là giá trị."""
         for i, v in enumerate(cac_o, 1):
-            c = self.o(self.hang, i, v)
+            c = self.o(self.hang, i, self.n(v) if i == 1 else v)
             c.alignment = Alignment(horizontal="left")
             if dam:
                 c.font = CHU_DAM
@@ -105,7 +120,7 @@ class Trang:
         c = self.o(self.hang, 1, ten_trang)
         c.hyperlink = Hyperlink(ref=c.coordinate, location="'%s'!A1" % ten_trang)
         c.font = CHU_LIEN_KET
-        self.o(self.hang, 2, mo_ta)
+        self.o(self.hang, 2, self.n(mo_ta))
         self.hang += 1
 
     # ---- bảng ----
@@ -119,13 +134,13 @@ class Trang:
         """
         dau = self.hang
         for i, ten in enumerate(cot, 1):
-            c = self.o(dau, i, ten)
+            c = self.o(dau, i, self.n(ten))
             c.font = CHU_DAM
             c.fill = NEN_TIEU_DE_COT
             c.alignment = Alignment(vertical="center", wrap_text=True)
         self.hang += 1
         if not dong and rong:
-            self.o(self.hang, 1, rong, do_rong=False).font = CHU_PHU
+            self.o(self.hang, 1, self.n(rong), do_rong=False).font = CHU_PHU
             self.hang += 1
         for n, d in enumerate(dong):
             nen = NEN_DO if (to_do and to_do(d)) else (
@@ -147,7 +162,8 @@ class Trang:
         return dau, cuoi
 
     def khoi(self, chu: str, so_cot: int):
-        """Dòng đầu một khối (một CLB trên trang Theo CLB)."""
+        """Dòng đầu một khối (một CLB trên trang Theo CLB). `chu` chứa TÊN do người dùng
+        đặt nên KHÔNG được điền ở đây — nơi gọi điền phần chữ của phần mềm trước."""
         for i in range(1, so_cot + 1):
             self.ws.cell(row=self.hang, column=i).fill = NEN_KHOI
         self.o(self.hang, 1, chu, do_rong=False).font = CHU_MUC

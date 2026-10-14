@@ -114,7 +114,7 @@ class ChamDiemMixin:
                     # điểm thì không — mà đó mới là cửa giáo viên gõ tay.
                     so = self._doc_diem(score if isinstance(score, str) else str(score))
                     if so is None:
-                        skipped.append(err("score_not_a_number", student_id=sid, score=score))
+                        skipped.append(err("score_not_a_number", student_id=sid, diem_goc=score))
                         continue
                     score = so
                     # Điểm âm: đường NẠP TỆP đã từ chối từ trước
@@ -123,7 +123,7 @@ class ChamDiemMixin:
                     # giáo viên đi cửa nào — đo được: -9 vào lọt ở đây, và em
                     # điểm cao nhất tụt xuống dưới tất cả, mất chỗ.
                     if score < 0:
-                        skipped.append(err("score_negative", student_id=sid, score=score))
+                        skipped.append(err("score_negative", student_id=sid, diem_goc=score))
                         continue
                     cur.execute(
                         "INSERT INTO club_scores (student_id, club_id, score) VALUES (?, ?, ?) "

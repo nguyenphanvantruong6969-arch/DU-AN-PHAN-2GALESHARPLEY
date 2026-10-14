@@ -91,8 +91,8 @@ def test_tao_chuyen_sang_roi_chuyen_ve_thi_ten_o_dau_doi(mo_trang):
 
     page.locator("#btnWorkspace").click()
     assert page.locator("#wsOverlay").is_visible()
-    dang_mo = page.locator('tr[data-slug="truong-hoc"] .ws-badge')
-    assert dang_mo.count() == 1
+    page.wait_for_selector('tr[data-slug="truong-hoc"] .ws-badge')   # danh sách vẽ sau backend
+    assert page.locator('tr[data-slug="truong-hoc"] .ws-badge').count() == 1
 
     _tao_qua_wizard(page, "Công ty ABC", vi_nguoi="Nhân viên", en_nguoi="Employee")
     _cho_ten(page, "Công ty ABC")                       # đã tải lại, đang ở workspace mới
@@ -125,6 +125,7 @@ def test_ten_o_dau_doi_theo_ten_sau_khi_doi_ten(mo_trang):
 def test_nhieu_workspace_luc_khoi_dong_thi_phai_chon(mo_trang):
     page, api, goc, loi = mo_trang(ten_ws=("Alpha", "Beta"), da_chon=False)
     page.wait_for_selector("#wsOverlay:not([hidden])")
+    page.wait_for_selector("#wsBtnMoi")                   # danh sách đã vẽ xong
     assert page.locator("#wsBtnDong").count() == 0        # chưa chọn thì không đóng được
     page.keyboard.press("Escape")
     assert page.locator("#wsOverlay").is_visible()
@@ -284,6 +285,7 @@ def test_nhan_ban_va_xuat_nhap_zip(mo_trang):
 def test_doi_ngon_ngu_khi_man_chon_dang_mo(mo_trang):
     page, _, _, loi = mo_trang()
     page.locator("#btnWorkspace").click()
+    page.wait_for_selector("#wsTieuDe")          # danh sách vẽ sau khi backend trả lời
     assert "Chọn workspace" in page.locator("#wsHop").inner_text()
     page.evaluate("window.I18N.setLang('en')")   # nút EN nằm sau màn chọn nên không bấm được
     page.wait_for_function("document.documentElement.lang === 'en'")

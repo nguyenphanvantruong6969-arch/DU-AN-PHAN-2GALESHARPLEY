@@ -20,6 +20,7 @@ import json
 import os
 import sqlite3
 
+from nhan_ws import DANH_TU, NHAN_MAC_DINH
 from rbda_priority_pipeline import (
     TRAN_CLB_THI_MOI_BUOI,
     TRAN_NGUYEN_VONG_MOI_BUOI,
@@ -28,9 +29,9 @@ from rbda_priority_pipeline import (
 
 KHOA_CAU_HINH = "config"
 
-# Năm danh từ. Mọi nhãn hiển thị đều đi qua chúng, nên tập này là cố định:
-# gõ sai tên danh từ phải báo lỗi chứ không được lặng lẽ thành một nhãn mồ côi.
-DANH_TU = ("person", "slot", "session", "group", "score")
+# Năm danh từ (DANH_TU, nguồn duy nhất ở nhan_ws.py): mọi nhãn hiển thị đều đi qua
+# chúng, nên tập này là cố định — gõ sai tên danh từ phải báo lỗi chứ không được
+# lặng lẽ thành một nhãn mồ côi.
 
 NGANH = ("school", "company", "event", "custom")
 UU_TIEN = ("score", "tier", "score+tier")
@@ -46,13 +47,7 @@ _MAX_TESTS_TOI_DA = 20
 MAC_DINH_TRUONG_HOC = {
     "name": "",
     "industry": "school",
-    "labels": {
-        "person": {"vi": "Học sinh", "en": "Student"},
-        "slot": {"vi": "Câu lạc bộ", "en": "Club"},
-        "session": {"vi": "Buổi", "en": "Session"},
-        "group": {"vi": "Nhóm ưu tiên", "en": "Priority group"},
-        "score": {"vi": "Điểm", "en": "Score"},
-    },
+    "labels": copy.deepcopy(NHAN_MAC_DINH),
     "rules": {
         "max_choices": TRAN_NGUYEN_VONG_MOI_BUOI,
         "max_tests": TRAN_CLB_THI_MOI_BUOI,

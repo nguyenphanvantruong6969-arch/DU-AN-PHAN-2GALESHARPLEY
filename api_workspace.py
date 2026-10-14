@@ -113,6 +113,20 @@ class WorkspaceMixin:
         except Exception as e:
             return _fail(self._loi_co_ghi_vet(err("ws_loi_khong_ro", detail=str(e))))
 
+    def dat_tieu_de_cua_so(self, tieu_de):
+        """Đặt tiêu đề cửa sổ gốc (pywebview). Chế độ trình duyệt không có cửa sổ để đặt:
+        giao diện đã đổi `document.title`, và hàm này lặng lẽ không làm gì.
+
+        Không nằm trong `_ws_phuong_thuc`: tiêu đề cửa sổ không phụ thuộc có workspace
+        hay không, và một lời gọi hỏng không đáng làm giao diện báo lỗi."""
+        try:
+            cua_so = self._window
+            if cua_so is not None and hasattr(cua_so, "set_title"):
+                cua_so.set_title(str(tieu_de or "")[:200])
+            return _ok({"tieu_de": str(tieu_de or "")[:200]})
+        except Exception as e:
+            return _fail(self._loi_co_ghi_vet(err("ws_loi_khong_ro", detail=str(e))))
+
     # ---------------------------------------------------------------- danh sách
 
     @_ws_phuong_thuc

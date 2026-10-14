@@ -14,7 +14,9 @@ import sys
 import traceback
 
 import browser_host
+import cau_hinh_ws
 import chan_doan
+import nhan_ws
 import workspace
 from api import PipelineAPI
 from recovery import RecoveryAPI
@@ -76,6 +78,23 @@ def khoi_dong_workspace() -> tuple:
 def chon_db_path() -> str:
     """Chỉ phần đường dẫn của `khoi_dong_workspace`."""
     return khoi_dong_workspace()[0]
+
+
+def tieu_de_cua_so(db_path: str, goc_ws) -> str:
+    """Tiêu đề cửa sổ lúc mở: "<tên danh từ chỗ xếp> — <tên workspace>".
+
+    Chạy với đường dẫn CSDL riêng (không workspace) thì giữ APP_TITLE như trước.
+    Giao diện đổi lại theo ngôn ngữ đang chọn và khi đổi workspace
+    (`PipelineAPI.dat_tieu_de_cua_so`); ở đây chưa biết ngôn ngữ nên dùng tiếng Việt.
+    """
+    if not goc_ws:
+        return APP_TITLE
+    try:
+        cfg = cau_hinh_ws.doc_cau_hinh(db_path)
+        return "%s — %s" % (nhan_ws.nhan_ngon_ngu(cfg["labels"], "slot", "vi"),
+                            cfg["name"] or os.path.basename(os.path.dirname(db_path)))
+    except Exception:
+        return APP_TITLE
 
 
 def _show_ui(title: str, page: str, js_api, width: int, height: int,
@@ -190,7 +209,7 @@ def main() -> None:
         return
 
     _show_ui(
-        APP_TITLE, "index.html", api,
+        tieu_de_cua_so(db_path, goc_ws), "index.html", api,
         width=1280, height=800, min_size=(1024, 640),
     )
 

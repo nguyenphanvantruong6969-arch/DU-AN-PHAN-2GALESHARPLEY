@@ -1386,11 +1386,11 @@ class NhapDuLieuMixin:
                                 # Chỉ bỏ RIÊNG ô điểm này. Bỏ cả học sinh vì
                                 # một ô gõ sai là mất nhiều hơn được.
                                 row_errors.append(err("csv_score_not_a_number",
-                                                      student_id=sid, club_id=that, score=chuoi))
+                                                      student_id=sid, club_id=that, diem_goc=chuoi))
                                 continue
                             if so < 0:
                                 row_errors.append(err("csv_score_negative",
-                                                      student_id=sid, club_id=that, score=chuoi))
+                                                      student_id=sid, club_id=that, diem_goc=chuoi))
                                 continue
                             cur.execute(
                                 "INSERT INTO club_scores (student_id, club_id, score) VALUES (?, ?, ?) "
