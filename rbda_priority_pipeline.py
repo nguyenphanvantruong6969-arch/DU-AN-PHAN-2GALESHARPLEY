@@ -1375,6 +1375,15 @@ CREATE TABLE IF NOT EXISTS stb_lock (
     unlocked_at TEXT,
     seed INTEGER
 );
+
+-- Cau hinh cua KHONG GIAN LAM VIEC (workspace): tu vung (nhan) va luat chay,
+-- dang JSON duoi khoa 'config'. Xem `cau_hinh_ws.py`. Thieu dong / thieu khoa
+-- nghia la mac dinh cua truong hoc, nen app.db cu khong can di tru gi: bang
+-- nay chi la bang MOI, `CREATE TABLE IF NOT EXISTS` o tren da du.
+CREATE TABLE IF NOT EXISTS workspace_settings (
+    key TEXT PRIMARY KEY,
+    value TEXT
+);
 """
 
 # busy_timeout dai hon mac dinh (5s) — nhieu tien trinh cung mo app.db
