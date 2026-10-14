@@ -62,6 +62,7 @@ from api_bao_cao import BaoCaoMixin
 from api_cham_diem import ChamDiemMixin
 from api_nhap import NhapDuLieuMixin
 from api_quan_ly import QuanLyMixin
+from api_workspace import WorkspaceMixin
 from api_xuat import XuatKetQuaMixin
 
 
@@ -74,9 +75,19 @@ from api_xuat import XuatKetQuaMixin
 # `api.connect_db`, `api.run_rbda_nhieu_buoi`... để giả lập sự cố, và phép
 # thay đó chỉ có tác dụng với mã nằm trong CHÍNH tệp này.
 class PipelineAPI(NhapDuLieuMixin, ChamDiemMixin, BaoCaoMixin,
-                  XuatKetQuaMixin, QuanLyMixin):
-    def __init__(self, db_path: str, thu_muc_xuat: str = ""):
+                  XuatKetQuaMixin, QuanLyMixin, WorkspaceMixin):
+    def __init__(self, db_path, thu_muc_xuat: str = "", thu_muc_goc: str = None):
+        # `thu_muc_goc`: thư mục chứa `workspaces/` (xem workspace.py). Có nó
+        # thì ở CHẾ ĐỘ WORKSPACE: `db_path` là workspace đang mở, hoặc None
+        # khi chưa mở cái nào (giao diện hiện màn chọn; open_workspace đặt
+        # `db_path` sau). Không có thì CSDL đơn như trước, và mọi hàm
+        # *_workspace trả lỗi ws_disabled. Tên bắt đầu bằng `_` để pywebview
+        # không đưa lên giao diện.
         self.db_path = db_path
+        self._ws_goc = os.path.abspath(thu_muc_goc) if thu_muc_goc else None
+        self._ws_slug = None
+        if db_path is None and not self._ws_goc:
+            raise ValueError("db_path chỉ được None ở chế độ workspace (thu_muc_goc)")
         # MỘT khoá cho mọi thao tác GHI trong tiến trình này.
         #
         # pywebview chạy mỗi lời gọi từ giao diện trên một luồng riêng, và
@@ -102,7 +113,8 @@ class PipelineAPI(NhapDuLieuMixin, ChamDiemMixin, BaoCaoMixin,
         # DẤU GẠCH DƯỚI LÀ BẮT BUỘC, không phải quy ước cho đẹp. Xem
         # _set_window() ngay dưới đây.
         self._window = None
-        init_db(self.db_path)
+        if self.db_path is not None:
+            init_db(self.db_path)
 
     def _set_window(self, window) -> None:
         """
@@ -601,7 +613,8 @@ class PipelineAPI(NhapDuLieuMixin, ChamDiemMixin, BaoCaoMixin,
         import chan_doan
 
         chan_doan.ghi_ngoai_le_canh_db(
-            self.db_path,
+            # Chưa mở workspace nào (db_path None): ghi cạnh thư mục gốc.
+            self.db_path or os.path.join(self._ws_goc or ".", "app.db"),
             "Loi: %s" % (loi.get("code") if isinstance(loi, dict) else loi))
         return [loi, err("xem_nhat_ky", file=chan_doan.TEN_LOG_UNG_DUNG)]
 

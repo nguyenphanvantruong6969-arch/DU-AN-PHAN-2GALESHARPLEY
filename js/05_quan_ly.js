@@ -615,6 +615,27 @@ function demDanhDauAdmin() {
   el("adminDemDanhDau").textContent = n ? t("admin_dem_danh_dau", { n }) : "";
 }
 
+/* Du lieu da xoa thi moi thu dang TRO toi du lieu cu cung phai di (hoac khi
+   doi sang workspace khac — xem js/075_workspace.js):
+   o tim kiem con chu, em dang mo o the Nhap tai cho, danh sach CLB
+   dang mo, CLB dang cham. Bo sot thi quay sang the kia van thay dung
+   em vua tim — mot em khong con ton tai. */
+function donSachSauKhiXoaDuLieu() {
+  ["studentSearchInput", "newStudentId", "newStudentName", "adminStudentSearch",
+   "resultsSearch", "tkbSearch", "thamSearch"].forEach((id) => {
+    if (el(id)) el(id).value = "";
+  });
+  boChonHocSinhDuPhong();
+  currentClubs = [];
+  fallbackStudentPage = 1;
+  adminStudentPage = 1;
+  clear(el("studentSearchResults"));
+  el("fallbackStudentPagination").hidden = true;
+  dongDanhSachCLB();
+  currentScoringClub = null;
+  if (el("scoringWorkArea")) el("scoringWorkArea").hidden = true;
+}
+
 function initAdminHandlers() {
   el("btnSaveClub").addEventListener("click", () => {
     const id = el("clubFormId").value.trim();
@@ -709,26 +730,6 @@ function initAdminHandlers() {
      Chuoi "XOA" la xac nhan bat buoc o phia Python. No KHONG phai thu
      nguoi dung go — nut da co xac nhan hai buoc roi. No de mot lenh
      goi API nham (vd tu console) khong xoa duoc gi. */
-  /* Du lieu da xoa thi moi thu dang TRO toi du lieu cu cung phai di:
-     o tim kiem con chu, em dang mo o the Nhap tai cho, danh sach CLB
-     dang mo, CLB dang cham. Bo sot thi quay sang the kia van thay dung
-     em vua tim — mot em khong con ton tai. */
-  function donSachSauKhiXoaDuLieu() {
-    ["studentSearchInput", "newStudentId", "newStudentName", "adminStudentSearch",
-     "resultsSearch", "tkbSearch", "thamSearch"].forEach((id) => {
-      if (el(id)) el(id).value = "";
-    });
-    boChonHocSinhDuPhong();
-    currentClubs = [];
-    fallbackStudentPage = 1;
-    adminStudentPage = 1;
-    clear(el("studentSearchResults"));
-    el("fallbackStudentPagination").hidden = true;
-    dongDanhSachCLB();
-    currentScoringClub = null;
-    if (el("scoringWorkArea")) el("scoringWorkArea").hidden = true;
-  }
-
   function noiNutXoa(idNut, phamVi, khoaNhanThuong, khoaNhanCoKetQua, khoaToast) {
     armTwoStepConfirm(
       el(idNut),

@@ -594,8 +594,13 @@ class XuatKetQuaMixin:
             os.path.join(thu_muc, os.path.basename(output_path)), kem_duoi)
     def _goc_xuat_hop_le(self) -> list:
         """Những thư mục GỐC mà tệp xuất có thể nằm trong — xem `_duong_xuat`."""
-        goc = [self.thu_muc_xuat or thu_muc_tai_ve(),
-               os.path.dirname(os.path.abspath(self.db_path))]
+        goc = [self.thu_muc_xuat or thu_muc_tai_ve()]
+        if self.db_path:
+            goc.append(os.path.dirname(os.path.abspath(self.db_path)))
+        # Chế độ workspace: tệp xuất workspace lùi về thư mục gốc (xem
+        # export_workspace) khi Tải xuống không ghi được.
+        if getattr(self, "_ws_goc", None):
+            goc.append(self._ws_goc)
         return [os.path.realpath(g) for g in goc if g]
     @staticmethod
     def _nam_trong(thu_muc: str, goc: str) -> bool:

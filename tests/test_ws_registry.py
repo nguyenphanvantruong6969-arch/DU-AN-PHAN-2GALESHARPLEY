@@ -511,28 +511,18 @@ def test_di_chuyen_db_hong_van_dem_di(root):
         assert f.read() == b"khong phai sqlite"
 
 
-# ---------- chon_de_mo + main ----------
+# ---------- tim_workspace_hong + main ----------
 
-def test_chon_de_mo_tao_mac_dinh_khi_chua_co(root):
-    db = w.chon_de_mo(root)
-    assert db == os.path.join(root, "workspaces", "truong-hoc", "app.db")
-    assert cfgws.doc_cau_hinh(db) == dict(
-        cfgws.MAC_DINH_TRUONG_HOC, name="Trường học")
-    assert w.chon_de_mo(root) == db  # lần hai: vẫn là nó, không tạo thêm
-    assert len(w.danh_sach(root)) == 1
-
-
-def test_chon_de_mo_mo_dung_workspace_duy_nhat(root):
-    w.tao(root, "Duy nhất")
-    assert w.chon_de_mo(root) == os.path.join(
-        root, "workspaces", "duy-nhat", "app.db")
-
-
-def test_chon_de_mo_chuyen_db_cu_roi_mo_no(root):
-    _db_cu(root)
-    db = w.chon_de_mo(root)
-    assert db == os.path.join(root, "workspaces", "truong-hoc", "app.db")
-    assert _clb(db) == [("A", "Cờ vua")]
+def test_tim_workspace_hong(root):
+    assert w.tim_workspace_hong(root) is None
+    w.tao(root, "Tốt")
+    assert w.tim_workspace_hong(root) is None
+    xau = w.tao(root, "Xấu")
+    db = os.path.join(root, "workspaces", xau, "app.db")
+    with open(db, "wb") as f:
+        f.write(b"khong phai sqlite")
+    duong, loi = w.tim_workspace_hong(root)
+    assert duong == db and isinstance(loi, sqlite3.DatabaseError)
 
 
 @pytest.fixture
@@ -546,24 +536,29 @@ def main_mod(monkeypatch, tmp_path):
     return main, mo
 
 
-def test_main_khong_tham_so_mo_workspace(main_mod, monkeypatch, tmp_path):
+def test_main_khong_tham_so_chuyen_db_cu_va_chua_mo_workspace_nao(
+        main_mod, monkeypatch, tmp_path):
     main, mo = main_mod
     monkeypatch.setattr(sys, "argv", ["main.py"])
     _db_cu(str(tmp_path))
     main.main()
     page, api = mo[0]
     assert page == "index.html"
-    assert api.db_path == str(tmp_path / "workspaces" / "truong-hoc" / "app.db")
+    assert api.db_path is None  # màn chọn workspace sẽ mở (js/075_workspace.js)
     assert not (tmp_path / "app.db").exists()
-    assert _clb(api.db_path) == [("A", "Cờ vua")]
+    assert _clb(str(tmp_path / "workspaces" / "truong-hoc" / "app.db")) == [
+        ("A", "Cờ vua")]
+    r = api.list_workspaces()
+    assert r["ok"] and r["data"]["current"] is None
+    assert [x["slug"] for x in r["data"]["items"]] == ["truong-hoc"]
 
 
-def test_main_khong_tham_so_va_chua_co_gi_tao_truong_hoc(main_mod, monkeypatch, tmp_path):
+def test_main_khong_tham_so_va_chua_co_gi(main_mod, monkeypatch, tmp_path):
     main, mo = main_mod
     monkeypatch.setattr(sys, "argv", ["main.py"])
     main.main()
     assert mo[0][0] == "index.html"
-    assert mo[0][1].db_path == str(tmp_path / "workspaces" / "truong-hoc" / "app.db")
+    assert mo[0][1].list_workspaces()["data"]["items"] == []
 
 
 def test_main_co_tham_so_khong_dung_den_workspace(main_mod, monkeypatch, tmp_path):
@@ -575,18 +570,33 @@ def test_main_co_tham_so_khong_dung_den_workspace(main_mod, monkeypatch, tmp_pat
     main.main()
     assert mo[0][0] == "index.html"
     assert mo[0][1].db_path == str(dang_ky)
+    assert mo[0][1].list_workspaces()["errors"][0]["code"] == "ws_disabled"
     assert not (tmp_path / "workspaces").exists()
     assert (tmp_path / "app.db").exists()
     assert not (tmp_path / "DA_CHUYEN_SANG_WORKSPACES.txt").exists()
 
 
-def test_main_loi_chon_workspace_ra_man_hinh_phuc_hoi(main_mod, monkeypatch):
+def test_main_workspace_hong_ra_man_hinh_phuc_hoi_dung_tep(
+        main_mod, monkeypatch, tmp_path):
+    main, mo = main_mod
+    monkeypatch.setattr(sys, "argv", ["main.py"])
+    slug = w.tao(str(tmp_path), "Hỏng")
+    db = tmp_path / "workspaces" / slug / "app.db"
+    db.write_bytes(b"khong phai sqlite")
+    main.main()
+    page, api = mo[0]
+    assert page == "recovery.html"
+    assert type(api).__name__ == "RecoveryAPI"
+    assert api.db_path == str(db)
+
+
+def test_main_loi_chuan_bi_workspace_ra_man_hinh_phuc_hoi(main_mod, monkeypatch):
     main, mo = main_mod
     monkeypatch.setattr(sys, "argv", ["main.py"])
 
     def hong(root):
         raise OSError("thu muc chi doc")
 
-    monkeypatch.setattr(main.workspace, "chon_de_mo", hong)
+    monkeypatch.setattr(main.workspace, "di_chuyen_db_cu", hong)
     main.main()
     assert mo[0][0] == "recovery.html"

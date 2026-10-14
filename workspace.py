@@ -58,6 +58,14 @@ _DAU_SQLITE = b"SQLite format 3\x00"
 _DUOI_TEP_PHU = ("-journal", "-wal", "-shm")
 
 
+class KhongCoWorkspace(ValueError):
+    """Mã workspace sai dạng hoặc không có thư mục tương ứng."""
+
+
+class TepZipSai(ValueError):
+    """Tệp zip nhập vào không dùng được (hỏng, không an toàn, thiếu app.db...)."""
+
+
 # ---------------------------------------------------------------- tiện ích
 
 def _duong_ws(root: str) -> str:
@@ -109,11 +117,16 @@ def _db_cua(root: str, slug: str) -> str:
     '../..' không được phép trỏ ra ngoài `workspaces/`.
     """
     if not isinstance(slug, str) or not _RE_SLUG.match(slug):
-        raise ValueError("Mã workspace không hợp lệ: %r" % (slug,))
+        raise KhongCoWorkspace("Mã workspace không hợp lệ: %r" % (slug,))
     db = os.path.join(_duong_ws(root), slug, TEN_DB)
     if not os.path.isfile(db):
-        raise ValueError("Không có workspace %r" % slug)
+        raise KhongCoWorkspace("Không có workspace %r" % slug)
     return db
+
+
+def duong_db(root: str, slug: str) -> str:
+    """Đường dẫn app.db của workspace `slug` (`KhongCoWorkspace` nếu không có)."""
+    return _db_cua(root, slug)
 
 
 def _chep_db(nguon: str, dich: str, *, du_phong_chep_tep: bool = False) -> None:
@@ -361,7 +374,7 @@ def _ten_muc_an_toan(ten: str) -> str:
         or re.match(r"^[A-Za-z]:", chuan)
         or ".." in phan
     ):
-        raise ValueError("Tệp zip chứa đường dẫn không an toàn: %r" % ten)
+        raise TepZipSai("Tệp zip chứa đường dẫn không an toàn: %r" % ten)
     return chuan
 
 
@@ -379,7 +392,7 @@ def nhap_zip(root: str, zip_path: str) -> str:
     try:
         z = zipfile.ZipFile(zip_path)
     except (zipfile.BadZipFile, OSError) as e:
-        raise ValueError("Không đọc được tệp zip: %s" % e)
+        raise TepZipSai("Không đọc được tệp zip: %s" % e)
     with z:
         muc = {_ten_muc_an_toan(i.filename): i for i in z.infolist()
                if not i.is_dir()}
@@ -392,7 +405,7 @@ def nhap_zip(root: str, zip_path: str) -> str:
             if len(ung_vien) == 1:
                 chon = muc[ung_vien[0]]
         if chon is None:
-            raise ValueError("Tệp zip không có app.db")
+            raise TepZipSai("Tệp zip không có app.db")
 
         ws = _duong_ws(root)
         os.makedirs(ws, exist_ok=True)
@@ -422,7 +435,7 @@ def _kiem_va_nang_cap_db(db: str) -> dict:
     """Kiểm `db` là CSDL của phần mềm, nâng lược đồ; trả về cấu hình của nó."""
     with open(db, "rb") as f:
         if f.read(len(_DAU_SQLITE)) != _DAU_SQLITE:
-            raise ValueError("app.db trong zip không phải CSDL SQLite")
+            raise TepZipSai("app.db trong zip không phải CSDL SQLite")
     try:
         conn = sqlite3.connect(db)
         try:
@@ -433,11 +446,11 @@ def _kiem_va_nang_cap_db(db: str) -> dict:
         finally:
             conn.close()
     except sqlite3.Error as e:
-        raise ValueError("app.db trong zip bị hỏng: %s" % e)
+        raise TepZipSai("app.db trong zip bị hỏng: %s" % e)
     if not ok or ok[0] != "ok":
-        raise ValueError("app.db trong zip bị hỏng (quick_check không đạt)")
+        raise TepZipSai("app.db trong zip bị hỏng (quick_check không đạt)")
     if not co_hs:
-        raise ValueError("app.db trong zip không phải CSDL của phần mềm này")
+        raise TepZipSai("app.db trong zip không phải CSDL của phần mềm này")
     init_db(db)
     return doc_cau_hinh(db)
 
@@ -518,16 +531,15 @@ def di_chuyen_db_cu(root: str) -> str | None:
 
 # ---------------------------------------------------------------- khởi động
 
-def chon_de_mo(root: str) -> str:
-    """Đường dẫn app.db mà `main.py` mở khi không có tham số dòng lệnh.
+def tim_workspace_hong(root: str):
+    """Workspace đầu tiên không mở được: `(đường dẫn app.db, ngoại lệ)`, hoặc None.
 
-    Chuyển app.db cũ nếu cần; không có workspace nào thì tạo "Trường học"
-    mặc định; đúng một thì mở nó. Từ hai trở lên: mở cái sửa gần nhất (tạm
-    thời — giao diện chọn workspace sẽ thay chỗ này).
+    "Mở được" = `init_db` chạy xong, đúng điều `PipelineAPI(db_path)` đòi từ
+    trước tới nay; `main.py` dùng nó để đưa app.db hỏng ra màn phục hồi.
     """
-    di_chuyen_db_cu(root)
-    ds = danh_sach(root)
-    if not ds:
-        tao(root, TEN_MAC_DINH)
-        ds = danh_sach(root)
-    return max(ds, key=lambda w: w["modified"])["path"]
+    for w in danh_sach(root):
+        try:
+            init_db(w["path"])
+        except Exception as e:
+            return w["path"], e
+    return None

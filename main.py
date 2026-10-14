@@ -46,9 +46,9 @@ else:
 def resolve_db_path() -> str:
     """Đường dẫn CSDL đơn: tham số dòng lệnh, hoặc app.db cạnh chương trình.
 
-    Chế độ workspace (không có tham số) chọn CSDL bằng `workspace.chon_de_mo`;
-    `app.db` cạnh chương trình ở đây chỉ còn là đường dẫn cho màn phục hồi khi
-    bước chọn đó hỏng.
+    Chế độ workspace (không có tham số) không dùng CSDL đơn nào: người dùng
+    chọn workspace trên giao diện. `app.db` cạnh chương trình ở đây chỉ còn là
+    đường dẫn cho màn phục hồi khi bước khởi động chế độ đó hỏng.
     """
     if len(sys.argv) > 1:
         return os.path.abspath(sys.argv[1])
@@ -154,11 +154,21 @@ def main() -> None:
     # với DB trống.
     try:
         if len(sys.argv) <= 1:
-            # Không có tham số: chế độ workspace. Chuyển app.db cũ (nếu có) rồi
-            # mở một workspace. Nằm TRONG try để lỗi ở đây (thư mục chỉ đọc,
-            # đĩa đầy...) cũng ra màn phục hồi chứ không chết ngầm.
-            db_path = workspace.chon_de_mo(BASE_DIR)
-        api = PipelineAPI(db_path)
+            # Không có tham số: CHẾ ĐỘ WORKSPACE. Chuyển app.db cũ (nếu có), rồi
+            # soát mọi workspace mở được không — một app.db hỏng ra màn phục
+            # hồi (đúng chỗ nó nằm, cạnh các bản app.db.bak-*) chứ không đợi
+            # tới lúc người dùng bấm Mở rồi chỉ thấy một dòng báo lỗi. Không mở
+            # workspace nào: giao diện hiện màn chọn (xem js/075_workspace.js).
+            # Nằm TRONG try để lỗi ở đây (thư mục chỉ đọc, đĩa đầy...) cũng ra
+            # màn phục hồi chứ không chết ngầm.
+            workspace.di_chuyen_db_cu(BASE_DIR)
+            hong = workspace.tim_workspace_hong(BASE_DIR)
+            if hong is not None:
+                db_path, loi = hong
+                raise loi
+            api = PipelineAPI(None, thu_muc_goc=BASE_DIR)
+        else:
+            api = PipelineAPI(db_path)
     except Exception as e:
         _show_ui(
             APP_TITLE + " — Phục hồi dữ liệu",

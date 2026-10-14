@@ -701,5 +701,37 @@ window.I18N_ERROR_MESSAGES = {
   "so_nhap_ma_tu_sinh_trung_clb_da_co": {
     "vi": "Sheet \"{sheet}\", dòng {dong} ({ten}): mã tự tạo \"{ma}\" trùng mã của CLB \"{ten_cu}\" đã có trong phần mềm. Nếu đây chính là CLB đó (đổi tên), điền Mã CLB là {ma_cu}; nếu là CLB khác, điền một Mã CLB mới.",
     "en": "Sheet \"{sheet}\", row {dong} ({ten}): the generated code \"{ma}\" is already used by the club \"{ten_cu}\" in the app. If this is that club (renamed), fill in Mã CLB as {ma_cu}; if it is a different club, fill in a new Mã CLB."
+  },
+  "ws_disabled": {
+    "vi": "Chương trình đang chạy bằng một tệp dữ liệu chỉ định riêng nên chức năng nhiều không gian làm việc bị tắt. Mở chương trình bình thường (không kèm đường dẫn tệp dữ liệu) để dùng.",
+    "en": "The app was started with a specific data file, so workspaces are disabled. Start the app normally (without a data file path) to use them."
+  },
+  "ws_not_found": {
+    "vi": "Không tìm thấy không gian làm việc \"{slug}\". Có thể nó vừa bị xoá hoặc đổi chỗ; hãy mở lại danh sách.",
+    "en": "Workspace \"{slug}\" was not found. It may have just been deleted or moved; reopen the list."
+  },
+  "ws_none_open": {
+    "vi": "Chưa mở không gian làm việc nào. Hãy chọn một không gian làm việc trước.",
+    "en": "No workspace is open. Pick a workspace first."
+  },
+  "ws_name_required": {
+    "vi": "Tên không được để trống.",
+    "en": "The name cannot be empty."
+  },
+  "ws_delete_confirmation_mismatch": {
+    "vi": "Chưa xoá không gian làm việc nào vì thiếu bước xác nhận. Hãy bấm nút xoá thêm một lần để xác nhận.",
+    "en": "No workspace was deleted because the confirmation step was missing. Click the delete button once more to confirm."
+  },
+  "ws_invalid": {
+    "vi": "Thông tin không hợp lệ nên chưa lưu. Xem lại các ô đã nhập.",
+    "en": "The information is not valid, so nothing was saved. Check the fields that were filled in."
+  },
+  "ws_zip_invalid": {
+    "vi": "Không nhập được tệp .zip này. Hãy chọn tệp .zip do chương trình xuất ra, chưa bị sửa.",
+    "en": "This .zip file could not be imported. Choose a .zip exported by this app and not modified."
+  },
+  "error_workspace": {
+    "vi": "Không thực hiện được thao tác với không gian làm việc. Hãy thử lại.",
+    "en": "Couldn't complete the workspace action. Try again."
   }
 };
