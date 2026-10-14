@@ -136,12 +136,21 @@ def test_moi_o_so_tren_man_hinh_cap_nhat_ngay_sau_khi_xoa(trang):
     """
     page, loi, api = trang
     assert api.run_pipeline(seed=42)["ok"]
+    # `#lastRunLine` và `#statStudents` do HAI lời gọi API riêng điền vào, trả về theo thứ tự
+    # nào cũng được. Làm chậm lời gọi dòng "Chạy gần nhất" để thứ tự đó là CHẮC CHẮN, không
+    # trông vào máy rảnh hay bận (trước đây test đỏ lúc chạy cả bộ).
+    page.route("**/__api__/get_last_run_info",
+               lambda route: (page.wait_for_timeout(600), route.continue_()))
     page.locator('[data-tab="pipeline"]').click()
     page.wait_for_function(
         "document.querySelector('#statStudents').textContent !== '—'"
     )
     assert page.locator("#statStudents").inner_text() == "2"
-    assert "Chạy gần nhất" in page.locator("#lastRunLine").inner_text()
+    page.wait_for_function(
+        "document.querySelector('#lastRunLine').textContent.indexOf('Chạy gần nhất') !== -1",
+        timeout=10000,
+    )
+    page.unroute("**/__api__/get_last_run_info")
 
     page.locator('[data-tab="admin"]').click()
     nut = page.locator("#btnResetStudents")

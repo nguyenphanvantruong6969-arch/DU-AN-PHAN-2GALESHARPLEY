@@ -17,6 +17,9 @@ cũ của nhánh còn ở `backup/nifty-truoc-khi-ghep`. Sửa các lỗi còn l
 - Nhãn workspace bắt đầu bằng `=`, `+`, `-`, `@` bị từ chối (`cau_hinh_ws.chuan_hoa`): nhãn thành tiêu đề cột / tên
   sheet của Sổ nhập, và openpyxl ghi `=...` thành ô công thức thật; nhãn có thể đến từ zip nhập vào. Cấu hình
   như thế đọc lại ra mặc định.
+- Test giao diện `test_moi_o_so_tren_man_hinh_cap_nhat_ngay_sau_khi_xoa` hết chập chờn: `#lastRunLine` và
+  `#statStudents` do hai lời gọi API riêng điền, test từng assert ngay mà không chờ. Nay chờ `#lastRunLine`, và
+  làm chậm `get_last_run_info` 600 ms để thứ tự trả về là chắc chắn (bản assert ngay đỏ ổn định với độ trễ này).
 - `docs/ke_hoach/tham_khao`: `verify_stability_nhanh` nhận `bo_qua_du_tru`; bộ nạp `_chung.nap_rb` nạp thêm
   `nhan_ws` (từ bản có workspace, `i18n_errors` import nó), bản build cũ không có thì vẫn nạp được.
 
