@@ -152,6 +152,10 @@ _SHIM_TEMPLATE = """
      trinh duyet bao dam ban ra khi trang bi dong, va sendBeacon van gui
      duoc trong luc trang dang bi huy. */
   window.addEventListener("pagehide", function () {
+    /* Doi workspace tai lai trang (js/075_workspace.js dat co nay ngay truoc
+       location.reload()). Do KHONG phai dong cua so — bao "dong" luc nay la
+       tat may chu, va trang vua tai lai khong con gi de ket noi. */
+    if (window.__DANG_TAI_LAI) return;
     try {
       navigator.sendBeacon("/__closed__?t=" + encodeURIComponent(TOKEN));
     } catch (e) { /* dong duoc la tot, khong dong duoc thi da co nguong cho */ }

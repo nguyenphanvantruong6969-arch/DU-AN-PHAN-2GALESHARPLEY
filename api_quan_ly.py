@@ -11,13 +11,12 @@ from api_chung import (
     _now,
 )
 import so_nhap
+from api_workspace import CauHinhHong
 from i18n_errors import err
 from i18n_errors import phan_hoi_loi as _fail
 from i18n_errors import phan_hoi_ok as _ok
 from rbda_priority_pipeline import (
     BUOI_MAC_DINH,
-    TRAN_CLB_THI_MOI_BUOI,
-    TRAN_NGUYEN_VONG_MOI_BUOI,
     loi_suc_chua,
 )
 
@@ -398,6 +397,7 @@ class QuanLyMixin:
             # truoc day vo khoa chinh (student_id, club_id) va CA lan luu
             # hong. Tick la tap hop -> bo trung, giu thu tu dau tien.
             club_ids = list(dict.fromkeys(club_ids))
+            tran_thi = self._tran_thi()   # trần của workspace (None = không giới hạn); đọc trước giao dịch
             with self._ket_noi_ghi() as cur:
                 exists = cur.execute(
                     "SELECT 1 FROM students WHERE student_id = ?", (student_id,)
@@ -412,12 +412,12 @@ class QuanLyMixin:
                 # Tran tinh THEO TUNG BUOI. Tu choi ca loi goi chu khong cat bot:
                 # nguoi dung dang ngoi truoc man hinh va sua duoc ngay, con cat
                 # bot la phan mem tu y doi dieu ho vua khai.
-                qua = self._buoi_qua_tran(cur, club_ids, TRAN_CLB_THI_MOI_BUOI)
+                qua = self._buoi_qua_tran(cur, club_ids, tran_thi)
                 if qua:
                     b, n = qua
                     return _fail(err(
                         "max_thi_moi_buoi" if b != BUOI_MAC_DINH else "thi_too_many",
-                        buoi=b, count=n, tran=TRAN_CLB_THI_MOI_BUOI))
+                        buoi=b, count=n, tran=tran_thi))
 
                 cur.execute(
                     "DELETE FROM club_test_selection WHERE student_id = ?", (student_id,)
@@ -429,14 +429,16 @@ class QuanLyMixin:
                 n_xoa = self._xoa_diem_khong_con_tick(cur, student_id)
             return _ok({"student_id": student_id, "n_selected": len(club_ids),
                         "n_scores_removed": n_xoa})
+        except CauHinhHong as e:
+            return _fail(err("ws_cau_hinh_hong", detail=str(e)))
         except Exception as e:
             return _fail(err("error_saving_test_selection", detail=str(e)))
 
     def submit_preferences(self, student_id: str, ordered_club_ids: list):
         """
         BƯỚC 2 (độc lập với tick-box thi) — xếp hạng nguyện vọng,
-        tối đa 10 club (giới hạn Microsoft Forms Ranking, giữ đồng
-        bộ với luồng nhập chính).
+        tối đa `rules.max_choices` mỗi buổi (mặc định 10 — giới hạn Microsoft Forms
+        Ranking, giữ đồng bộ với luồng nhập chính).
         """
         try:
             if not isinstance(ordered_club_ids, list):
@@ -450,6 +452,7 @@ class QuanLyMixin:
             if len(ordered_club_ids) != len(set(ordered_club_ids)):
                 return _fail(err("duplicate_preference_in_list"))
 
+            tran_nv = self._tran_nguyen_vong()   # trần của workspace; đọc trước giao dịch
             with self._ket_noi_ghi() as cur:
                 exists = cur.execute(
                     "SELECT 1 FROM students WHERE student_id = ?", (student_id,)
@@ -463,13 +466,12 @@ class QuanLyMixin:
                 if invalid:
                     return _fail(err("unknown_clubs", club_ids=invalid))
 
-                qua = self._buoi_qua_tran(cur, ordered_club_ids,
-                                          TRAN_NGUYEN_VONG_MOI_BUOI)
+                qua = self._buoi_qua_tran(cur, ordered_club_ids, tran_nv)
                 if qua:
                     b, n = qua
                     return _fail(err(
                         "max_pref_moi_buoi" if b != BUOI_MAC_DINH else "pref_too_many",
-                        buoi=b, count=n, tran=TRAN_NGUYEN_VONG_MOI_BUOI))
+                        buoi=b, count=n, tran=tran_nv))
 
                 cur.execute("DELETE FROM preferences WHERE student_id = ?", (student_id,))
                 cur.executemany(
@@ -477,6 +479,8 @@ class QuanLyMixin:
                     [(student_id, cid, i + 1) for i, cid in enumerate(ordered_club_ids)],
                 )
             return _ok({"student_id": student_id, "n_ranked": len(ordered_club_ids)})
+        except CauHinhHong as e:
+            return _fail(err("ws_cau_hinh_hong", detail=str(e)))
         except Exception as e:
             return _fail(err("error_saving_preferences", detail=str(e)))
 
@@ -503,7 +507,8 @@ class QuanLyMixin:
         (Bước 2) hiện tại của học sinh để nhập lại từ đầu tại kiosk.
         Không còn ô tick nào thì điểm đã chấm của em cũng đi theo
         (`n_scores_removed`, xem `_xoa_diem_khong_con_tick`) — nếu không,
-        em chỉ nhập lại nguyện vọng là điểm cũ tự sống lại.
+        em chỉ nhập lại nguyện vọng là điểm cũ tự sống lại. Điểm theo NGƯỜI
+        (`diem_ca_nhan`) thì giữ nguyên.
         KHÔNG xoá bản ghi học sinh (giữ nguyên student_id/tên/STB/reserve_group).
         """
         try:
@@ -516,6 +521,10 @@ class QuanLyMixin:
                 cur.execute("DELETE FROM club_test_selection WHERE student_id = ?", (student_id,))
                 cur.execute("DELETE FROM preferences WHERE student_id = ?", (student_id,))
                 n_xoa = self._xoa_diem_khong_con_tick(cur, student_id)
+                # Điểm theo NGƯỜI (workspace per_person, `students.diem_ca_nhan`) ở LẠI. Điểm
+                # từng CLB đi theo ô tick vì nó được chấm cho đúng lựa chọn đó; điểm theo người
+                # do giáo viên chấm cho cả người, không gắn với tick hay nguyện vọng nào, nên
+                # em nhập lại nguyện vọng ở kiosk không được xoá điểm của giáo viên.
             return _ok({"student_id": student_id, "reset": True,
                         "n_scores_removed": n_xoa})
         except Exception as e:

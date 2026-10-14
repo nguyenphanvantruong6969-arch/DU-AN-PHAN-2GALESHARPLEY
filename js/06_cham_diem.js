@@ -13,10 +13,63 @@
 
 let currentScoringClub = null;
 
+/* Luật chấm điểm của workspace đang mở (đặt bởi wsApDungCauHinh):
+   theoNguoi = MỘT điểm cho cả người (không chấm từng CLB);
+   an        = luật chỉ xếp theo nhóm, không dùng điểm, nên ẩn cả thẻ Nhập điểm. */
+let LUAT_CHAM_DIEM = { theoNguoi: false, an: false };
+
+function apDungLuatChamDiem(luat) {
+  LUAT_CHAM_DIEM = {
+    an: luat.priority === "tier",
+    theoNguoi: luat.score_scope === "per_person" && luat.priority !== "tier",
+  };
+  const nut = document.querySelector('.nav-item[data-tab="scoring"]');
+  if (nut) nut.hidden = LUAT_CHAM_DIEM.an;
+  const moTa = el("scoringDesc");
+  if (moTa) moTa.setAttribute("data-i18n", LUAT_CHAM_DIEM.theoNguoi ? "scoring_desc_person" : "scoring_desc");
+}
+
 function loadScoringTab() {
   el("scoringWorkArea").hidden = true;
   currentScoringClub = null;
+  el("scoringClubPanel").hidden = LUAT_CHAM_DIEM.theoNguoi;
+  el("scoringPersonArea").hidden = !LUAT_CHAM_DIEM.theoNguoi;
+  if (LUAT_CHAM_DIEM.theoNguoi) {
+    loadScoringPersons();
+    return;
+  }
   loadScoringOverview();
+}
+
+/* Chấm theo NGƯỜI: một ô điểm cho mỗi người. Vẫn chấm mù: chỉ mã và họ tên. */
+function loadScoringPersons() {
+  return callApi("get_person_scoring_list").then((res) => {
+    const body = el("scoringPersonBody");
+    clear(body);
+    const rong = !res.ok || !res.data.persons.length;
+    el("scoringPersonEmpty").hidden = !rong;
+    el("btnSavePersonScores").hidden = rong;
+    el("scoringPersonProgress").textContent = rong ? "" : t("scoring_person_progress", {
+      n_scored: res.data.n_scored, n: res.data.persons.length });
+    if (!res.ok) {
+      showErrorToast(res.errors);
+      return;
+    }
+    res.data.persons.forEach((p) => {
+      const tr = document.createElement("tr");
+      const tdInput = document.createElement("td");
+      const input = document.createElement("input");
+      input.type = "text";           /* không dùng type="number": xem openScoringClub */
+      input.inputMode = "decimal";
+      input.className = "score-input";
+      input.dataset.studentId = p.student_id;
+      if (p.score !== null && p.score !== undefined) input.value = p.score;
+      tdInput.appendChild(input);
+      tr.innerHTML = `<td>${esc(p.student_id)}</td><td>${esc(p.name)}</td>`;
+      tr.appendChild(tdInput);
+      body.appendChild(tr);
+    });
+  });
 }
 
 function loadScoringOverview() {
@@ -89,6 +142,47 @@ function openScoringClub(clubId) {
 }
 
 function initScoringHandlers() {
+  el("btnSavePersonScores").addEventListener("click", () => {
+    const inputs = document.querySelectorAll("#scoringPersonBody .score-input");
+    inputs.forEach((input) => {
+      input.classList.remove("is-invalid");
+      input.removeAttribute("title");
+      input.removeAttribute("aria-invalid");
+    });
+    const scores = Array.from(inputs).map((input) => ({
+      student_id: input.dataset.studentId,
+      score: input.value === "" ? null : input.value,
+    }));
+    khiBan(el("btnSavePersonScores"), () => callApi("submit_person_scores", scores)).then((res) => {
+      if (!res.ok) {
+        feedbackErrors(el("scoringPersonFeedback"), res.errors);
+        return;
+      }
+      const boQua = res.data.warnings || [];
+      const oTheoMa = new Map(Array.from(inputs, (i) => [i.dataset.studentId, i]));
+      boQua.forEach((w) => {
+        const sid = w && w.params && w.params.student_id;
+        const input = sid === undefined || sid === null ? null : oTheoMa.get(String(sid));
+        if (!input) return;
+        input.classList.add("is-invalid");
+        input.setAttribute("aria-invalid", "true");
+        input.title = trErr(w);
+      });
+      if (boQua.length) {
+        const cau = t("feedback_scores_saved_mot_phan", { n: res.data.n_saved, k: boQua.length });
+        feedback(el("scoringPersonFeedback"), cau, true);
+        showToast(cau + "\n" + trErrs(boQua).join("\n"), "warn");
+      } else {
+        feedback(el("scoringPersonFeedback"), t("feedback_scores_saved", { n: res.data.n_saved }), false);
+      }
+      /* Chỉ làm mới dòng tiến độ: dựng lại bảng sẽ xoá dấu ô lỗi vừa đánh. */
+      callApi("get_person_scoring_list").then((r) => {
+        if (r.ok) el("scoringPersonProgress").textContent = t("scoring_person_progress", {
+          n_scored: r.data.n_scored, n: r.data.persons.length });
+      });
+    });
+  });
+
   el("btnSaveScores").addEventListener("click", () => {
     if (!currentScoringClub) return;
     const inputs = document.querySelectorAll("#scoringTableBody .score-input");

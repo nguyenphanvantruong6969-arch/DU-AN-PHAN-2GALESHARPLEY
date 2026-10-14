@@ -51,17 +51,20 @@ from rbda_priority_pipeline import (
     nhom_theo_buoi,
     run_rbda_nhieu_buoi,
     sanity_check_result,
-    TRAN_CLB_THI_MOI_BUOI,
     sap_buoi,
     soat_vi_pham_rang_buoc,
+    luat_xep_de_ghi,
+    tham_so_luat,
     validate_data_integrity,
     verify_stability,
+    xay_tier_rank,
 )
 
 from api_bao_cao import BaoCaoMixin
 from api_cham_diem import ChamDiemMixin
 from api_nhap import NhapDuLieuMixin
 from api_quan_ly import QuanLyMixin
+from api_workspace import CauHinhHong, WorkspaceMixin
 from api_xuat import XuatKetQuaMixin
 
 
@@ -74,9 +77,16 @@ from api_xuat import XuatKetQuaMixin
 # `api.connect_db`, `api.run_rbda_nhieu_buoi`... để giả lập sự cố, và phép
 # thay đó chỉ có tác dụng với mã nằm trong CHÍNH tệp này.
 class PipelineAPI(NhapDuLieuMixin, ChamDiemMixin, BaoCaoMixin,
-                  XuatKetQuaMixin, QuanLyMixin):
-    def __init__(self, db_path: str, thu_muc_xuat: str = ""):
+                  XuatKetQuaMixin, QuanLyMixin, WorkspaceMixin):
+    def __init__(self, db_path: str, thu_muc_xuat: str = "",
+                 thu_muc_goc_ws: str = None, ws_da_chon: bool = True):
         self.db_path = db_path
+        # Thư mục gốc chứa workspaces/ (xem api_workspace.py). None = chạy
+        # một CSDL như trước và mọi hàm workspace trả lỗi. `ws_da_chon` False
+        # = còn phải để người dùng chọn workspace (giao diện hiện màn chọn).
+        # Gạch dưới: không để pywebview dò vào (xem _set_window).
+        self._goc_ws = thu_muc_goc_ws
+        self._ws_da_chon = bool(ws_da_chon)
         # MỘT khoá cho mọi thao tác GHI trong tiến trình này.
         #
         # pywebview chạy mỗi lời gọi từ giao diện trên một luồng riêng, và
@@ -190,10 +200,13 @@ class PipelineAPI(NhapDuLieuMixin, ChamDiemMixin, BaoCaoMixin,
     def check_data_integrity(self):
         """Nút 'Kiểm tra dữ liệu' — chỉ validate, KHÔNG chạy pipeline."""
         try:
+            luat = self._luat_nghiem()
             students, clubs, tested_scores, applicants, preferences, _ = (
-                load_from_sqlite(self.db_path)
+                load_from_sqlite(self.db_path, luat)
             )
-            errors = validate_data_integrity(students, clubs, preferences, applicants)
+            errors = validate_data_integrity(
+                students, clubs, preferences, applicants,
+                tran_nguyen_vong=luat["max_choices"])
             if errors:
                 return _fail(errors)
             return _ok({
@@ -201,6 +214,8 @@ class PipelineAPI(NhapDuLieuMixin, ChamDiemMixin, BaoCaoMixin,
                 "n_students": len(students),
                 "n_clubs": len(clubs),
             })
+        except CauHinhHong as e:
+            return _fail(err("ws_cau_hinh_hong", detail=str(e)))
         except Exception as e:
             return _fail(self._loi_co_ghi_vet(err("error_checking_integrity", detail=str(e))))
 
@@ -241,6 +256,20 @@ class PipelineAPI(NhapDuLieuMixin, ChamDiemMixin, BaoCaoMixin,
         "high" (gần như chắc chắn làm sai kết quả) hoặc "medium"/"info".
         """
         try:
+            try:
+                luat, cau_hinh_hong = self._luat_nghiem(), None
+            except CauHinhHong as e:
+                # Báo thẳng thay vì lặng lẽ soát theo luật trường học: phần còn lại của báo cáo
+                # dùng luật mặc định, nên cảnh báo này đứng đầu và là mức cao.
+                luat, cau_hinh_hong = self._cfg_ws()["rules"], str(e)
+            tran_thi = luat["max_tests"]   # trần của workspace; None = không giới hạn
+            # Điểm theo NGƯỜI, hay không dùng điểm (priority "tier"): không còn "chấm từng
+            # CLB" để mà soát — các mục 1, 2b, 8 (điểm từng CLB) bỏ qua; mục 1b thay vào.
+            diem_tung_clb = (luat["score_scope"] != "per_person"
+                             and luat["priority"] != "tier")
+            # Nhóm xếp cứng thì thuật toán bỏ suất dự trữ (`tham_so_luat`): các mục 4, 5, 6
+            # nói về suất dự trữ và nhãn của nó, nên không còn đúng nữa.
+            co_du_tru = not tham_so_luat(luat, {})["bo_qua_du_tru"]
             with self._ket_noi_doc() as cur:
                 warnings = []
 
@@ -249,8 +278,11 @@ class PipelineAPI(NhapDuLieuMixin, ChamDiemMixin, BaoCaoMixin,
                     entry["severity"] = severity
                     warnings.append(entry)
 
+                if cau_hinh_hong:
+                    warn("high", "ws_cau_hinh_hong", detail=cau_hinh_hong)
+
                 # --- 1. Chấm điểm thiếu / chưa chấm ---------------------------
-                for row in cur.execute("""
+                for row in ([] if not diem_tung_clb else cur.execute("""
                     SELECT c.club_id,
                            COUNT(DISTINCT t.student_id) AS n_applicants,
                            COUNT(DISTINCT sc.student_id) AS n_scored
@@ -260,7 +292,7 @@ class PipelineAPI(NhapDuLieuMixin, ChamDiemMixin, BaoCaoMixin,
                            ON sc.club_id = c.club_id AND sc.student_id = t.student_id
                     GROUP BY c.club_id
                     ORDER BY c.club_id
-                """).fetchall():
+                """).fetchall()):
                     n_app, n_scored = row["n_applicants"], row["n_scored"]
                     if n_app == 0:
                         continue
@@ -271,6 +303,42 @@ class PipelineAPI(NhapDuLieuMixin, ChamDiemMixin, BaoCaoMixin,
                         warn("high", "health_scoring_partial",
                              club_id=row["club_id"], n_applicants=n_app,
                              n_scored=n_scored, n_missing=n_app - n_scored)
+
+                # --- 1b. Điểm theo NGƯỜI: ai có nguyện vọng mà chưa có điểm --------
+                # Người chưa có điểm chỉ được xét theo số bốc thăm, sau người đã có điểm.
+                # Không ai có điểm thì cả cài đặt "điểm theo người" chưa có tác dụng gì.
+                if luat["score_scope"] == "per_person" and luat["priority"] != "tier":
+                    chua = [r[0] for r in cur.execute(
+                        "SELECT s.student_id FROM students s WHERE s.diem_ca_nhan IS NULL "
+                        "AND EXISTS (SELECT 1 FROM preferences p WHERE p.student_id = s.student_id) "
+                        "ORDER BY s.student_id")]
+                    da_co = cur.execute(
+                        "SELECT COUNT(*) FROM students WHERE diem_ca_nhan IS NOT NULL"
+                    ).fetchone()[0]
+                    if chua and not da_co:
+                        warn("high", "health_person_score_none")
+                    elif chua:
+                        warn("medium", "health_person_score_missing", n=len(chua),
+                             sample=", ".join(chua[:self._HEALTH_SAMPLE_LIMIT]))
+
+                # --- 1c. Xếp cứng theo nhóm: ai thiếu nhóm ---------------------
+                # Người không có nhóm (hay nhóm không nằm trong danh sách của luật) bị xếp
+                # SAU CÙNG ở mọi nơi — đúng luật, nhưng thường là do gõ thiếu hay sai nhãn.
+                if luat["tier_mode"] == "strict" or luat["priority"] == "tier":
+                    if not luat["tiers"]:
+                        warn("high", "health_tiers_empty")
+                    else:
+                        co_nhom = xay_tier_rank(
+                            {r[0]: {"reserve_group": r[1]} for r in cur.execute(
+                                "SELECT student_id, reserve_group FROM students")},
+                            luat["tiers"])
+                        thieu = [r[0] for r in cur.execute(
+                            "SELECT s.student_id FROM students s WHERE EXISTS "
+                            "(SELECT 1 FROM preferences p WHERE p.student_id = s.student_id) "
+                            "ORDER BY s.student_id") if r[0] not in co_nhom]
+                        if thieu:
+                            warn("high", "health_tier_missing", n=len(thieu),
+                                 sample=", ".join(thieu[:self._HEALTH_SAMPLE_LIMIT]))
 
                 # --- 2. Đăng ký thi nhưng không xếp nguyện vọng club đó -------
                 wasted = cur.execute("""
@@ -295,7 +363,7 @@ class PipelineAPI(NhapDuLieuMixin, ChamDiemMixin, BaoCaoMixin,
                 # còn dòng này. Chạy sắp xếp đã bỏ qua chúng (`load_from_sqlite`)
                 # — nhưng người dùng phải được biết, vì màn hình chấm điểm
                 # không hiện những điểm này.
-                mo_coi = cur.execute("""
+                mo_coi = [] if not diem_tung_clb else cur.execute("""
                     SELECT sc.student_id, sc.club_id
                     FROM club_scores sc
                     LEFT JOIN club_test_selection t
@@ -326,7 +394,7 @@ class PipelineAPI(NhapDuLieuMixin, ChamDiemMixin, BaoCaoMixin,
                 # Kèm MÃ HỌC SINH như hai mục trên. Không có mã thì cảnh báo
                 # bảo "kiểm tra xem có gõ sai chính tả không" mà người dùng
                 # phải tự dò tay qua cả danh sách mới biết dò em nào.
-                for row in cur.execute("""
+                for row in ([] if not co_du_tru else cur.execute("""
                     SELECT s.reserve_group AS g, COUNT(*) AS n,
                            GROUP_CONCAT(s.student_id) AS ids
                     FROM students s
@@ -336,7 +404,7 @@ class PipelineAPI(NhapDuLieuMixin, ChamDiemMixin, BaoCaoMixin,
                           WHERE reserve_group IS NOT NULL AND TRIM(reserve_group) <> ''
                       )
                     GROUP BY s.reserve_group ORDER BY s.reserve_group
-                """).fetchall():
+                """).fetchall()):
                     # GROUP_CONCAT không hứa thứ tự — phải sắp TRƯỚC khi cắt,
                     # nếu không mỗi lần bấm "Kiểm tra lại" lại ra một mẫu khác
                     # và người dùng tưởng dữ liệu vừa đổi.
@@ -346,17 +414,17 @@ class PipelineAPI(NhapDuLieuMixin, ChamDiemMixin, BaoCaoMixin,
                          sample=", ".join(ids[:self._HEALTH_SAMPLE_LIMIT]))
 
                 # --- 5. Club có suất dự trữ nhưng chưa đặt nhãn ---------------
-                for row in cur.execute("""
+                for row in ([] if not co_du_tru else cur.execute("""
                     SELECT club_id, reserve_capacity FROM clubs
                     WHERE reserve_capacity > 0
                       AND (reserve_group IS NULL OR TRIM(reserve_group) = '')
                     ORDER BY club_id
-                """).fetchall():
+                """).fetchall()):
                     warn("high", "health_club_reserve_no_group",
                          club_id=row["club_id"], reserve_capacity=row["reserve_capacity"])
 
                 # --- 6. Club dành suất cho nhãn chưa học sinh nào mang --------
-                for row in cur.execute("""
+                for row in ([] if not co_du_tru else cur.execute("""
                     SELECT club_id, reserve_group, reserve_capacity FROM clubs
                     WHERE reserve_capacity > 0
                       AND reserve_group IS NOT NULL AND TRIM(reserve_group) <> ''
@@ -365,7 +433,7 @@ class PipelineAPI(NhapDuLieuMixin, ChamDiemMixin, BaoCaoMixin,
                           WHERE reserve_group IS NOT NULL AND TRIM(reserve_group) <> ''
                       )
                     ORDER BY club_id
-                """).fetchall():
+                """).fetchall()):
                     warn("medium", "health_club_group_no_students",
                          club_id=row["club_id"], reserve_group=row["reserve_group"],
                          reserve_capacity=row["reserve_capacity"])
@@ -376,7 +444,7 @@ class PipelineAPI(NhapDuLieuMixin, ChamDiemMixin, BaoCaoMixin,
                 # buổi. Thi thêm CLB là thêm chỗ được xét ở Tầng 1, nên đây là
                 # chuyện công bằng — nhưng thuật toán vẫn đúng, nên chỉ cảnh báo.
                 qua_tran: dict = {}
-                for row in cur.execute("""
+                for row in ([] if tran_thi is None else cur.execute("""
                     SELECT t.student_id AS sid,
                            COALESCE(NULLIF(c.buoi, ''), ?) AS buoi,
                            COUNT(*) AS n
@@ -385,7 +453,7 @@ class PipelineAPI(NhapDuLieuMixin, ChamDiemMixin, BaoCaoMixin,
                     GROUP BY t.student_id, COALESCE(NULLIF(c.buoi, ''), ?)
                     HAVING COUNT(*) > ?
                     ORDER BY t.student_id
-                """, (BUOI_MAC_DINH, BUOI_MAC_DINH, TRAN_CLB_THI_MOI_BUOI)).fetchall():
+                """, (BUOI_MAC_DINH, BUOI_MAC_DINH, tran_thi)).fetchall()):
                     qua_tran.setdefault(row["buoi"], []).append(
                         (row["sid"], row["n"]))
                 for buoi in sap_buoi(qua_tran):
@@ -395,10 +463,10 @@ class PipelineAPI(NhapDuLieuMixin, ChamDiemMixin, BaoCaoMixin,
                         for sid, n in ds[:self._HEALTH_SAMPLE_LIMIT])
                     if buoi == BUOI_MAC_DINH:
                         warn("high", "health_thi_qua_tran", n=len(ds),
-                             tran=TRAN_CLB_THI_MOI_BUOI, sample=sample)
+                             tran=tran_thi, sample=sample)
                     else:
                         warn("high", "health_thi_qua_tran_buoi", n=len(ds),
-                             buoi=buoi, tran=TRAN_CLB_THI_MOI_BUOI,
+                             buoi=buoi, tran=tran_thi,
                              sample=sample)
 
                 # --- 6c. Dữ liệu vi phạm ràng buộc của CSDL ------------------
@@ -479,12 +547,12 @@ class PipelineAPI(NhapDuLieuMixin, ChamDiemMixin, BaoCaoMixin,
                 # dùng (`load_from_sqlite`). Điểm không tick đã có cảnh báo
                 # riêng ở mục 2b; tính nó vào trung vị ở đây là so với một
                 # phân bố khác với thứ thật sự quyết định chỗ.
-                for row in cur.execute("""
+                for row in ([] if not diem_tung_clb else cur.execute("""
                     SELECT sc.club_id, sc.student_id, sc.score FROM club_scores sc
                     JOIN club_test_selection t
                       ON t.student_id = sc.student_id AND t.club_id = sc.club_id
                     ORDER BY sc.club_id, sc.student_id
-                """).fetchall():
+                """).fetchall()):
                     diem_theo_clb.setdefault(row["club_id"], []).append(
                         (row["student_id"], row["score"])
                     )
@@ -577,7 +645,7 @@ class PipelineAPI(NhapDuLieuMixin, ChamDiemMixin, BaoCaoMixin,
             with self._ket_noi_doc() as cur:
                 rows = cur.execute(
                     "SELECT run_id, seed, run_at, rounds_run, n_matched, n_total, "
-                    "       stb_redrawn, so_buoi, buoi_da_chay, che_do_boc_tham "
+                    "       stb_redrawn, so_buoi, buoi_da_chay, che_do_boc_tham, luat_xep "
                     "FROM run_history ORDER BY run_id DESC LIMIT ?",
                     (limit,),
                 ).fetchall()
@@ -880,9 +948,22 @@ class PipelineAPI(NhapDuLieuMixin, ChamDiemMixin, BaoCaoMixin,
             steps_log.append({"step": "validate", "status": "running"})
             # Dữ liệu VÀ dấu vân tay của nó lấy trong CÙNG một lần đọc — dấu
             # vân tay ghi lên kết quả ở bước 5 phải là của đúng dữ liệu này.
+            # Luật xếp của workspace (cách ưu tiên, nhóm, điểm theo người): đọc TRƯỚC khi
+            # mở giao dịch ghi, và dùng CÙNG bản này cho đọc dữ liệu, dấu vân tay và chạy.
+            # NGHIÊM: cấu hình có mà đọc không được thì DỪNG, không lặng lẽ chạy bằng luật trường
+            # học (kết quả sai, mà run_history.luat_xep lại ghi "mặc định"). MỘT lần đọc cho cả
+            # trần nguyện vọng lẫn luật xếp.
+            try:
+                luat = self._luat_nghiem()
+            except CauHinhHong as e:
+                loi_ch = err("ws_cau_hinh_hong", detail=str(e))
+                steps_log.append({"step": "validate", "status": "error", "detail": loi_ch})
+                return _fail_co_buoc(steps_log, [loi_ch])
             (students, clubs, tested_scores, applicants, preferences, _), \
-                dau_van_tay = load_from_sqlite_kem_dau_van_tay(self.db_path)
-            errors = validate_data_integrity(students, clubs, preferences, applicants)
+                dau_van_tay = load_from_sqlite_kem_dau_van_tay(self.db_path, luat)
+            errors = validate_data_integrity(
+                students, clubs, preferences, applicants,
+                tran_nguyen_vong=luat["max_choices"])
             if errors:
                 steps_log.append({"step": "validate", "status": "error", "detail": errors})
                 return _fail_co_buoc(steps_log, errors)
@@ -1087,6 +1168,7 @@ class PipelineAPI(NhapDuLieuMixin, ChamDiemMixin, BaoCaoMixin,
             # ghi. Hỏng một trong hai là rollback toàn bộ giao dịch.
             steps_log.append({"step": "rbda_cascade", "status": "running"})
             reserve_fn = default_reserve_eligible_fn(students, clubs)
+            tham_so = tham_so_luat(luat, students)
             # Mot buoi hay nhieu buoi deu di qua DUNG mot duong nay: voi du
             # lieu mot buoi, run_rbda_nhieu_buoi goi run_rbda dung mot lan
             # voi dung du lieu do. Co test canh su trung khit ay tren ba bo
@@ -1096,6 +1178,7 @@ class PipelineAPI(NhapDuLieuMixin, ChamDiemMixin, BaoCaoMixin,
                 stb_lottery, is_reserve_eligible_fn=reserve_fn,
                 che_do_boc_tham=CHE_DO_BOC_THAM_MAC_DINH, seed=seed,
                 chi_buoi=chi_buoi_chuan,
+                tier_rank=tham_so["tier_rank"], bo_qua_du_tru=tham_so["bo_qua_du_tru"],
             )
             sanity_problems = []
             stability_problems = []
@@ -1106,7 +1189,8 @@ class PipelineAPI(NhapDuLieuMixin, ChamDiemMixin, BaoCaoMixin,
                     tested_scores, applicants, preferences)
                 sanity_problems += sanity_check_result(_kq, _clubs_b, _prefs_b)
                 stability_problems += verify_stability(
-                    _kq, _clubs_b, _prefs_b, reserve_fn)
+                    _kq, _clubs_b, _prefs_b, reserve_fn,
+                    bo_qua_du_tru=tham_so["bo_qua_du_tru"])
             if sanity_problems or stability_problems:
                 steps_log.append({
                     "step": "rbda_cascade", "status": "error",
@@ -1282,11 +1366,11 @@ class PipelineAPI(NhapDuLieuMixin, ChamDiemMixin, BaoCaoMixin,
             cur.execute(
                 "INSERT INTO run_history "
                 "(seed, run_at, rounds_run, n_matched, n_total, stb_redrawn, "
-                " che_do_boc_tham, so_buoi, buoi_da_chay) "
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                " che_do_boc_tham, so_buoi, buoi_da_chay, luat_xep) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 (seed, run_at, result.rounds_run, n_matched, len(so_clb),
                  1 if stb_redrawn else 0, result.che_do_boc_tham,
-                 len(result.ds_buoi), buoi_da_chay),
+                 len(result.ds_buoi), buoi_da_chay, luat_xep_de_ghi(luat)),
             )
 
             # Diem commit DUY NHAT cua toan bo pipeline: neu bat ky dong

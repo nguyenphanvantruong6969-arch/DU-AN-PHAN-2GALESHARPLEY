@@ -179,5 +179,7 @@ def _ghi_csv(path: str, header, cac_dong) -> None:
     with open(path, "w", newline="", encoding="utf-8-sig") as f:
         w = csv.writer(f)
         if header:
-            w.writerow(header)
+            # Tiêu đề cũng qua bộ chặn công thức: nhiều cột nay mang NHÃN do người dùng đặt
+            # (workspace — có thể đến từ một tệp .zip của người khác), không còn là hằng số.
+            w.writerow([_an_toan_cho_excel(o) for o in header])
         w.writerows([_an_toan_cho_excel(o) for o in d] for d in cac_dong)

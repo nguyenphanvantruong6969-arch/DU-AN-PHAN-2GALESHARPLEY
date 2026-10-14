@@ -5,8 +5,8 @@ main.py
 làm js_api để index.html và js/*.js gọi qua window.pywebview.api.*
 
 Cách chạy:
-    python3 main.py                    # dùng app.db cùng thư mục main.py
-    python3 main.py /duong/dan/khac.db # chỉ định DB khác
+    python3 main.py                    # mở một workspace trong workspaces/ cạnh main.py
+    python3 main.py /duong/dan/khac.db # chỉ định DB khác (một DB, không workspace)
 """
 
 import os
@@ -14,8 +14,12 @@ import sys
 import traceback
 
 import browser_host
+import cau_hinh_ws
 import chan_doan
+import nhan_ws
+import workspace
 from api import PipelineAPI
+from rbda_priority_pipeline import init_db
 from recovery import RecoveryAPI
 
 APP_TITLE = "Sắp xếp Câu lạc bộ — RB-DA"
@@ -46,6 +50,79 @@ def resolve_db_path() -> str:
     if len(sys.argv) > 1:
         return os.path.abspath(sys.argv[1])
     return os.path.join(BASE_DIR, "app.db")
+
+
+class WorkspaceKhoiDongHong(Exception):
+    """Không workspace nào mở được lúc khởi động. `db_path` là tệp hỏng cần đưa ra màn phục hồi."""
+
+    def __init__(self, db_path: str, loi: Exception):
+        super().__init__(str(loi))
+        self.db_path = db_path
+
+
+def khoi_dong_workspace() -> tuple:
+    """(db_path, thu_muc_goc_ws, da_chon) — app.db sẽ mở lúc khởi động.
+
+    Có đường dẫn trong argv: y như trước — MỘT CSDL, không workspace
+    (`thu_muc_goc_ws` None).
+
+    Không có: dùng workspace trong `BASE_DIR/workspaces/`. `app.db` cũ cạnh
+    chương trình (bản trước khi có workspace) được dời vào workspace "Trường
+    học" trước. Chưa có workspace nào thì dựng "Trường học" mặc định. Có đúng
+    một thì mở luôn (trường chỉ dùng một workspace không phải chọn gì). Có
+    nhiều thì `da_chon` False: giao diện hiện màn chọn, còn CSDL trả về là
+    cái sửa gần nhất MỞ ĐƯỢC — chỉ để đối tượng API có chỗ đứng cho tới khi chọn.
+    Workspace hỏng không được chiếm chỗ đó: nó làm cả chương trình rơi vào màn phục hồi
+    trong khi các workspace lành vẫn dùng được. Chỉ khi KHÔNG cái nào mở được mới ném
+    `WorkspaceKhoiDongHong` (mang đường dẫn tệp hỏng gần nhất, cho màn phục hồi).
+    """
+    if len(sys.argv) > 1:
+        return resolve_db_path(), None, True
+    workspace.di_chuyen_db_cu(BASE_DIR)
+    ds = workspace.danh_sach(BASE_DIR)
+    if not ds:
+        slug = workspace.tao(BASE_DIR, workspace.TEN_TRUONG_HOC, None)
+        return workspace.duong_dan_db(BASE_DIR, slug), BASE_DIR, True
+    loi_dau = None
+    for w in sorted(ds, key=lambda w: w["modified"], reverse=True):
+        try:
+            init_db(w["path"])           # đúng điều PipelineAPI(db_path) đòi
+        except Exception as e:
+            loi_dau = loi_dau or (w["path"], e)
+            continue
+        return w["path"], BASE_DIR, len(ds) == 1
+    raise WorkspaceKhoiDongHong(*loi_dau)
+
+
+def _db_phuc_hoi_du_phong(db_cu: str) -> str:
+    """Tệp cho màn phục hồi khi lỗi khởi động KHÔNG nêu rõ tệp nào hỏng.
+
+    `app.db` cạnh chương trình chỉ còn khi chưa di trú; sau di trú nó không còn, và bắt đầu lại
+    trên đường dẫn đó đẻ ra một app.db mồ côi không ai đọc. Lúc đó dùng workspace sửa gần nhất."""
+    if os.path.exists(db_cu):
+        return db_cu
+    try:
+        ds = workspace.danh_sach(BASE_DIR)
+    except Exception:
+        return db_cu
+    return max(ds, key=lambda w: w["modified"])["path"] if ds else db_cu
+
+
+def tieu_de_cua_so(db_path: str, goc_ws) -> str:
+    """Tiêu đề cửa sổ lúc mở: "<tên danh từ chỗ xếp> — <tên workspace>".
+
+    Chạy với đường dẫn CSDL riêng (không workspace) thì giữ APP_TITLE như trước.
+    Giao diện đổi lại theo ngôn ngữ đang chọn và khi đổi workspace
+    (`PipelineAPI.dat_tieu_de_cua_so`); ở đây chưa biết ngôn ngữ nên dùng tiếng Việt.
+    """
+    if not goc_ws:
+        return APP_TITLE
+    try:
+        cfg = cau_hinh_ws.doc_cau_hinh(db_path)
+        return "%s — %s" % (nhan_ws.nhan_ngon_ngu(cfg["labels"], "slot", "vi"),
+                            cfg["name"] or os.path.basename(os.path.dirname(db_path)))
+    except Exception:
+        return APP_TITLE
 
 
 def _show_ui(title: str, page: str, js_api, width: int, height: int,
@@ -133,6 +210,8 @@ def _show_ui(title: str, page: str, js_api, width: int, height: int,
 
 
 def main() -> None:
+    # Đường dẫn cũ làm chỗ dựa cho màn phục hồi nếu chính việc chọn workspace
+    # hỏng (khoi_dong_workspace nằm trong try ngay dưới).
     db_path = resolve_db_path()
 
     # KHÔNG BAO GIỜ được chết ngầm: nếu app.db hỏng/mất, PipelineAPI(...)
@@ -146,18 +225,22 @@ def main() -> None:
     # động (xem PipelineAPI._backup_db trong api.py) hoặc bắt đầu lại
     # với DB trống.
     try:
-        api = PipelineAPI(db_path)
+        db_path, goc_ws, da_chon = khoi_dong_workspace()
+        api = PipelineAPI(db_path, thu_muc_goc_ws=goc_ws, ws_da_chon=da_chon)
     except Exception as e:
+        # Lỗi nêu rõ tệp hỏng thì phục hồi đúng tệp đó; không thì tệp dự phòng (xem hàm).
+        db_phuc_hoi = getattr(e, "db_path", None) or (
+            _db_phuc_hoi_du_phong(db_path) if len(sys.argv) <= 1 else db_path)
         _show_ui(
             APP_TITLE + " — Phục hồi dữ liệu",
             "recovery.html",
-            RecoveryAPI(db_path, f"{e}\n\n{traceback.format_exc()}"),
+            RecoveryAPI(db_phuc_hoi, f"{e}\n\n{traceback.format_exc()}"),
             width=900, height=700, min_size=(700, 560),
         )
         return
 
     _show_ui(
-        APP_TITLE, "index.html", api,
+        tieu_de_cua_so(db_path, goc_ws), "index.html", api,
         width=1280, height=800, min_size=(1024, 640),
     )
 

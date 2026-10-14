@@ -4,6 +4,7 @@ Một phần của PipelineAPI (xem api.py) — tách riêng cho dễ đọc; m�
 public ở đây vẫn là hàm của PipelineAPI và giao diện gọi được như cũ.
 """
 
+from api_workspace import CauHinhHong
 from i18n_errors import err
 from i18n_errors import phan_hoi_loi as _fail
 from i18n_errors import phan_hoi_ok as _ok
@@ -36,6 +37,78 @@ class ChamDiemMixin:
             return _ok([dict(r) for r in rows])
         except Exception as e:
             return _fail(err("error_reading_scoring_overview", detail=str(e)))
+
+    # -----------------------------------------------------------------
+    # CHẤM ĐIỂM THEO NGƯỜI (workspace `score_scope = per_person`): MỘT điểm cho cả người,
+    # lưu ở students.diem_ca_nhan. Vẫn chấm mù: chỉ mã và tên, không số bốc thăm, không
+    # nguyện vọng. Điểm này được mở rộng ra các nơi người đó có nguyện vọng lúc xếp
+    # (`load_from_sqlite`), nên sửa một điểm là sửa một ô.
+    # -----------------------------------------------------------------
+    def _soat_cham_theo_nguoi(self):
+        """None nếu workspace chấm điểm theo người, ngược lại là lỗi để trả về."""
+        if self._luat_nghiem()["score_scope"] != "per_person":
+            return err("scoring_not_per_person")
+        return None
+
+    def get_person_scoring_list(self):
+        """Danh sách mọi người cần chấm: {student_id, name, score}, score None = chưa chấm."""
+        try:
+            loi = self._soat_cham_theo_nguoi()
+            if loi:
+                return _fail(loi)
+            with self._ket_noi_doc() as cur:
+                rows = cur.execute(
+                    "SELECT student_id, name, diem_ca_nhan AS score FROM students "
+                    "ORDER BY student_id").fetchall()
+            return _ok({
+                "persons": [dict(r) for r in rows],
+                "n_scored": sum(1 for r in rows if r["score"] is not None),
+            })
+        except CauHinhHong as e:
+            return _fail(err("ws_cau_hinh_hong", detail=str(e)))
+        except Exception as e:
+            return _fail(err("error_reading_scoring_list", detail=str(e)))
+
+    def submit_person_scores(self, scores: list):
+        """Lưu điểm theo người. scores: [{"student_id": "...", "score": 8.5}, ...].
+
+        Cùng luật số như `submit_club_scores` (nhận "8,5", từ chối âm / không phải số);
+        ô trống xoá điểm của người đó."""
+        try:
+            if not isinstance(scores, list) or not scores:
+                return _fail(err("scores_must_be_nonempty_list"))
+            loi = self._soat_cham_theo_nguoi()
+            if loi:
+                return _fail(loi)
+            with self._ket_noi_ghi() as cur:
+                co = {r[0] for r in cur.execute("SELECT student_id FROM students")}
+                n_saved, skipped = 0, []
+                for entry in scores:
+                    sid = entry.get("student_id") if isinstance(entry, dict) else None
+                    if sid not in co:
+                        skipped.append(err("student_not_found", student_id=str(
+                            sid if isinstance(entry, dict) else entry)))
+                        continue
+                    diem = entry.get("score")
+                    if diem is None or diem == "":
+                        cur.execute("UPDATE students SET diem_ca_nhan = NULL "
+                                    "WHERE student_id = ?", (sid,))
+                        continue
+                    so = self._doc_diem(diem if isinstance(diem, str) else str(diem))
+                    if so is None:
+                        skipped.append(err("score_not_a_number", student_id=sid, diem_goc=diem))
+                        continue
+                    if so < 0:
+                        skipped.append(err("score_negative", student_id=sid, diem_goc=so))
+                        continue
+                    cur.execute("UPDATE students SET diem_ca_nhan = ? WHERE student_id = ?",
+                                (so, sid))
+                    n_saved += 1
+            return _ok({"n_saved": n_saved, "warnings": skipped})
+        except CauHinhHong as e:
+            return _fail(err("ws_cau_hinh_hong", detail=str(e)))
+        except Exception as e:
+            return _fail(err("error_saving_scores", detail=str(e)))
 
     def get_club_applicants_for_scoring(self, club_id: str):
         """
@@ -75,6 +148,10 @@ class ChamDiemMixin:
         try:
             if not isinstance(scores, list) or not scores:
                 return _fail(err("scores_must_be_nonempty_list"))
+            luat = self._luat_nghiem()
+            if luat["score_scope"] == "per_person" or luat["priority"] == "tier":
+                # Thuật toán bỏ qua club_scores ở hai chế độ này: lưu mà báo "đã lưu" là nói dối.
+                return _fail(err("scoring_not_per_slot"))
 
             with self._ket_noi_ghi() as cur:
                 club_exists = cur.execute(
@@ -114,7 +191,7 @@ class ChamDiemMixin:
                     # điểm thì không — mà đó mới là cửa giáo viên gõ tay.
                     so = self._doc_diem(score if isinstance(score, str) else str(score))
                     if so is None:
-                        skipped.append(err("score_not_a_number", student_id=sid, score=score))
+                        skipped.append(err("score_not_a_number", student_id=sid, diem_goc=score))
                         continue
                     score = so
                     # Điểm âm: đường NẠP TỆP đã từ chối từ trước
@@ -123,7 +200,7 @@ class ChamDiemMixin:
                     # giáo viên đi cửa nào — đo được: -9 vào lọt ở đây, và em
                     # điểm cao nhất tụt xuống dưới tất cả, mất chỗ.
                     if score < 0:
-                        skipped.append(err("score_negative", student_id=sid, score=score))
+                        skipped.append(err("score_negative", student_id=sid, diem_goc=score))
                         continue
                     cur.execute(
                         "INSERT INTO club_scores (student_id, club_id, score) VALUES (?, ?, ?) "
@@ -133,5 +210,7 @@ class ChamDiemMixin:
                     n_saved += 1
 
             return _ok({"club_id": club_id, "n_saved": n_saved, "warnings": skipped})
+        except CauHinhHong as e:
+            return _fail(err("ws_cau_hinh_hong", detail=str(e)))
         except Exception as e:
             return _fail(err("error_saving_scores", detail=str(e)))

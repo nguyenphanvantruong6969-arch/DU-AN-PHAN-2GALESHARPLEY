@@ -9,6 +9,7 @@ import csv
 import io
 import re
 import so_nhap
+from api_workspace import CauHinhHong
 from i18n_errors import err
 from i18n_errors import phan_hoi_loi as _fail
 from i18n_errors import phan_hoi_ok as _ok
@@ -16,10 +17,10 @@ from rbda_priority_pipeline import (
     khoa_sap_buoi,
     sap_buoi,
     BUOI_MAC_DINH,
-    TRAN_CLB_THI_MOI_BUOI,
-    TRAN_NGUYEN_VONG_MOI_BUOI,
     gom_theo_buoi,
     loi_suc_chua,
+    luat_xep_cua,
+    nhom_xep_cung,
 )
 
 
@@ -262,6 +263,11 @@ class NhapDuLieuMixin:
             import openpyxl
         except ImportError:
             return None, err("xlsx_support_missing")
+        # Cấu hình quyết định tên sheet, tiêu đề và kiểu cột điểm: đọc NGHIÊM, trước mọi việc khác.
+        try:
+            cfg = self._cfg_ws(nghiem=True)
+        except CauHinhHong as e:
+            return None, err("ws_cau_hinh_hong", detail=str(e))
         try:
             du_lieu = _b64.b64decode(file_base64 or "", validate=False)
         except Exception as e:
@@ -277,10 +283,10 @@ class NhapDuLieuMixin:
         except Exception as e:
             return None, err("xlsx_read_failed", detail=str(e))
         try:
-            if not so_nhap.la_so_nhap(wb.sheetnames):
+            if not so_nhap.la_so_nhap(wb.sheetnames, cfg):
                 return None, err("so_nhap_khong_phai_so")
             return so_nhap.doc_so_nhap(wb, self._clb_theo_ten(), self._ma_clb_da_co(),
-                                       self._clb_cu()), None
+                                       self._clb_cu(), cfg), None
         finally:
             wb.close()
 
@@ -426,6 +432,14 @@ class NhapDuLieuMixin:
                             "UPDATE students SET name = ? WHERE student_id = ?",
                             [(s["name"], s["student_id"]) for s in du_lieu["students"]
                              if (s["name"] or "").strip()])
+                        # Điểm theo NGƯỜI (workspace per_person): một ô cho cả dòng, lưu ở
+                        # students.diem_ca_nhan. Ô trống hay chữ `thi` -> NULL (chưa có
+                        # điểm). Chỉ sổ CÓ cột điểm chung mới đụng tới cột này.
+                        cur.executemany(
+                            "UPDATE students SET diem_ca_nhan = ? WHERE student_id = ?",
+                            [(so_nhap.diem_cua_nguoi(s), s["student_id"])
+                             for s in du_lieu["students"]
+                             if s.get("diem_ca_nhan") is not None])
 
             kq["warnings"] = canh_bao
             return _ok(kq)
@@ -874,7 +888,7 @@ class NhapDuLieuMixin:
         return khop
 
     @staticmethod
-    def _soat_nhom_du_tru_la(cur, nhom_da_ghi: dict) -> list:
+    def _soat_nhom_du_tru_la(cur, nhom_da_ghi: dict, nhom_cung: bool = False) -> list:
         """Cảnh báo NGAY LÚC NHẬP nếu nhãn nhóm không CLB nào nhận.
 
         Mục "Cảnh báo dữ liệu" cũng bắt được ca này, nhưng nằm ở panel
@@ -883,8 +897,13 @@ class NhapDuLieuMixin:
         khi vừa nạp file.
 
         nhom_da_ghi: { nhãn đã chuẩn hoá: số học sinh mang nhãn đó }
+        nhom_cung: workspace xếp nhóm CỨNG — nhãn nhóm của người là hạng ưu tiên trong
+            `rules.tiers`, không liên quan suất dự trữ của CLB, nên "không CLB nào nhận" là
+            cảnh báo sai (và buộc người dùng sửa thứ không hỏng).
         """
         import difflib
+        if nhom_cung:
+            return []
 
         if not nhom_da_ghi:
             return []
@@ -949,7 +968,7 @@ class NhapDuLieuMixin:
         }
 
     @staticmethod
-    def _cat_buoi_qua_tran(ds_clb, buoi_cua_clb: dict, tran: int):
+    def _cat_buoi_qua_tran(ds_clb, buoi_cua_clb: dict, tran):
         """Bỏ những BUỔI vượt trần, giữ nguyên phần còn lại đúng thứ tự cũ.
 
         Trả `(giu, bo)` với `bo = {buoi: số lượng đã khai}` — rỗng nghĩa là
@@ -963,7 +982,11 @@ class NhapDuLieuMixin:
 
         LƯU Ý cho người gọi: `ds_clb` phải là mã CLB ĐÃ CHUẨN HOÁ. Mã lệch
         hoa/thường tra không ra buổi, rơi vào buổi mặc định, và gom nhầm nhóm.
+
+        `tran` None = không giới hạn (workspace đặt `max_tests` là None): không cắt gì.
         """
+        if tran is None:
+            return list(ds_clb), {}
         theo_buoi = gom_theo_buoi(
             ds_clb, {c: {"buoi": b} for c, b in buoi_cua_clb.items()})
         bo = {b: len(ds) for b, ds in theo_buoi.items() if len(ds) > tran}
@@ -1046,6 +1069,9 @@ class NhapDuLieuMixin:
         tới học sinh không có trong file.
         """
         try:
+            luat = self._luat_nghiem()
+            tran_nv = luat["max_choices"]        # trần của workspace; đọc TRƯỚC khi mở giao dịch
+            nhom_cung = nhom_xep_cung(luat_xep_cua(luat))
             fieldnames, rows = self._parse_csv_rows(csv_text)
             if not rows:
                 return _fail(err("csv_empty"))
@@ -1167,7 +1193,7 @@ class NhapDuLieuMixin:
                     # duoc: 31/180 em cua bo `bo_sau_buoi` va 4/160 em cua
                     # `bo_nhieu_buoi` bi gat lang le khoi dot xep.
                     giu, buoi_bo = self._cat_buoi_qua_tran(
-                        deduped, buoi_cua_clb, TRAN_NGUYEN_VONG_MOI_BUOI)
+                        deduped, buoi_cua_clb, tran_nv)
                     for b, n in sorted(buoi_bo.items(), key=lambda bn: khoa_sap_buoi(bn[0])):
                         # Truong MOT buoi co nhan buoi la BUOI_MAC_DINH — mot
                         # chuoi noi bo, khong phai thu doc len duoc. Neu no ra
@@ -1178,7 +1204,7 @@ class NhapDuLieuMixin:
                             "csv_pref_too_many_skipped"
                             if b == BUOI_MAC_DINH else "csv_pref_bo_buoi_qua_tran",
                             student_id=sid, buoi=b, count=n,
-                            tran=TRAN_NGUYEN_VONG_MOI_BUOI))
+                            tran=tran_nv))
                     n_buoi_bo_qua += len(buoi_bo)
                     if buoi_bo and not giu:
                         # Moi buoi deu vuot tran -> em nay that su trang tay.
@@ -1205,7 +1231,7 @@ class NhapDuLieuMixin:
                     )
                     n_updated += 1
 
-                row_errors.extend(self._soat_nhom_du_tru_la(cur, nhom_da_ghi))
+                row_errors.extend(self._soat_nhom_du_tru_la(cur, nhom_da_ghi, nhom_cung))
 
             # Nguyen vong lech buoi: bao TRUOC cac canh bao khac. Day la loi
             # nguoi nhap sua duoc ngay va sua xong thi ket qua doi that, nen
@@ -1220,6 +1246,8 @@ class NhapDuLieuMixin:
                 "n_nguyen_vong_lech_buoi": len(canh_bao_buoi),
                 "warnings": row_errors,
             })
+        except CauHinhHong as e:
+            return _fail(err("ws_cau_hinh_hong", detail=str(e)))
         except Exception as e:
             return _fail(self._loi_co_ghi_vet(err("error_importing_preferences_csv", detail=str(e))))
 
@@ -1230,6 +1258,12 @@ class NhapDuLieuMixin:
         sinh xuất hiện trong file, giống hành vi submit_test_selection.
         """
         try:
+            luat = self._luat_nghiem()
+            tran_thi = luat["max_tests"]         # None = không giới hạn
+            nhom_cung = nhom_xep_cung(luat_xep_cua(luat))
+            # Điểm theo từng CLB chỉ có nghĩa khi workspace chấm theo CLB và có dùng điểm.
+            diem_tung_clb = luat["score_scope"] != "per_person" and luat["priority"] != "tier"
+            n_diem_bo_che_do = 0
             fieldnames, rows = self._parse_csv_rows(csv_text)
             if not rows:
                 return _fail(err("csv_empty"))
@@ -1327,13 +1361,13 @@ class NhapDuLieuMixin:
                     # Kiem O DAY, sau khi chuan hoa ma: ma lech hoa/thuong tra
                     # khong ra buoi thi roi vao buoi mac dinh va gom nham nhom.
                     giu, buoi_bo = self._cat_buoi_qua_tran(
-                        deduped, buoi_cua_clb, TRAN_CLB_THI_MOI_BUOI)
+                        deduped, buoi_cua_clb, tran_thi)
                     for b, n in sorted(buoi_bo.items(), key=lambda bn: khoa_sap_buoi(bn[0])):
                         row_errors.append(err(
                             "csv_thi_too_many_skipped"
                             if b == BUOI_MAC_DINH else "csv_thi_bo_buoi_qua_tran",
                             student_id=sid, buoi=b, count=n,
-                            tran=TRAN_CLB_THI_MOI_BUOI))
+                            tran=tran_thi))
                     n_buoi_bo_qua += len(buoi_bo)
                     clb_bi_bo = set(deduped) - set(giu)
                     if buoi_bo and not giu:
@@ -1365,6 +1399,11 @@ class NhapDuLieuMixin:
                     # thô trong file — ghi thô sẽ tạo một dòng điểm mồ côi mà
                     # không màn hình nào đọc tới.
                     diem_hs = diem_tho.get(sid)
+                    if diem_hs and not diem_tung_clb:
+                        # Thuật toán bỏ qua club_scores ở chế độ này: lưu thì người dùng tưởng
+                        # điểm đã được dùng. Không lưu, và báo một lần cuối lệnh nhập.
+                        n_diem_bo_che_do += sum(1 for v in diem_hs.values() if (v or "").strip())
+                        diem_hs = None
                     if diem_hs:
                         anh_xa = {tho: that for tho, that in da_khop}
                         for tho, chuoi in diem_hs.items():
@@ -1386,11 +1425,11 @@ class NhapDuLieuMixin:
                                 # Chỉ bỏ RIÊNG ô điểm này. Bỏ cả học sinh vì
                                 # một ô gõ sai là mất nhiều hơn được.
                                 row_errors.append(err("csv_score_not_a_number",
-                                                      student_id=sid, club_id=that, score=chuoi))
+                                                      student_id=sid, club_id=that, diem_goc=chuoi))
                                 continue
                             if so < 0:
                                 row_errors.append(err("csv_score_negative",
-                                                      student_id=sid, club_id=that, score=chuoi))
+                                                      student_id=sid, club_id=that, diem_goc=chuoi))
                                 continue
                             cur.execute(
                                 "INSERT INTO club_scores (student_id, club_id, score) VALUES (?, ?, ?) "
@@ -1408,8 +1447,9 @@ class NhapDuLieuMixin:
                         row_errors.append(err("csv_score_removed_unselected",
                                               student_id=sid, n=n_xoa))
 
-                row_errors.extend(self._soat_nhom_du_tru_la(cur, nhom_da_ghi))
-
+                row_errors.extend(self._soat_nhom_du_tru_la(cur, nhom_da_ghi, nhom_cung))
+                if n_diem_bo_che_do:
+                    row_errors.append(err("csv_score_ignored_mode", n=n_diem_bo_che_do))
 
             return _ok({
                 "n_students_created": n_created,
@@ -1420,5 +1460,7 @@ class NhapDuLieuMixin:
                 "n_buoi_bo_qua": n_buoi_bo_qua,
                 "warnings": row_errors,
             })
+        except CauHinhHong as e:
+            return _fail(err("ws_cau_hinh_hong", detail=str(e)))
         except Exception as e:
             return _fail(self._loi_co_ghi_vet(err("error_importing_test_selection_csv", detail=str(e))))
