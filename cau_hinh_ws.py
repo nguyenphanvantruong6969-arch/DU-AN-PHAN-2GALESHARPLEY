@@ -137,6 +137,13 @@ def _chuan_hoa(cfg) -> dict:
             raise ValueError("labels.%s.en phải là chuỗi." % dt)
         vi = vi.strip()
         en = (en or "").strip()
+        # Nhãn thành tiêu đề cột / tên sheet của Sổ nhập và tệp xuất. Chữ mở đầu bằng = + - @
+        # bị Excel hiểu thành công thức (openpyxl ghi "=..." thành ô công thức thật), mà nhãn
+        # có thể đến từ zip nhập vào. Không chấp nhận; đọc cấu hình hỏng thì rơi về mặc định.
+        for ngon, chu in (("vi", vi), ("en", en)):
+            if chu[:1] in ("=", "+", "-", "@"):
+                raise ValueError("labels.%s.%s không được bắt đầu bằng '%s' "
+                                 "(Excel sẽ hiểu là công thức)." % (dt, ngon, chu[0]))
         kq["labels"][dt] = {"vi": vi, "en": en or vi}
 
     # --- luật ---

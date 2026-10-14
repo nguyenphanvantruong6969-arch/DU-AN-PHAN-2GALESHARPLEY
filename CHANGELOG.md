@@ -14,6 +14,9 @@ cũ của nhánh còn ở `backup/nifty-truoc-khi-ghep`. Sửa các lỗi còn l
   định của trường học (dòng cũ và workspace mặc định không đổi). `get_run_history` trả cột này.
 - `run_full_pipeline` (đường thử nghiệm) từ chối chạy khi workspace có luật khác mặc định, thay vì xếp sai
   âm thầm.
+- Nhãn workspace bắt đầu bằng `=`, `+`, `-`, `@` bị từ chối (`cau_hinh_ws.chuan_hoa`): nhãn thành tiêu đề cột / tên
+  sheet của Sổ nhập, và openpyxl ghi `=...` thành ô công thức thật; nhãn có thể đến từ zip nhập vào. Cấu hình
+  như thế đọc lại ra mặc định.
 - `docs/ke_hoach/tham_khao`: `verify_stability_nhanh` nhận `bo_qua_du_tru`; bộ nạp `_chung.nap_rb` nạp thêm
   `nhan_ws` (từ bản có workspace, `i18n_errors` import nó), bản build cũ không có thì vẫn nạp được.
 

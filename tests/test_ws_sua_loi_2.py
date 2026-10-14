@@ -230,3 +230,38 @@ def test_run_full_pipeline_van_chay_voi_luat_mac_dinh(goc, tmp_path):
     db = ws.duong_dan_db(goc, slug)
     rp.seed_sample_data(db, n_students=20)
     rp.run_full_pipeline(db, seed=1, output_csv_path=str(tmp_path / "x.csv"))
+
+
+# ------------------------------------------------------------------ 7. nhãn thành công thức Excel
+
+@pytest.mark.parametrize("nhan", ["=1+1", "+cmd", "-x", "@SUM(1)"])
+def test_nhan_bat_dau_bang_ky_tu_cong_thuc_bi_tu_choi(goc, nhan):
+    import cau_hinh_ws as ch
+    cfg = {"labels": {"group": {"vi": nhan}}}
+    with pytest.raises(ValueError):
+        ch.chuan_hoa(cfg)
+    with pytest.raises(ValueError):
+        ws.tao(goc, "Xấu", cfg)
+    cfg_en = {"labels": {"slot": {"vi": "Dự án", "en": nhan}}}
+    with pytest.raises(ValueError):
+        ch.chuan_hoa(cfg_en)
+
+
+def test_nhan_trong_zip_nhap_vao_khong_thanh_cong_thuc(goc, tmp_path):
+    """Zip mang cấu hình có nhãn '=...': đọc lại ra mặc định, sổ nhập không có ô công thức."""
+    import openpyxl
+    import cau_hinh_ws as ch
+    import so_nhap
+    slug = ws.tao(goc, "Nguồn")
+    db = ws.duong_dan_db(goc, slug)
+    xau = {"name": "Nguồn", "labels": {"group": {"vi": "=1+1", "en": "=1+1"}}}
+    conn = sqlite3.connect(db)
+    conn.execute("UPDATE workspace_settings SET value = ? WHERE key = 'config'",
+                 (json.dumps(xau),))
+    conn.commit()
+    conn.close()
+    cfg = ch.doc_cau_hinh(db)                    # cấu hình không qua kiểm -> mặc định
+    p = str(tmp_path / "so.xlsx")
+    so_nhap.ghi_so_nhap(p, [], [], cfg=cfg)
+    wb = openpyxl.load_workbook(p)
+    assert [c.coordinate for w in wb for r in w.iter_rows() for c in r if c.data_type == "f"] == []
