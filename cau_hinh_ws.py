@@ -175,6 +175,15 @@ def _chuan_hoa(cfg) -> dict:
     return kq
 
 
+def chuan_hoa(cfg: dict) -> dict:
+    """Kiểm `cfg` (có thể thiếu khoá) và trả bản đầy đủ đã chuẩn hoá — không ghi gì.
+
+    Cho nơi khác cần biết một cấu hình có hợp lệ không TRƯỚC khi làm việc tốn
+    kém (vd dựng thư mục workspace). Ném ValueError như `ghi_cau_hinh`.
+    """
+    return _chuan_hoa(cfg)
+
+
 def doc_cau_hinh(db_path: str) -> dict:
     """Cấu hình của workspace ở `db_path`, trộn lên mặc định trường học.
 

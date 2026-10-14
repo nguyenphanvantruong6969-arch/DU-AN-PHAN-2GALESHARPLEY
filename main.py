@@ -5,8 +5,8 @@ main.py
 làm js_api để index.html và js/*.js gọi qua window.pywebview.api.*
 
 Cách chạy:
-    python3 main.py                    # dùng app.db cùng thư mục main.py
-    python3 main.py /duong/dan/khac.db # chỉ định DB khác
+    python3 main.py                    # mở một workspace trong workspaces/ cạnh main.py
+    python3 main.py /duong/dan/khac.db # chỉ định DB khác (một DB, không workspace)
 """
 
 import os
@@ -15,6 +15,7 @@ import traceback
 
 import browser_host
 import chan_doan
+import workspace
 from api import PipelineAPI
 from recovery import RecoveryAPI
 
@@ -46,6 +47,27 @@ def resolve_db_path() -> str:
     if len(sys.argv) > 1:
         return os.path.abspath(sys.argv[1])
     return os.path.join(BASE_DIR, "app.db")
+
+
+def chon_db_path() -> str:
+    """app.db sẽ mở lúc khởi động.
+
+    Có đường dẫn trong argv: y như trước — MỘT CSDL, không workspace.
+
+    Không có: dùng workspace trong `BASE_DIR/workspaces/`. `app.db` cũ cạnh
+    chương trình (bản trước khi có workspace) được dời vào workspace "Trường
+    học" trước. Tạm thời — cho tới khi giao diện chọn workspace có (TASK 3) —
+    mở luôn workspace duy nhất; chưa có thì dựng "Trường học" mặc định; có
+    nhiều thì mở cái sửa gần nhất.
+    """
+    if len(sys.argv) > 1:
+        return resolve_db_path()
+    workspace.di_chuyen_db_cu(BASE_DIR)
+    ds = workspace.danh_sach(BASE_DIR)
+    if not ds:
+        slug = workspace.tao(BASE_DIR, workspace.TEN_TRUONG_HOC, None)
+        return workspace.duong_dan_db(BASE_DIR, slug)
+    return max(ds, key=lambda w: w["modified"])["path"]
 
 
 def _show_ui(title: str, page: str, js_api, width: int, height: int,
@@ -133,6 +155,8 @@ def _show_ui(title: str, page: str, js_api, width: int, height: int,
 
 
 def main() -> None:
+    # Đường dẫn cũ làm chỗ dựa cho màn phục hồi nếu chính việc chọn workspace
+    # hỏng (chon_db_path nằm trong try ngay dưới).
     db_path = resolve_db_path()
 
     # KHÔNG BAO GIỜ được chết ngầm: nếu app.db hỏng/mất, PipelineAPI(...)
@@ -146,6 +170,7 @@ def main() -> None:
     # động (xem PipelineAPI._backup_db trong api.py) hoặc bắt đầu lại
     # với DB trống.
     try:
+        db_path = chon_db_path()
         api = PipelineAPI(db_path)
     except Exception as e:
         _show_ui(
