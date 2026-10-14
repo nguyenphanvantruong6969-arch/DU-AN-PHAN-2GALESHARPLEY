@@ -1375,6 +1375,16 @@ CREATE TABLE IF NOT EXISTS stb_lock (
     unlocked_at TEXT,
     seed INTEGER
 );
+
+-- Cấu hình của không gian làm việc (workspace): nhãn từ vựng và luật xếp.
+-- Một hàng khoá 'config' chứa JSON; thiếu hàng/thiếu khoá = mặc định của
+-- trường học (xem cau_hinh_ws.py). Bảng MỚI hoàn toàn, không cột nào phải
+-- thêm vào bảng cũ, nên CREATE TABLE IF NOT EXISTS ở đây đã đủ cho cả CSDL
+-- cũ — không cần bước nào trong di_tru_schema.
+CREATE TABLE IF NOT EXISTS workspace_settings (
+    key TEXT PRIMARY KEY,
+    value TEXT
+);
 """
 
 # busy_timeout dai hon mac dinh (5s) — nhieu tien trinh cung mo app.db
