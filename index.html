@@ -707,10 +707,10 @@
     <section class="view" id="view-scoring">
       <header class="view-header">
         <h1 data-i18n="scoring_title">Nhập điểm</h1>
-        <p class="view-desc" data-i18n="scoring_desc">Chọn CLB để chấm. Danh sách chỉ có mã và họ tên, không có số bốc thăm hay thứ hạng nguyện vọng, để việc chấm điểm được khách quan.</p>
+        <p class="view-desc" id="scoringDesc" data-i18n="scoring_desc">Chọn CLB để chấm. Danh sách chỉ có mã và họ tên, không có số bốc thăm hay thứ hạng nguyện vọng, để việc chấm điểm được khách quan.</p>
       </header>
 
-      <div class="panel">
+      <div class="panel" id="scoringClubPanel">
         <div class="panel-head"><h2 data-i18n="scoring_overview_title">Tiến độ chấm của từng CLB</h2></div>
         <table class="data-table">
           <thead><tr>
@@ -723,6 +723,27 @@
           <tbody id="scoringOverviewBody"></tbody>
         </table>
         <div id="scoringOverviewEmpty" class="empty-state" hidden data-i18n="scoring_overview_empty">Chưa CLB nào có học sinh đăng ký dự thi.</div>
+      </div>
+
+      <!-- Workspace chấm điểm theo NGƯỜI: một điểm cho cả người, không qua từng CLB. -->
+      <div class="panel" id="scoringPersonArea" hidden>
+        <div class="panel-head">
+          <h2 data-i18n="scoring_person_title">Điểm của từng học sinh</h2>
+          <div class="panel-actions">
+            <span class="save-feedback" id="scoringPersonProgress"></span>
+            <button class="btn btn-primary" id="btnSavePersonScores" data-i18n="btn_save_scores">Lưu điểm</button>
+          </div>
+        </div>
+        <table class="data-table">
+          <thead><tr>
+            <th data-i18n="th_student_id">Mã học sinh</th>
+            <th data-i18n="th_name">Họ tên</th>
+            <th data-i18n="th_score">Điểm</th>
+          </tr></thead>
+          <tbody id="scoringPersonBody"></tbody>
+        </table>
+        <div id="scoringPersonEmpty" class="empty-state" hidden data-i18n="scoring_person_empty">Chưa có học sinh nào để chấm. Hãy nạp danh sách trước.</div>
+        <span class="save-feedback" role="status" aria-live="polite" id="scoringPersonFeedback"></span>
       </div>
 
       <div class="panel" id="scoringWorkArea" hidden>

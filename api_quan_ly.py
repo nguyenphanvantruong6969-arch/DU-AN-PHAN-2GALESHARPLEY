@@ -515,6 +515,10 @@ class QuanLyMixin:
                 cur.execute("DELETE FROM club_test_selection WHERE student_id = ?", (student_id,))
                 cur.execute("DELETE FROM preferences WHERE student_id = ?", (student_id,))
                 n_xoa = self._xoa_diem_khong_con_tick(cur, student_id)
+                # Điểm theo NGƯỜI (workspace per_person) cũng đi theo, như điểm từng CLB.
+                cur.execute("UPDATE students SET diem_ca_nhan = NULL "
+                            "WHERE student_id = ? AND diem_ca_nhan IS NOT NULL", (student_id,))
+                n_xoa += cur.rowcount
             return _ok({"student_id": student_id, "reset": True,
                         "n_scores_removed": n_xoa})
         except Exception as e:

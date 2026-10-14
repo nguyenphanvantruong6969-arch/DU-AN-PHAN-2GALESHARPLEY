@@ -41,8 +41,12 @@ TRAN_MAC_DINH = {"pref_too_many": 10, "pref_too_many_buoi": 10,
                  "thi_too_many": 5, "thi_too_many_buoi": 5}
 
 
-# Mã thêm SAU ảnh chụp ngoài nhóm ws_*: điểm theo người ở Sổ nhập (TASK 5).
-MA_MOI_SAU_ANH_CHUP = {"so_nhap_diem_ca_nhan_sai"}
+# Mã thêm SAU ảnh chụp ngoài nhóm ws_*: điểm theo người ở Sổ nhập (TASK 5); luật xếp, chấm
+# điểm theo người và cảnh báo sức khoẻ dữ liệu của chúng (TASK 6). Chỉ THÊM mã, không đổi mã cũ.
+MA_MOI_SAU_ANH_CHUP = {
+    "so_nhap_diem_ca_nhan_sai", "scoring_not_per_person", "health_person_score_none",
+    "health_person_score_missing", "health_tier_missing", "health_tiers_empty",
+}
 
 
 def _truoc_da_doi_ten_tham_so(chuoi, ma=None):

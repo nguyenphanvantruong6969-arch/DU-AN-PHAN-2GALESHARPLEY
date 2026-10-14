@@ -644,17 +644,19 @@ def _doc_sheet_hs(ws, clubs, loi, cfg=None, ten_sheet=SHEET_HS) -> list:
                 continue
             da_chon[ma] = k
             if cot_diem_cn is not None:
-                o_diem = o_diem_ca_nhan
+                # Điểm theo người KHÔNG thuộc nguyện vọng nào: nó nằm ở `diem_ca_nhan` của
+                # người đó (ghi vào students.diem_ca_nhan, mở rộng ra các CLB lúc xếp).
+                nv.append({"club_id": ma, "thi": False, "diem": ""})
+                continue
             thi = bool(o_diem)
-            if thi and o_diem.lower() != TU_DANH_DAU_THI and cot_diem_cn is None:
+            if thi and o_diem.lower() != TU_DANH_DAU_THI:
                 so = doc_diem(o_diem)
                 if so is None or so < 0:
                     loi.append(err("so_nhap_diem_sai", sheet=ten_sheet, dong=so_dong,
                                    student_id=sid, k=k, gia_tri=o_diem))
                     continue
             diem = "" if (not thi or o_diem.lower() == TU_DANH_DAU_THI) else o_diem
-            nv.append({"club_id": ma, "thi": thi and not diem_ca_nhan_hong,
-                       "diem": "" if diem_ca_nhan_hong else diem})
+            nv.append({"club_id": ma, "thi": thi, "diem": diem})
         # Trần MỖI BUỔI: soát ngay ở bước đọc thử. Để tới lúc nạp thì hàm nạp
         # chỉ bỏ cả buổi của em kèm cảnh báo, còn nguyện vọng cũ của em vẫn
         # nằm trong CSDL — sổ "sẵn sàng" mà kết quả lại khác.
@@ -733,6 +735,16 @@ def thanh_csv(du_lieu: dict) -> dict:
     return {"clubs": _csv(clubs), "test_selection": _csv(thi), "preferences": _csv(nv)}
 
 
+def diem_cua_nguoi(s: dict):
+    """Điểm theo người của một dòng học sinh trong sổ: số, hoặc None (không có cột điểm
+    chung, ô trống, hay chữ `thi` = đã thi mà chưa có điểm)."""
+    o = (s.get("diem_ca_nhan") or "").strip()
+    if not o or o.lower() == TU_DANH_DAU_THI:
+        return None
+    so = doc_diem(o)
+    return None if so is None or so < 0 else so
+
+
 def tom_tat(du_lieu: dict) -> dict:
     hs = du_lieu["students"]
     return {
@@ -741,7 +753,8 @@ def tom_tat(du_lieu: dict) -> dict:
         "n_buoi": len({c["buoi"] for c in du_lieu["clubs"]}),
         "n_nguyen_vong": sum(len(s["nv"]) for s in hs),
         "n_thi": sum(1 for s in hs for x in s["nv"] if x["thi"]),
-        "n_diem": sum(1 for s in hs for x in s["nv"] if x["diem"]),
+        "n_diem": sum(1 for s in hs for x in s["nv"] if x["diem"])
+        + sum(1 for s in hs if diem_cua_nguoi(s) is not None),
     }
 
 

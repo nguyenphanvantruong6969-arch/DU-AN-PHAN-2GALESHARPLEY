@@ -191,6 +191,100 @@ def compute_club_priority(
     return tier1_sorted + tier2_sorted
 
 
+def xay_tier_rank(students: dict[str, dict], tiers) -> dict[str, int]:
+    """{student_id: hạng nhóm} từ danh sách nhóm `tiers` (tốt nhất đứng đầu).
+
+    Nhóm của em là `students[sid]["reserve_group"]` (cùng cột "nhóm ưu tiên" đã có). So
+    sánh KHÔNG phân biệt hoa/thường và dấu, nên "Khối 12" khớp "khoi 12". Em không có
+    nhóm, hay nhóm không có trong `tiers`, KHÔNG có mặt trong kết quả —
+    `compute_club_priority` xếp họ sau cùng. `tiers` rỗng cho dict rỗng: không ai có
+    nhóm, mọi người ngang nhau.
+    """
+    hang: dict[str, int] = {}
+    for i, ten in enumerate(tiers or []):
+        hang.setdefault(chuan_hoa_tim_kiem(ten).strip(), i)
+    ra: dict[str, int] = {}
+    for sid, info in students.items():
+        nhom = chuan_hoa_tim_kiem((info or {}).get("reserve_group") or "").strip()
+        if nhom and nhom in hang:
+            ra[sid] = hang[nhom]
+    return ra
+
+
+def uu_tien_theo_nhom(
+    club_id: str,
+    applicants_for_club: list[str],
+    tested_scores_for_club: dict[str, float],
+    stb_lottery: dict[str, int],
+    tier_rank: dict[str, int],
+) -> list[str]:
+    """Thứ tự ưu tiên khi nhóm xếp CỨNG (`tier_mode = strict` hay priority `tier`).
+
+    Nhóm quyết định trước: người ở nhóm tốt hơn (hạng nhỏ hơn) đứng trước MỌI người ở nhóm
+    kém hơn, bất kể điểm. Trong từng nhóm, thứ tự là đúng `compute_club_priority` (đã chấm
+    trước, điểm giảm dần, rồi số bốc thăm, rồi mã). Em không có trong `tier_rank` đứng sau
+    cùng, thành một nhóm riêng.
+
+    Cố ý là hàm BỌC, không thêm tham số cho `compute_club_priority`: hàm đó chỉ được nhận
+    điểm và số bốc thăm (có test canh chữ ký — chống nội sinh). Hạng nhóm là thuộc tính của
+    NGƯỜI, không phải thứ hạng nguyện vọng, nên đi vào đây an toàn; và bọc theo nhóm cho ra
+    đúng kết quả của khoá sắp (hạng nhóm, đã-chấm, -điểm, STB, mã).
+    """
+    cuoi = max(tier_rank.values(), default=-1) + 1
+    theo_nhom: dict[int, list[str]] = {}
+    for sid in applicants_for_club:
+        theo_nhom.setdefault(tier_rank.get(sid, cuoi), []).append(sid)
+    ra: list[str] = []
+    for hang in sorted(theo_nhom):
+        ds = theo_nhom[hang]
+        ra += compute_club_priority(
+            club_id, ds, {sid: tested_scores_for_club[sid] for sid in ds
+                          if sid in tested_scores_for_club}, stb_lottery)
+    return ra
+
+
+# Bốn khoá luật của workspace mà THUẬT TOÁN đọc (hai khoá còn lại, trần nguyện vọng và trần
+# thi, chỉ là luật nhập liệu). Bằng giá trị này = phần mềm trường học cũ.
+LUAT_XEP_MAC_DINH = {"priority": "score", "tier_mode": "reserve",
+                     "score_scope": "per_slot", "tiers": []}
+
+
+def luat_xep_cua(rules) -> dict:
+    """Bốn khoá luật xếp của `rules` (thiếu khoá thì lấy mặc định trường học)."""
+    rules = rules or {}
+    return {k: (list(rules.get(k) or []) if k == "tiers" else rules.get(k, v))
+            for k, v in LUAT_XEP_MAC_DINH.items()}
+
+
+def tham_so_luat(rules, students: dict[str, dict]) -> dict:
+    """Luật workspace -> tham số cho `run_rbda_nhieu_buoi` / `verify_stability_tuan`.
+
+    Trả {"tier_rank", "bo_qua_du_tru", "bo_diem"}:
+      * priority "score"      — như cũ: điểm rồi số bốc thăm. Chỉ khi `tier_mode = strict`
+                                mới thêm hạng nhóm lên TRƯỚC điểm.
+      * priority "score+tier" — điểm và nhóm; `tier_mode` quyết định nhóm là suất dự trữ mềm
+                                (reserve, như cũ) hay xếp cứng lên trước điểm (strict).
+      * priority "tier"       — CHỈ nhóm rồi số bốc thăm: `bo_diem` = True, điểm bị bỏ qua
+                                hoàn toàn; nhóm luôn xếp cứng.
+    Nhóm xếp cứng (`tier_rank` khác None) thì `bo_qua_du_tru` = True: nhóm đã được ưu tiên
+    bằng thứ tự rồi, giữ thêm suất dự trữ là cho cùng một nhóm ưu tiên hai lần.
+    Luật mặc định cho ra (None, False, False): đúng đường chạy cũ, từng byte.
+    """
+    luat = luat_xep_cua(rules)
+    cung = luat["tier_mode"] == "strict" or luat["priority"] == "tier"
+    return {
+        "tier_rank": xay_tier_rank(students, luat["tiers"]) if cung else None,
+        "bo_qua_du_tru": cung,
+        "bo_diem": luat["priority"] == "tier",
+    }
+
+
+def diem_theo_nguoi(rules) -> bool:
+    """Điểm lưu theo NGƯỜI (cột `students.diem_ca_nhan`) và có dùng đến không."""
+    luat = luat_xep_cua(rules)
+    return luat["score_scope"] == "per_person" and luat["priority"] != "tier"
+
+
 # ---------------------------------------------------------------------------
 # BƯỚC B — XỬ LÝ DỰ TRỮ MỀM (soft reserve, precedence ordering)
 # ---------------------------------------------------------------------------
@@ -321,6 +415,8 @@ def run_rbda(
     stb_lottery: dict[str, int],
     is_reserve_eligible_fn: Callable[[str, str], bool],
     max_rounds: int = 1000,
+    tier_rank: Optional[dict[str, int]] = None,
+    bo_qua_du_tru: bool = False,
 ) -> MatchResult:
     """
     Chạy thuật toán RB-DA đầy đủ (student-proposing deferred
@@ -340,6 +436,11 @@ def run_rbda(
             chặn cứng 10 nguyện vọng (api.py), nên trần 1000 ở đây gấp
             100 lần mức cần. Chạm được trần này nghĩa là dữ liệu hỏng
             theo cách chưa từng thấy — xem chỗ raise ngay sau vòng lặp.
+        tier_rank: {student_id: hạng nhóm}; có nó thì thứ tự nền xếp bằng `uu_tien_theo_nhom`
+            thay cho `compute_club_priority` (mặc định None = như cũ). Dùng cho `tier_mode = strict` của workspace.
+        bo_qua_du_tru: True thì BỎ lượt xếp suất dự trữ mềm — mọi suất là suất thường, xếp
+            hoàn toàn theo thứ hạng ưu tiên nền. Dùng cùng `tier_rank` (nhóm đã cho ưu tiên
+            rồi, giữ thêm suất dự trữ là ưu tiên hai lần). Mặc định False = như cũ.
 
     Returns:
         MatchResult
@@ -354,12 +455,14 @@ def run_rbda(
     # tính lại mỗi vòng — xem club_choice_function ở trên).
     base_rank: dict[str, dict[str, int]] = {}
     for club_id in clubs:
-        base_order = compute_club_priority(
+        chung = dict(
             club_id=club_id,
             applicants_for_club=applicants.get(club_id, []),
             tested_scores_for_club=tested_scores.get(club_id, {}),
             stb_lottery=stb_lottery,
         )
+        base_order = (compute_club_priority(**chung) if tier_rank is None
+                      else uu_tien_theo_nhom(tier_rank=tier_rank, **chung))
         base_rank[club_id] = {sid: i for i, sid in enumerate(base_order)}
 
     unassigned = [
@@ -398,7 +501,7 @@ def run_rbda(
             pool = held[club_id] + new_applicants
             rank = base_rank[club_id]
             capacity = clubs[club_id]["capacity"]
-            reserve_capacity = clubs[club_id]["reserve_capacity"]
+            reserve_capacity = 0 if bo_qua_du_tru else clubs[club_id]["reserve_capacity"]
             eligible_fn = lambda sid, _cid=club_id: is_reserve_eligible_fn(sid, _cid)
 
             accepted, tier_of = club_choice_function(
@@ -458,6 +561,7 @@ def verify_stability(
     clubs: dict[str, dict],
     preferences: dict[str, list[str]],
     is_reserve_eligible_fn: Callable[[str, str], bool],
+    bo_qua_du_tru: bool = False,
 ) -> list[dict]:
     """
     Kiểm chứng KHÔNG TỒN TẠI blocking pair, dùng ĐÚNG hàm lựa chọn
@@ -468,6 +572,9 @@ def verify_stability(
     tính cố định (như RB-DA) — khác với cách làm cũ (dùng
     processed_priority tĩnh) đã bị phát hiện SAI khi đối chiếu với
     03_reference_rbda.py.
+
+    `bo_qua_du_tru` PHẢI giống lần chạy đã tạo `result` (xem `run_rbda`): kiểm bằng hàm
+    lựa chọn khác với hàm đã xếp thì báo cặp phá vỡ giả (hoặc bỏ sót cặp thật).
 
     Định nghĩa blocking pair (student sid, club cid):
         sid thích cid hơn club hiện tại của mình (hoặc đang unmatched
@@ -503,7 +610,7 @@ def verify_stability(
                 continue  # sid không nằm trong applicant pool của club này -> không thể block
 
             capacity = clubs[candidate_cid]["capacity"]
-            reserve_capacity = clubs[candidate_cid]["reserve_capacity"]
+            reserve_capacity = 0 if bo_qua_du_tru else clubs[candidate_cid]["reserve_capacity"]
             holders = held_by_club[candidate_cid]
             eligible_fn = lambda s, _cid=candidate_cid: is_reserve_eligible_fn(s, _cid)
 
@@ -886,6 +993,8 @@ def run_rbda_nhieu_buoi(
     seed: int = 0,
     max_rounds: int = 1000,
     chi_buoi: Optional[list[str]] = None,
+    tier_rank: Optional[dict[str, int]] = None,
+    bo_qua_du_tru: bool = False,
 ) -> KetQuaTuan:
     """Xếp CLB cho cả tuần: cắt theo buổi, gọi run_rbda từng buổi, ghép lại.
 
@@ -927,6 +1036,9 @@ def run_rbda_nhieu_buoi(
     của buổi sau phụ thuộc kết cục các buổi trước, nên bỏ bớt buổi là đổi
     đầu vào. Chế độ đó chỉ còn dùng cho phép đo TN7, và TN7 không dùng
     `chi_buoi`.
+
+    `tier_rank`, `bo_qua_du_tru`: chuyển nguyên cho `run_rbda` ở MỌI buổi (xem ở đó). Cả hai
+    mặc định như cũ, nên lời gọi cũ cho ra đúng kết quả cũ.
     """
     if che_do_boc_tham not in CHE_DO_BOC_THAM:
         raise ValueError(
@@ -973,6 +1085,7 @@ def run_rbda_nhieu_buoi(
         kq = run_rbda(
             students, clubs_b, scores_b, app_b, prefs_b, stb_b,
             is_reserve_eligible_fn, max_rounds=max_rounds,
+            tier_rank=tier_rank, bo_qua_du_tru=bo_qua_du_tru,
         )
 
         ket.per_buoi[buoi] = kq
@@ -990,6 +1103,7 @@ def verify_stability_tuan(
     clubs: dict[str, dict],
     preferences: dict[str, list[str]],
     is_reserve_eligible_fn: Callable[[str, str], bool],
+    bo_qua_du_tru: bool = False,
 ) -> dict[str, list[dict]]:
     """Kiểm cặp phá vỡ cho từng buổi. {buoi: [vấn đề]} — rỗng hết = ổn định.
 
@@ -1005,7 +1119,8 @@ def verify_stability_tuan(
             continue
         clubs_b, _sc, _ap, prefs_b = cat_du_lieu_theo_buoi(
             buoi, ds_club, clubs, {}, {}, preferences)
-        ra[buoi] = verify_stability(kq, clubs_b, prefs_b, is_reserve_eligible_fn)
+        ra[buoi] = verify_stability(kq, clubs_b, prefs_b, is_reserve_eligible_fn,
+                                    bo_qua_du_tru=bo_qua_du_tru)
     return ra
 
 
@@ -1297,7 +1412,8 @@ CREATE TABLE IF NOT EXISTS students (
     student_id TEXT PRIMARY KEY,
     name TEXT,
     stb_number INTEGER,
-    reserve_group TEXT          -- vd: 'khoi10', 'chinh_sach', hoặc NULL
+    reserve_group TEXT,         -- vd: 'khoi10', 'chinh_sach', hoặc NULL
+    diem_ca_nhan REAL           -- điểm của cả NGƯỜI (workspace score_scope = per_person); NULL = chưa có
 );
 """ + "".join(
     "\nCREATE TABLE IF NOT EXISTS %s (%s);\n" % (ten, than)
@@ -1615,6 +1731,12 @@ def di_tru_schema(db_path: str) -> list[str]:
             cur.execute("ALTER TABLE clubs ADD COLUMN buoi TEXT")
             da_lam.append("clubs.buoi")
 
+        # 6. `students.diem_ca_nhan` — điểm theo NGƯỜI cho workspace per_person. Cột mới,
+        #    NULL với mọi dòng cũ; không workspace nào khác đọc nó.
+        if "students" in co_bang and not _co_cot(cur, "students", "diem_ca_nhan"):
+            cur.execute("ALTER TABLE students ADD COLUMN diem_ca_nhan REAL")
+            da_lam.append("students.diem_ca_nhan")
+
         for bang in ("run_meta", "run_history"):
             if bang not in co_bang:
                 continue
@@ -1768,7 +1890,7 @@ def hop_ung_vien(
     return applicants
 
 
-def dau_van_tay_du_lieu(cur) -> str:
+def dau_van_tay_du_lieu(cur, rules=None) -> str:
     """SHA-256 của MỌI dữ liệu quyết định kết quả, đọc theo thứ tự cố định.
 
     Gồm: học sinh (mã, nhãn dự trữ), CLB (mã, sức chứa, suất dự trữ, nhãn,
@@ -1779,6 +1901,11 @@ def dau_van_tay_du_lieu(cur) -> str:
     chạy vẽ bổ sung cho em mới là tự báo "dữ liệu đã đổi"), và TÊN học sinh /
     tên CLB (tệp kết quả nối tên lúc xuất, sửa chính tả tên không làm kết quả
     nào cũ đi).
+
+    `rules` (luật của workspace; mặc định None) chỉ làm đổi dấu vân tay khi luật xếp KHÁC
+    mặc định trường học: đổi nhóm xếp, chế độ nhóm, cách ưu tiên hay phạm vi điểm làm kết
+    quả cũ đi dù không dòng dữ liệu nào đổi. Điểm theo người thì thêm cả cột điểm đó.
+    Luật mặc định thì dấu vân tay GIỮ NGUYÊN từng byte so với trước.
 
     Đặt CẠNH `load_from_sqlite` có chủ ý: dấu vân tay của một lần chạy phải
     lấy trong CÙNG lần đọc với dữ liệu nó dùng — xem
@@ -1801,15 +1928,31 @@ def dau_van_tay_du_lieu(cur) -> str:
         ("nv", "SELECT student_id, club_id, rank FROM preferences "
                "ORDER BY student_id, rank, club_id"),
     ]
+    luat = luat_xep_cua(rules)
+    if diem_theo_nguoi(rules):
+        cac_phan.append(("diem_ca_nhan", "SELECT student_id, diem_ca_nhan FROM students "
+                                         "ORDER BY student_id"))
     for ten, sql in cac_phan:
         h.update(("\x1e" + ten).encode("utf-8"))
         for row in cur.execute(sql):
             h.update(("\x1f".join(repr(v) for v in row) + "\n").encode("utf-8"))
+    if luat != LUAT_XEP_MAC_DINH:
+        import json
+
+        h.update(("\x1eluat" + json.dumps(luat, sort_keys=True, ensure_ascii=True)).encode("utf-8"))
     return h.hexdigest()
 
 
-def _doc_du_lieu(cur):
-    """Phần đọc của `load_from_sqlite`, trên một con trỏ có sẵn."""
+def _doc_du_lieu(cur, rules=None):
+    """Phần đọc của `load_from_sqlite`, trên một con trỏ có sẵn.
+
+    `rules` (luật workspace; None = trường học cũ) đổi MỖI ĐIỀU này về điểm:
+      * priority "tier": không dùng điểm — `tested_scores` rỗng ở mọi CLB;
+      * score_scope "per_person": điểm là cột `students.diem_ca_nhan`, MỞ RỘNG ở đây ra
+        mọi CLB mà người đó có nguyện vọng (hoặc tick thi) — người có điểm thì được chấm ở
+        mọi CLB đó, người NULL thì không; bảng `club_scores` bị bỏ qua.
+    Mở rộng lúc ĐỌC chứ không lúc nhập: sửa điểm một người là sửa một ô, không phải N ô.
+    """
     students = {}
     for row in cur.execute("SELECT student_id, stb_number, reserve_group FROM students ORDER BY student_id"):
         students[row["student_id"]] = {
@@ -1866,6 +2009,20 @@ def _doc_du_lieu(cur):
 
     applicants = hop_ung_vien(dang_ky_thi, preferences)
 
+    luat = luat_xep_cua(rules)
+    if luat["priority"] == "tier":
+        tested_scores = {cid: {} for cid in tested_scores}
+    elif luat["score_scope"] == "per_person":
+        diem_nguoi = {
+            r["student_id"]: r["diem_ca_nhan"]
+            for r in cur.execute(
+                "SELECT student_id, diem_ca_nhan FROM students "
+                "WHERE diem_ca_nhan IS NOT NULL ORDER BY student_id")}
+        tested_scores = {cid: {} for cid in clubs}
+        for cid in sorted(applicants):
+            tested_scores.setdefault(cid, {}).update(
+                {sid: diem_nguoi[sid] for sid in applicants[cid] if sid in diem_nguoi})
+
     stb_lottery = {sid: info["stb"] for sid, info in students.items()}
     return students, clubs, tested_scores, applicants, preferences, stb_lottery
 
@@ -1887,23 +2044,25 @@ def _mo_doc_nhat_quan(db_path: str):
     return conn
 
 
-def load_from_sqlite(db_path: str):
+def load_from_sqlite(db_path: str, rules=None):
     """
     Đọc toàn bộ dữ liệu cần thiết từ app.db theo DEFAULT_SCHEMA và
     trả về đúng format mà run_rbda() cần.
 
     Returns:
         (students, clubs, tested_scores, applicants, preferences, stb_lottery)
+
+    `rules`: luật workspace (xem `_doc_du_lieu`); mặc định None = trường học cũ.
     """
     conn = _mo_doc_nhat_quan(db_path)
     try:
-        return _doc_du_lieu(conn.cursor())
+        return _doc_du_lieu(conn.cursor(), rules)
     finally:
         conn.rollback()
         conn.close()
 
 
-def load_from_sqlite_kem_dau_van_tay(db_path: str):
+def load_from_sqlite_kem_dau_van_tay(db_path: str, rules=None):
     """Như `load_from_sqlite`, kèm `dau_van_tay_du_lieu` của ĐÚNG dữ liệu đó.
 
     Trả `(du_lieu, dau_van_tay)`. Lần chạy sắp xếp dùng hàm này: dấu vân tay
@@ -1915,8 +2074,8 @@ def load_from_sqlite_kem_dau_van_tay(db_path: str):
     conn = _mo_doc_nhat_quan(db_path)
     try:
         cur = conn.cursor()
-        du_lieu = _doc_du_lieu(cur)
-        return du_lieu, dau_van_tay_du_lieu(cur)
+        du_lieu = _doc_du_lieu(cur, rules)
+        return du_lieu, dau_van_tay_du_lieu(cur, rules)
     finally:
         conn.rollback()
         conn.close()

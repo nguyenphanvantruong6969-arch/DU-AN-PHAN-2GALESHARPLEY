@@ -425,6 +425,14 @@ class NhapDuLieuMixin:
                             "UPDATE students SET name = ? WHERE student_id = ?",
                             [(s["name"], s["student_id"]) for s in du_lieu["students"]
                              if (s["name"] or "").strip()])
+                        # Điểm theo NGƯỜI (workspace per_person): một ô cho cả dòng, lưu ở
+                        # students.diem_ca_nhan. Ô trống hay chữ `thi` -> NULL (chưa có
+                        # điểm). Chỉ sổ CÓ cột điểm chung mới đụng tới cột này.
+                        cur.executemany(
+                            "UPDATE students SET diem_ca_nhan = ? WHERE student_id = ?",
+                            [(so_nhap.diem_cua_nguoi(s), s["student_id"])
+                             for s in du_lieu["students"]
+                             if s.get("diem_ca_nhan") is not None])
 
             kq["warnings"] = canh_bao
             return _ok(kq)

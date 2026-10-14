@@ -320,6 +320,10 @@
 
       scoring_title: "Nhập {score_l}",
       scoring_desc: "Chọn {slot_sl} để chấm. Danh sách chỉ có mã và họ tên, không có số bốc thăm hay thứ hạng nguyện vọng, để việc chấm {score_l} được khách quan.",
+      scoring_desc_person: "Nhập một {score_l} cho mỗi {person_l}. Danh sách chỉ có mã và họ tên, không có số bốc thăm hay thứ hạng nguyện vọng, để việc chấm {score_l} được khách quan.",
+      scoring_person_title: "{score} của từng {person_l}",
+      scoring_person_progress: "Đã chấm {n_scored}/{n}",
+      scoring_person_empty: "Chưa có {person_l} nào để chấm. Hãy nạp danh sách trước.",
       scoring_overview_title: "Tiến độ chấm của từng {slot_sl}",
       th_n_applicants: "Đã đăng ký",
       th_n_scored: "Đã chấm",
@@ -819,6 +823,10 @@
 
       scoring_title: "{score} entry",
       scoring_desc: "Choose {slot_la} to score. The list shows only codes and names, never lottery numbers or preference ranks, so scoring stays fair.",
+      scoring_desc_person: "Enter one {score_l} for each {person_l}. The list shows only codes and names, never lottery numbers or preference ranks, so scoring stays fair.",
+      scoring_person_title: "{score} for each {person_l}",
+      scoring_person_progress: "Scored {n_scored} of {n}",
+      scoring_person_empty: "No {person_pl} to score yet. Import the list first.",
       scoring_overview_title: "Scoring progress by {slot_l}",
       th_n_applicants: "Registered",
       th_n_scored: "Scored",

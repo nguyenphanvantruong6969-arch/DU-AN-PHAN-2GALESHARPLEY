@@ -689,10 +689,10 @@ class XuatKetQuaMixin:
     # KẾT QUẢ CÓ CÒN KHỚP DỮ LIỆU KHÔNG — và đã đổi gì so với lần trước
     # -----------------------------------------------------------------
     @staticmethod
-    def _dau_van_tay_du_lieu(cur) -> str:
+    def _dau_van_tay_du_lieu(cur, rules=None) -> str:
         """Xem `rbda_priority_pipeline.dau_van_tay_du_lieu` — MỘT định nghĩa
         "dữ liệu quyết định kết quả" cho cả lần chạy lẫn phép so sau đó."""
-        return dau_van_tay_du_lieu(cur)
+        return dau_van_tay_du_lieu(cur, rules)
     def get_trang_thai_ket_qua(self):
         """Kết quả đang lưu có còn khớp dữ liệu hiện tại không.
 
@@ -701,6 +701,7 @@ class XuatKetQuaMixin:
         thẻ Kết quả, cho mọi lần xuất tệp, và cho tệp tổng hợp.
         """
         try:
+            rules = self._cfg_ws()["rules"]
             with self._ket_noi_doc() as cur:
                 co_ket_qua = cur.execute(
                     "SELECT COUNT(*) FROM match_results").fetchone()[0] > 0
@@ -709,7 +710,7 @@ class XuatKetQuaMixin:
                 ).fetchone()
                 meta = cur.execute(
                     "SELECT run_at FROM run_meta WHERE id = 1").fetchone()
-                hien_tai = self._dau_van_tay_du_lieu(cur) if co_ket_qua else None
+                hien_tai = self._dau_van_tay_du_lieu(cur, rules) if co_ket_qua else None
             ket_qua_cu = bool(co_ket_qua and (dvt is None or dvt[0] != hien_tai))
             return _ok({
                 "co_ket_qua": co_ket_qua,
@@ -870,6 +871,12 @@ class XuatKetQuaMixin:
               for r in cur.execute(
                   "SELECT student_id, name, COALESCE(reserve_group, '') "
                   "FROM students ORDER BY student_id")}
+        # Workspace chấm điểm theo NGƯỜI: điểm chung của mỗi người đi vào cột "Điểm" của sổ.
+        if self._cfg_ws()["rules"]["score_scope"] == "per_person":
+            for sid, diem in cur.execute(
+                    "SELECT student_id, diem_ca_nhan FROM students "
+                    "WHERE diem_ca_nhan IS NOT NULL"):
+                hs[sid]["diem_ca_nhan"] = diem
         for sid, cid in cur.execute(
                 "SELECT student_id, club_id FROM preferences ORDER BY student_id, rank"):
             if sid in hs:

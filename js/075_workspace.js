@@ -120,6 +120,7 @@ function wsApDungCauHinh(cfg) {
     goiY.setAttribute("data-i18n", luat.max_tests === null
       ? "fallback_step1_hint_khong_gioi_han" : "fallback_step1_hint");
   }
+  apDungLuatChamDiem(luat);
   window.I18N.applyConfig(cfg);
 }
 

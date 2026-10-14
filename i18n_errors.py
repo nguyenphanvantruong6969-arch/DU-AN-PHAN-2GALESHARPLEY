@@ -528,6 +528,10 @@ MESSAGES = {
         "vi": "{student_id}: chưa có trong danh sách {person_l} nên được bỏ qua. Bật tuỳ chọn tự tạo {person_l} mới để nạp cả mã này.",
         "en": "{student_id}: not in the {person_l} list, so it was skipped. Turn on adding new {person_pl} automatically to include it.",
     },
+    "scoring_not_per_person": {
+        "vi": "Workspace này chấm {score_l} theo từng {slot_l}, không theo từng {person_l}. Hãy chấm ở danh sách của {slot_l}.",
+        "en": "This workspace sets the {score_l} per {slot_l}, not per {person_l}. Score from the {slot_l}'s list instead.",
+    },
     "score_not_applicant": {
         "vi": "{student_id}: không có trong danh sách dự thi của {slot_sl} này.",
         "en": "{student_id}: isn't on this {slot_l}'s test list.",
@@ -588,6 +592,22 @@ MESSAGES = {
     "health_vi_pham_mo_coi_clb": {
         "vi": "Bảng {bang} có dữ liệu của {n} mã {slot_l} không còn tồn tại. Tạo lại {slot_l} có mã đó ở màn Quản lý {slot_sl} & dự trữ. Ví dụ: {sample}. Phần mềm chưa bật được lớp chặn dữ liệu hỏng cho tệp dữ liệu này; sửa xong thì đóng và mở lại phần mềm để bật.",
         "en": "Table {bang} holds data for {n} {slot_l} ID(s) that no longer exist. Recreate {slot_la} with that ID in {slot_p} & reserves. For example: {sample}. The software cannot switch on its bad-data protection for this database until this is fixed; after fixing, close and reopen the software to switch it on.",
+    },
+    "health_person_score_none": {
+        "vi": "Chưa {person_l} nào có {score_l}, trong khi {score_l} được chấm theo từng {person_l}. Nếu sắp xếp lúc này, mọi {person_l} chỉ được xét theo số bốc thăm.",
+        "en": "No {person_l} has a {score_l} yet, although the {score_l} is set per {person_l}. If the allocation runs now, everyone will be ranked by lottery number only.",
+    },
+    "health_person_score_missing": {
+        "vi": "{n} {person_l} có nguyện vọng nhưng chưa có {score_l}, nên chỉ được xét theo số bốc thăm, sau các {person_l} đã có {score_l}. Ví dụ: {sample}",
+        "en": "{n} {person_l}(s) have preferences but no {score_l} yet, so they will be ranked by lottery number only, after those who have one. For example: {sample}",
+    },
+    "health_tier_missing": {
+        "vi": "{n} {person_l} có nguyện vọng nhưng {group_l} để trống hoặc không có trong danh sách {group_l} của luật xếp, nên bị xếp sau cùng. Ví dụ: {sample}",
+        "en": "{n} {person_l}(s) have preferences but their {group_l} is empty or isn't in the rules' list, so they will be ranked last. For example: {sample}",
+    },
+    "health_tiers_empty": {
+        "vi": "Luật xếp theo thứ tự {group_l} đang bật nhưng danh sách {group_l} trống, nên không {person_l} nào được ưu tiên hơn ai.",
+        "en": "Ranking by {group_l} order is on, but the {group_l} list is empty, so no {person_l} is ranked above another.",
     },
     "health_student_no_preferences": {
         "vi": "{n} {person_l} chưa có nguyện vọng nào nên sẽ không được xếp vào {slot_sl} nào. Ví dụ: {sample}",

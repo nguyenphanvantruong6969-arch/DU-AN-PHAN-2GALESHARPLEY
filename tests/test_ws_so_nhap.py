@@ -14,6 +14,7 @@ import pytest
 openpyxl = pytest.importorskip("openpyxl")
 
 import cau_hinh_ws as ch  # noqa: E402
+import rbda_priority_pipeline as rp  # noqa: E402
 import so_nhap  # noqa: E402
 import workspace as ws  # noqa: E402
 from api import PipelineAPI  # noqa: E402
@@ -254,9 +255,10 @@ def test_diem_theo_nguoi_mot_cot_sau_cot_nhom():
     assert not doc["loi"], doc["loi"]
     lan, mai = doc["students"]
     assert lan["diem_ca_nhan"] == "8.5" or lan["diem_ca_nhan"] == "8,5"
-    # cùng MỘT điểm cho mọi nguyện vọng của người đó
+    # Điểm theo người nằm ở CẤP NGƯỜI, không chép vào từng nguyện vọng (mở rộng lúc xếp).
     assert [(x["club_id"], x["thi"], x["diem"]) for x in lan["nv"]] == [
-        ("a", True, lan["diem_ca_nhan"]), ("b", True, lan["diem_ca_nhan"])]
+        ("a", False, ""), ("b", False, "")]
+    assert so_nhap.diem_cua_nguoi(lan) == 8.5 and so_nhap.diem_cua_nguoi(mai) is None
     assert mai["nv"] == [{"club_id": "a", "thi": False, "diem": ""}] and mai["diem_ca_nhan"] == ""
 
 
@@ -280,7 +282,7 @@ def test_diem_theo_nguoi_chu_thi_va_diem_sai():
     assert sai[0]["params"]["sheet"] == "2. Nhân viên"
     assert MESSAGES["so_nhap_diem_ca_nhan_sai"]["vi"] and MESSAGES["so_nhap_diem_ca_nhan_sai"]["en"]
     nv01 = next(s for s in doc["students"] if s["student_id"] == "NV01")
-    assert nv01["nv"][0]["thi"] is True and nv01["nv"][0]["diem"] == ""   # đã thi, chưa có điểm
+    assert nv01["diem_ca_nhan"] == "thi" and so_nhap.diem_cua_nguoi(nv01) is None   # đã thi, chưa có điểm
 
 
 def test_diem_theo_nguoi_bo_qua_cot_diem_tung_clb():
@@ -487,10 +489,13 @@ def test_api_diem_theo_nguoi_nap_va_tao_mau(goc, tmp_path):
     wb.save(b)
     r = api.import_so_nhap(_b64(b.getvalue()))
     assert r["ok"], r["errors"]
-    # điểm chung áp cho cả hai chỗ đã xếp nguyện vọng
+    # Điểm lưu MỘT ô ở người (students.diem_ca_nhan); không chép sang club_scores.
     with api._ket_noi_doc() as cur:
-        diem = dict(cur.execute("SELECT club_id, score FROM club_scores WHERE student_id='NV01'"))
-    assert diem == {"a": 8.5, "b": 8.5}
+        assert cur.execute("SELECT diem_ca_nhan FROM students WHERE student_id='NV01'").fetchone()[0] == 8.5
+        assert cur.execute("SELECT COUNT(*) FROM club_scores").fetchone()[0] == 0
+    # …và khi nạp để xếp thì điểm mở rộng ra cả hai chỗ đã xếp nguyện vọng.
+    tested = rp.load_from_sqlite(api.db_path, api._cfg_ws()["rules"])[2]
+    assert tested == {"a": {"NV01": 8.5}, "b": {"NV01": 8.5}}
 
 
 def test_api_error_so_nhap_dich_theo_nhan():
