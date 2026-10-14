@@ -195,17 +195,23 @@ def xay_tier_rank(students: dict[str, dict], tiers) -> dict[str, int]:
     """{student_id: hạng nhóm} từ danh sách nhóm `tiers` (tốt nhất đứng đầu).
 
     Nhóm của em là `students[sid]["reserve_group"]` (cùng cột "nhóm ưu tiên" đã có). So
-    sánh KHÔNG phân biệt hoa/thường và dấu, nên "Khối 12" khớp "khoi 12". Em không có
+    sánh KHÔNG phân biệt hoa/thường, dấu và khoảng trắng thừa (dấu cách kép, tab, dấu cách
+    không ngắt U+00A0 của Excel/Word/Forms — nhìn y hệt mà khác mã), nên "Khối 12" khớp
+    "khoi 12" và "Khối\u00a0\u00a012". Em không có
     nhóm, hay nhóm không có trong `tiers`, KHÔNG có mặt trong kết quả —
     `compute_club_priority` xếp họ sau cùng. `tiers` rỗng cho dict rỗng: không ai có
     nhóm, mọi người ngang nhau.
     """
+    def khoa(ten) -> str:
+        # str.split() không đối số tách theo MỌI khoảng trắng Unicode, kể cả U+00A0.
+        return " ".join(chuan_hoa_tim_kiem(ten).split())
+
     hang: dict[str, int] = {}
     for i, ten in enumerate(tiers or []):
-        hang.setdefault(chuan_hoa_tim_kiem(ten).strip(), i)
+        hang.setdefault(khoa(ten), i)
     ra: dict[str, int] = {}
     for sid, info in students.items():
-        nhom = chuan_hoa_tim_kiem((info or {}).get("reserve_group") or "").strip()
+        nhom = khoa((info or {}).get("reserve_group") or "")
         if nhom and nhom in hang:
             ra[sid] = hang[nhom]
     return ra

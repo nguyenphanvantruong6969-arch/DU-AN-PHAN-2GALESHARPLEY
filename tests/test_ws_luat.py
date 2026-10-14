@@ -110,7 +110,6 @@ def test_dau_van_tay_mac_dinh_khong_doi_va_luat_khac_thi_doi(tmp_path):
 # ------------------------------------------------------------------ thứ tự ưu tiên
 
 def test_ham_uu_tien_khong_nhan_thu_hang_nguyen_vong():
-    ten_tham_so = set(inspect.signature(rp.compute_club_priority).parameters)
     # chữ ký KHÔNG đổi: hạng nhóm đi qua hàm bọc `uu_tien_theo_nhom`, không qua hàm này
     assert list(inspect.signature(rp.compute_club_priority).parameters) == [
         "club_id", "applicants_for_club", "tested_scores_for_club", "stb_lottery"]

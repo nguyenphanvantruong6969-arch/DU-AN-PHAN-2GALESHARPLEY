@@ -204,7 +204,9 @@ def doi_ten(root: str, slug: str, new_name: str) -> None:
     """Đổi `config.name`. Thư mục giữ nguyên slug."""
     new_name = _kiem_ten(new_name)
     db = os.path.join(_thu_muc_ton_tai(root, slug), TEN_DB)
-    cfg = doc_cau_hinh(db)
+    # nghiem: đọc-rồi-ghi-lại. Cấu hình hiện có mà đọc không được thì từ chối đổi tên,
+    # KHÔNG lặng lẽ ghi mặc định đè lên nhãn và luật của workspace.
+    cfg = doc_cau_hinh(db, nghiem=True)
     cfg["name"] = new_name
     ghi_cau_hinh(db, cfg)
 
@@ -239,7 +241,7 @@ def nhan_ban(root: str, slug: str, new_name: str, kem_du_lieu: bool) -> str:
     """
     new_name = _kiem_ten(new_name)
     nguon = os.path.join(_thu_muc_ton_tai(root, slug), TEN_DB)
-    cfg = doc_cau_hinh(nguon)
+    cfg = doc_cau_hinh(nguon, nghiem=True)   # xem `doi_ten`: không nhân bản một cấu hình đoán
 
     if not kem_du_lieu:
         return tao(root, new_name, cfg)
@@ -271,7 +273,7 @@ def luu_mau(root: str, slug: str, ten_mau: str) -> str:
     từ cùng workspace thì CẬP NHẬT mẫu đó chứ không sinh thêm. Trả đường dẫn tệp.
     """
     ten_mau = _kiem_ten(ten_mau)
-    cfg = doc_cau_hinh(os.path.join(_thu_muc_ton_tai(root, slug), TEN_DB))
+    cfg = doc_cau_hinh(os.path.join(_thu_muc_ton_tai(root, slug), TEN_DB), nghiem=True)
     cfg["name"] = ten_mau
     thu_muc = os.path.join(root, THU_MUC_MAU)
     os.makedirs(thu_muc, exist_ok=True)
@@ -485,8 +487,21 @@ def di_chuyen_db_cu(root: str) -> bool:
         return False
 
     os.makedirs(dich, exist_ok=True)
+    # Lần trước đã dời xong app.db THẬT vào `dich` rồi mới dừng; từ đó có thể đã có một
+    # app.db MỚI mọc lên ở `root` (màn phục hồi "bắt đầu mới", hay bản phần mềm cũ chạy
+    # lại). Dời nó đè lên là xoá mất dữ liệu thật — mà `shutil.move` đè không báo trên cả
+    # POSIX lẫn Windows (rename lỗi thì lùi về chép-đè). Nên không bao giờ đè: tệp của
+    # app.db mới (kể cả `-journal`/`-wal`, vốn thuộc về CHÍNH nó, không phải app.db thật)
+    # được dời sang bên cạnh dưới tên có hậu tố `.trung-<giờ>`, để không mất mà cũng không
+    # bị SQLite nhận nhầm.
+    da_co_db_that = os.path.isfile(os.path.join(dich, TEN_DB))
+    hau_to = ".trung-%s" % _dau_thoi_gian()
     for t in _tep_can_chuyen(root):
-        shutil.move(os.path.join(root, t), os.path.join(dich, t))
+        la_ho_so_db = t == TEN_DB or t.startswith(TEN_DB + "-")
+        ten_dich = t
+        if os.path.exists(os.path.join(dich, t)) or (da_co_db_that and la_ho_so_db):
+            ten_dich = t + hau_to
+        shutil.move(os.path.join(root, t), os.path.join(dich, ten_dich))
 
     try:
         ghi_cau_hinh(os.path.join(dich, TEN_DB), {"name": TEN_TRUONG_HOC})

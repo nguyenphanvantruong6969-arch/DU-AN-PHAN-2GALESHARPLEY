@@ -217,14 +217,57 @@ def test_wizard_chon_mau_dien_san_ca_bon_buoc(mo_trang):
     assert page.input_value("#wzTiers") == "Quản lý\nNhân viên"
     assert page.locator("#wzTiers").is_enabled()
 
-    page.select_option("#wzTierMode", "reserve")           # chỉ sửa được danh sách khi strict
+    # Ưu tiên "chỉ theo nhóm" luôn xếp cứng (thuật toán không xét chế độ nhóm), nên danh sách
+    # nhóm còn dùng được dù chế độ là suất dự trữ mềm.
+    page.select_option("#wzTierMode", "reserve")
+    assert page.locator("#wzTiers").is_enabled()
+    page.select_option("#wzPriority", "score")             # điểm là chính: chỉ sửa được khi strict
     assert page.locator("#wzTiers").is_disabled()
+    page.select_option("#wzPriority", "tier")
+    assert page.locator("#wzTiers").is_enabled()
     page.select_option("#wzTierMode", "strict")
     page.locator("#wzTiep").click()
     page.locator("#wzTao").click()
     _cho_ten(page, "Chi nhánh")
     moi = api.get_workspace_config()["data"]["config"]
     assert moi["rules"]["tiers"] == ["Quản lý", "Nhân viên"] and moi["rules"]["max_tests"] is None
+    assert not loi, loi
+
+
+def test_wizard_chi_theo_nhom_giu_danh_sach_nhom_du_o_che_do_du_tru_mem(mo_trang):
+    """Lỗi cũ: "chỉ theo nhóm" + "suất dự trữ mềm" làm ô danh sách nhóm bị khoá và danh sách
+    bị vứt khi tạo, nên workspace xếp cứng mà không ai có nhóm — chỉ còn bốc thăm."""
+    page, api, _, loi = mo_trang()
+    page.locator("#btnWorkspace").click()
+    page.locator("#wsBtnMoi").click()
+    page.fill("#wzTen", "Chỉ nhóm")
+    page.locator("#wzTiep").click()
+    page.locator("#wzTiep").click()
+    page.select_option("#wzPriority", "tier")
+    assert page.input_value("#wzTierMode") == "reserve"
+    assert page.locator("#wzTiers").is_enabled()
+    page.fill("#wzTiers", "Khối 12\nKhối 11")
+    page.locator("#wzTiep").click()
+    assert page.locator("#rvTiers").inner_text() == "Khối 12 › Khối 11"
+    assert page.locator(".ws-canh-bao").count() == 0       # nhóm xếp cứng rồi: không có gì để cảnh báo
+    page.locator("#wzTao").click()
+    _cho_ten(page, "Chỉ nhóm")
+    luat = api.get_workspace_config()["data"]["config"]["rules"]
+    assert luat["priority"] == "tier" and luat["tiers"] == ["Khối 12", "Khối 11"]
+    assert not loi, loi
+
+
+def test_wizard_nhom_truoc_roi_diem_ma_du_tru_mem_thi_canh_bao_bo_thu_tu_nhom(mo_trang):
+    page, _, _, loi = mo_trang()
+    page.locator("#btnWorkspace").click()
+    page.locator("#wsBtnMoi").click()
+    page.fill("#wzTen", "Hai tầng")
+    page.locator("#wzTiep").click()
+    page.locator("#wzTiep").click()
+    page.select_option("#wzPriority", "score+tier")
+    assert page.locator("#wzTiers").is_disabled()          # dự trữ mềm: danh sách không dùng
+    page.locator("#wzTiep").click()
+    assert page.locator(".ws-canh-bao").count() == 1
     assert not loi, loi
 
 

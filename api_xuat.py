@@ -22,7 +22,7 @@ from i18n_errors import err
 from nhan_ws import dien as dien_nhan
 from i18n_errors import phan_hoi_loi as _fail
 from i18n_errors import phan_hoi_ok as _ok
-from rbda_priority_pipeline import BUOI_MAC_DINH, dau_van_tay_du_lieu
+from rbda_priority_pipeline import BUOI_MAC_DINH, dau_van_tay_du_lieu, diem_theo_nguoi
 import so_nhap
 
 
@@ -953,7 +953,9 @@ class XuatKetQuaMixin:
         CLB đó. Em chưa có gì vẫn có MỘT dòng — chọn em nào thì tệp phải có
         em đó, thiếu im lặng là người nhận tưởng em không tồn tại.
 
-        Điểm: chỉ điểm còn tick, đúng tập lần chạy dùng. Số bốc thăm: trường
+        Điểm: chỉ điểm còn tick, đúng tập lần chạy dùng — trừ workspace chấm điểm theo
+        NGƯỜI, nơi mỗi em có MỘT điểm (`students.diem_ca_nhan`) áp cho mọi dòng của em, đúng
+        thứ thuật toán đã dùng (không có tick hay điểm từng CLB để mà đọc). Số bốc thăm: trường
         nhiều buổi dùng số TỪNG BUỔI (cùng nguồn với bảng số bốc thăm), một
         buổi dùng số đã khoá. Nguyện vọng thứ: thứ hạng TRONG BUỔI, như cột
         cùng tên ở bảng kết quả.
@@ -962,6 +964,10 @@ class XuatKetQuaMixin:
             if not isinstance(student_ids, list) or not student_ids:
                 return _fail(err("chua_chon_hoc_sinh"))
             ids = list(dict.fromkeys(str(s) for s in student_ids))
+            # Luật và nhãn đọc MỘT lần, TRƯỚC khi mở giao dịch đọc dữ liệu.
+            cau_hinh = self._cfg_ws()
+            theo_nguoi = diem_theo_nguoi(cau_hinh["rules"])
+            nhan = cau_hinh["labels"]
 
             with self._ket_noi_doc() as cur:
                 hs = {r["student_id"]: r for r in cur.execute(
@@ -981,6 +987,10 @@ class XuatKetQuaMixin:
                 diem = {(r[0], r[1]): r[2] for r in cur.execute(
                     "SELECT student_id, club_id, score FROM club_scores "
                     "WHERE student_id IN (%s)" % dau, ids)}
+                diem_nguoi = {r[0]: r[1] for r in cur.execute(
+                    "SELECT student_id, diem_ca_nhan FROM students "
+                    "WHERE diem_ca_nhan IS NOT NULL AND student_id IN (%s)" % dau, ids)
+                } if theo_nguoi else {}
                 nv: dict = {}
                 for r in cur.execute(
                         "SELECT student_id, club_id FROM preferences "
@@ -1038,7 +1048,10 @@ class XuatKetQuaMixin:
                 for cid in cac_clb:
                     b = buoi_cua(cid)
                     co_tick = (sid, cid) in tick
-                    d = diem.get((sid, cid)) if co_tick else None
+                    if theo_nguoi:
+                        d = diem_nguoi.get(sid)
+                    else:
+                        d = diem.get((sid, cid)) if co_tick else None
                     x = kq.get((sid, cid))
                     dong.append(
                         goc + ([b] if nhieu_buoi else [])
@@ -1053,7 +1066,7 @@ class XuatKetQuaMixin:
             ten = ("hoc_sinh_%s.csv" % self._ten_file_an_toan(ids[0], "hoc_sinh")
                    if len(ids) == 1 else "hoc_sinh_da_chon_%d_em.csv" % len(ids))
             path = self._duong_xuat(output_path, ten)
-            _ghi_csv(path, [dien_nhan(c, self._nhan_xuat()) for c in header], dong)
+            _ghi_csv(path, [dien_nhan(c, nhan) for c in header], dong)
             tt = self.get_trang_thai_ket_qua()
             return _ok({
                 "path": path,
