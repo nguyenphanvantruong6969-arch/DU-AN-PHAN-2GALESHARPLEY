@@ -210,7 +210,10 @@ class WorkspaceMixin:
         if xac_nhan != self._RESET_CONFIRM:
             return _fail(err("reset_confirmation_mismatch", can_go=self._RESET_CONFIRM))
         self._ws_db(slug)
-        if slug == self._ws_slug_dang_mo():
+        # "Đang mở" là cái người dùng ĐÃ CHỌN. Lúc khởi động nhiều workspace, `db_path` chỉ là
+        # chỗ tạm cho đối tượng API sống được (xem main.khoi_dong_workspace) và giao diện đang
+        # hiện màn chọn: workspace tạm đó chưa ai mở nên xoá được như mọi cái khác.
+        if self._ws_da_chon and slug == self._ws_slug_dang_mo():
             raise _LoiWs("ws_khong_xoa_dang_mo", slug=slug)
         with self._khoa_ghi:
             thung = workspace.xoa(self._goc_ws, slug)

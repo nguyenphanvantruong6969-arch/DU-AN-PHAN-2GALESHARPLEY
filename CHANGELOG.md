@@ -1,5 +1,22 @@
 # CHANGELOG
 
+## 2026-10-14 — Workspace: ghép các nhánh và vòng sửa lỗi sau review (/code-review trên 4 nhánh)
+
+Ghép `practical-faraday` (nền), `cool-hamilton` (tài liệu) và `upbeat-ride` vào nhánh này; bản workspace
+cũ của nhánh còn ở `backup/nifty-truoc-khi-ghep`. Sửa các lỗi còn lại, mỗi lỗi một test
+(`tests/test_ws_sua_loi_2.py`):
+- `workspace.xoa`: workspace có `app.db` hỏng vẫn xoá được (sao lưu rơi về chép tệp thô, rồi dời vào `_trash`).
+- `workspace.nhap_zip`: trần 500 MB giải nén cho cả zip, đếm BYTE THẬT khi chép (tiêu đề zip khai sao cũng
+  được); bỏ `app.db-journal/-wal/-shm` và `*.bak-*` trong zip (SQLite tự phát lại nhật ký có sẵn); từ chối mục mã hoá.
+- Slug: cắt ở 60 ký tự; `con`, `nul`, `com1`... (tên thiết bị Windows) thành `ws-<tên>`.
+- `delete_workspace`: workspace "mở tạm" lúc khởi động nhiều workspace (người dùng chưa chọn) xoá được.
+- `run_history.luat_xep` (cột mới, `ADD COLUMN`, không dựng lại bảng): JSON luật xếp đã dùng; NULL = luật mặc
+  định của trường học (dòng cũ và workspace mặc định không đổi). `get_run_history` trả cột này.
+- `run_full_pipeline` (đường thử nghiệm) từ chối chạy khi workspace có luật khác mặc định, thay vì xếp sai
+  âm thầm.
+- `docs/ke_hoach/tham_khao`: `verify_stability_nhanh` nhận `bo_qua_du_tru`; bộ nạp `_chung.nap_rb` nạp thêm
+  `nhan_ws` (từ bản có workspace, `i18n_errors` import nó), bản build cũ không có thì vẫn nạp được.
+
 ## 2026-10-10 — GĐ0 (việc tiếp, ngoài sổ) — vòng lặp 2, vòng S (/code-review trên vòng R: 6 điểm, không lỗi đúng/sai — vòng sạch)
 
 - Không sửa hành vi. Ba điểm "móc lỗi chặn cả `import json`" là đúng hành vi: tệp `json.py` cạnh mã vẫn che được

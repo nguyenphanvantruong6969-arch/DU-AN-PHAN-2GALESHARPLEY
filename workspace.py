@@ -62,6 +62,15 @@ TEN_FILE_GHI_CHU = "DA_CHUYEN_SANG_WORKSPACES.txt"
 _THU_MUC_DANG_DUNG = "_workspaces_dang_dung"
 
 _RE_SLUG = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
+# Slug dài quá thì thư mục không tạo được (Windows giới hạn cả đường dẫn ở 260 ký tự).
+_SLUG_TOI_DA = 60
+# Tên thiết bị của Windows: một thư mục tên `con` hay `nul` không tạo / mở được ở đó.
+_TEN_THIET_BI = frozenset(
+    {"con", "prn", "aux", "nul"}
+    | {"com%d" % i for i in range(1, 10)} | {"lpt%d" % i for i in range(1, 10)})
+# Trần dung lượng GIẢI NÉN của app.db trong zip nhập vào (chống zip bomb). Một app.db
+# thật của trường vài trăm học sinh chỉ cỡ vài MB; 500 MB là rộng rãi.
+TRAN_GIAI_NEN_BYTE = 500 * 1024 * 1024
 _RE_ONG_DAN = re.compile(r"^[A-Za-z]:")
 
 
@@ -99,8 +108,15 @@ def _kiem_ten(ten) -> str:
 
 
 def _tao_slug(ten: str) -> str:
-    """'Trường học' -> 'truong-hoc'. Tên toàn ký hiệu thì dùng 'workspace'."""
-    return "-".join(bo_dau(ten).split()) or "workspace"
+    """'Trường học' -> 'truong-hoc'. Tên toàn ký hiệu thì dùng 'workspace'.
+
+    Cắt ở `_SLUG_TOI_DA` ký tự, và tên trùng tên thiết bị của Windows (con, nul,
+    com1...) được thêm tiền tố `ws-` để thư mục tạo được ở mọi máy.
+    """
+    slug = "-".join(bo_dau(ten).split())[:_SLUG_TOI_DA].strip("-") or "workspace"
+    if slug in _TEN_THIET_BI:
+        slug = "ws-" + slug
+    return slug
 
 
 def _slug_trong(root: str, ten: str) -> str:
@@ -122,26 +138,36 @@ def _dau_thoi_gian() -> str:
     return datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f")
 
 
-def _chep_db(nguon: str, dich: str) -> None:
+def _chep_db(nguon: str, dich: str, *, du_phong_chep_tep: bool = False) -> None:
     """Chép CSDL bằng SQLite Backup API (cùng kiểu `PipelineAPI._backup_db`).
 
     Hỏng giữa chừng thì xoá bản dở: nó mang tên một app.db thật.
+
+    `du_phong_chep_tep`: nguồn hỏng không đọc được bằng Backup API thì chép
+    nguyên tệp. Dùng cho bản sao lưu trước khi xoá: một workspace hỏng vẫn phải
+    xoá được, và vẫn phải còn bản để cứu.
     """
-    src = connect_db(nguon)
+    src = None
     try:
+        # `connect_db` đã chạm vào tệp (PRAGMA), nên tệp hỏng báo lỗi ngay ở đây.
+        src = connect_db(nguon)
         dst = sqlite3.connect(dich)
         try:
             src.backup(dst)
         finally:
             dst.close()
-    except BaseException:
+    except BaseException as e:
         try:
             os.remove(dich)
         except OSError:
             pass
+        if du_phong_chep_tep and isinstance(e, sqlite3.Error):
+            shutil.copy2(nguon, dich)
+            return
         raise
     finally:
-        src.close()
+        if src is not None:
+            src.close()
 
 
 # ---------------------------------------------------------------------------
@@ -223,7 +249,8 @@ def xoa(root: str, slug: str) -> str:
     """
     thu_muc = _thu_muc_ton_tai(root, slug)
     _chep_db(os.path.join(thu_muc, TEN_DB),
-             os.path.join(thu_muc, "%s.bak-%s" % (TEN_DB, _dau_thoi_gian())))
+             os.path.join(thu_muc, "%s.bak-%s" % (TEN_DB, _dau_thoi_gian())),
+             du_phong_chep_tep=True)
 
     rac = os.path.join(_thu_muc_ws(root), THU_MUC_RAC)
     os.makedirs(rac, exist_ok=True)
@@ -395,16 +422,21 @@ def nhap_zip(root: str, zip_path: str) -> str:
         with z:
             muc = []
             for info in z.infolist():
-                phan = _kiem_ten_trong_zip(info.filename)
+                phan = _kiem_ten_trong_zip(info.filename)     # zip-slip: kiểm MỌI mục
                 # Liên kết tượng trưng: giải ra sẽ trỏ tới nơi tuỳ ý.
                 if stat.S_ISLNK(info.external_attr >> 16):
                     raise ValueError("Zip không an toàn: liên kết '%s'." % info.filename)
+                if info.flag_bits & 0x1:
+                    raise ValueError("Zip không an toàn: '%s' được mã hoá." % info.filename)
                 if phan:
                     muc.append((info, phan))
             if not any(phan == [TEN_DB] and not info.is_dir() for info, phan in muc):
                 raise ValueError("Zip không phải workspace: thiếu %s ở gốc." % TEN_DB)
 
             goc_tam = os.path.realpath(tam)
+            # Trần dung lượng GIẢI NÉN cho cả zip, đếm BYTE THẬT khi chép: tiêu đề zip
+            # (`file_size`) khai sao cũng được, nên không tin nó.
+            con_lai = TRAN_GIAI_NEN_BYTE
             for info, phan in muc:
                 dich = os.path.join(tam, *phan)
                 # Đã lọc ở trên; kiểm lại trên đường dẫn thật cho chắc.
@@ -413,9 +445,21 @@ def nhap_zip(root: str, zip_path: str) -> str:
                 if info.is_dir():
                     os.makedirs(dich, exist_ok=True)
                     continue
+                # Tệp phụ của SQLite (-journal / -wal / -shm) và bản sao lưu KHÔNG được vào:
+                # SQLite sẽ tự phát lại một nhật ký có sẵn khi mở app.db.
+                if _la_tep_phu(phan[-1]):
+                    continue
                 os.makedirs(os.path.dirname(dich), exist_ok=True)
                 with z.open(info) as nguon, open(dich, "wb") as ra:
-                    shutil.copyfileobj(nguon, ra)
+                    while True:
+                        khoi = nguon.read(1024 * 1024)
+                        if not khoi:
+                            break
+                        con_lai -= len(khoi)
+                        if con_lai < 0:
+                            raise ValueError("Zip quá lớn: giải nén ra hơn %d MB." % (
+                                TRAN_GIAI_NEN_BYTE // (1024 * 1024)))
+                        ra.write(khoi)
 
         db = os.path.join(tam, TEN_DB)
         try:

@@ -53,6 +53,7 @@ from rbda_priority_pipeline import (
     sanity_check_result,
     sap_buoi,
     soat_vi_pham_rang_buoc,
+    luat_xep_de_ghi,
     tham_so_luat,
     validate_data_integrity,
     verify_stability,
@@ -633,7 +634,7 @@ class PipelineAPI(NhapDuLieuMixin, ChamDiemMixin, BaoCaoMixin,
             with self._ket_noi_doc() as cur:
                 rows = cur.execute(
                     "SELECT run_id, seed, run_at, rounds_run, n_matched, n_total, "
-                    "       stb_redrawn, so_buoi, buoi_da_chay, che_do_boc_tham "
+                    "       stb_redrawn, so_buoi, buoi_da_chay, che_do_boc_tham, luat_xep "
                     "FROM run_history ORDER BY run_id DESC LIMIT ?",
                     (limit,),
                 ).fetchall()
@@ -1346,11 +1347,11 @@ class PipelineAPI(NhapDuLieuMixin, ChamDiemMixin, BaoCaoMixin,
             cur.execute(
                 "INSERT INTO run_history "
                 "(seed, run_at, rounds_run, n_matched, n_total, stb_redrawn, "
-                " che_do_boc_tham, so_buoi, buoi_da_chay) "
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                " che_do_boc_tham, so_buoi, buoi_da_chay, luat_xep) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 (seed, run_at, result.rounds_run, n_matched, len(so_clb),
                  1 if stb_redrawn else 0, result.che_do_boc_tham,
-                 len(result.ds_buoi), buoi_da_chay),
+                 len(result.ds_buoi), buoi_da_chay, luat_xep_de_ghi(luat)),
             )
 
             # Diem commit DUY NHAT cua toan bo pipeline: neu bat ky dong

@@ -23,8 +23,11 @@ trên 7 cấu hình: 3 kết quả thật (0 cặp ở 2.000, 5.000, 10.000 họ
 from bisect import bisect_right
 
 
-def verify_stability_nhanh(result, clubs, preferences, is_reserve_eligible_fn):
+def verify_stability_nhanh(result, clubs, preferences, is_reserve_eligible_fn, bo_qua_du_tru=False):
     """Cùng chữ ký, cùng kết quả và cùng lỗi với rbda_priority_pipeline.verify_stability.
+
+    `bo_qua_du_tru` như ở bản gốc: True = chế độ nhóm cứng của workspace, mọi suất là suất
+    chung (reserve_capacity coi như 0). Phải GIỐNG lần chạy đã tạo `result`.
 
     Trả list[{"code": "blocking_pair", "params": {...}}] dựng bằng `err` của i18n_errors như bản gốc.
     Chỉ đọc dữ liệu của CLB nào thật sự được xét (lười như bản gốc): CLB không ai muốn chuyển tới thì
@@ -48,7 +51,8 @@ def verify_stability_nhanh(result, clubs, preferences, is_reserve_eligible_fn):
         if cid in chuan_bi:
             return chuan_bi[cid]
         info = clubs[cid]
-        capacity, reserve_capacity = info["capacity"], info["reserve_capacity"]
+        capacity = info["capacity"]
+        reserve_capacity = 0 if bo_qua_du_tru else info["reserve_capacity"]
         rank = result.base_rank.get(cid, {})
         # Lần đầu xét CLB này, gọi ĐÚNG lời gọi của bản gốc (đang giữ + [sid], hàm đủ tư cách thật,
         # thứ hạng thật) bằng club_choice_function của mô-đun đã nạp: mọi kiểm tra đầu vào của nó —

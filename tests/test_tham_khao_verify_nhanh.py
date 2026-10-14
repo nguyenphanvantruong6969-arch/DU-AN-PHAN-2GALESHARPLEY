@@ -509,7 +509,7 @@ def test_nap_rb_tra_ban_da_nap_khi_cung_thu_muc():
 
 
 def test_nap_rb_bao_loi_khi_tien_trinh_da_nap_ban_khac(tmp_path):
-    for ten in ("rbda_priority_pipeline.py", "i18n_errors.py"):
+    for ten in ("rbda_priority_pipeline.py", "i18n_errors.py", "nhan_ws.py"):
         (tmp_path / ten).write_text(open(os.path.join(_GOC, ten), encoding="utf-8").read(), encoding="utf-8")
     with pytest.raises(SystemExit, match="tiến trình riêng"):
         _chung.nap_rb(str(tmp_path))
@@ -517,7 +517,7 @@ def test_nap_rb_bao_loi_khi_tien_trinh_da_nap_ban_khac(tmp_path):
 
 def test_nap_rb_nap_dung_thu_muc_trong_tien_trinh_moi(tmp_path):
     import subprocess
-    for ten in ("rbda_priority_pipeline.py", "i18n_errors.py"):
+    for ten in ("rbda_priority_pipeline.py", "i18n_errors.py", "nhan_ws.py"):
         (tmp_path / ten).write_text(open(os.path.join(_GOC, ten), encoding="utf-8").read(), encoding="utf-8")
     ma = ("import importlib.util, sys;"
           "sp = importlib.util.spec_from_file_location('c', sys.argv[1]);"
@@ -536,7 +536,7 @@ def test_nap_rb_nap_i18n_errors_khi_mo_dun_chinh_da_co(tmp_path):
     # Tiến trình đã có rbda_priority_pipeline (từ thư mục đó) nhưng chưa có i18n_errors (mô-đun chỉ
     # import nó bên trong hàm): nap_rb phải nạp nốt i18n_errors từ cùng thư mục.
     import subprocess
-    for ten in ("rbda_priority_pipeline.py", "i18n_errors.py"):
+    for ten in ("rbda_priority_pipeline.py", "i18n_errors.py", "nhan_ws.py"):
         (tmp_path / ten).write_text(open(os.path.join(_GOC, ten), encoding="utf-8").read(), encoding="utf-8")
     ma = ("import importlib.util, sys;"
           "sys.path.insert(0, sys.argv[2]); import rbda_priority_pipeline; sys.path.remove(sys.argv[2]);"
@@ -1158,3 +1158,19 @@ def test_gen_sinh_du_lieu_dung_hinh_dang():
         assert all(sid in apps[c] for c in p)
         assert all(sid in tested[c] for c in p[:2])
     assert all(0 <= v["reserve_capacity"] <= v["capacity"] for v in clubs.values())
+
+
+def test_ban_nhanh_khop_ban_goc_o_che_do_nhom_cung_bo_qua_du_tru():
+    """Workspace nhóm cứng chạy với reserve_capacity = 0 (`bo_qua_du_tru`): bản nhanh phải
+    cho đúng cặp phá vỡ của bản gốc khi cùng cờ, kể cả kết quả bị làm hỏng."""
+    tong = 0
+    for seed in range(8):
+        students, clubs, tested, apps, prefs, stb, fn, _ = _sinh(100 + seed, du_tru="het")
+        res = rb.run_rbda(students, clubs, tested, apps, prefs, stb, fn, bo_qua_du_tru=True)
+        hong = _bien_doi(res, clubs, random.Random(seed), 20)
+        for kq in (res, hong):
+            a = rb.verify_stability(kq, clubs, prefs, fn, bo_qua_du_tru=True)
+            b = verify_stability_nhanh(kq, clubs, prefs, fn, bo_qua_du_tru=True)
+            assert sorted(map(_khoa, a)) == sorted(map(_khoa, b))
+            tong += len(a)
+    assert tong > 0      # có ca thật sự có cặp phá vỡ, không phải so hai danh sách rỗng

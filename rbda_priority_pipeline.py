@@ -262,6 +262,20 @@ def luat_xep_cua(rules) -> dict:
             for k, v in LUAT_XEP_MAC_DINH.items()}
 
 
+def luat_xep_de_ghi(rules):
+    """Luật xếp dạng chuỗi JSON để ghi vào `run_history.luat_xep`.
+
+    Trả None khi là luật mặc định của trường học: dòng lịch sử của trường không dùng
+    workspace tùy biến vẫn y như trước, và NULL nghĩa là "mặc định".
+    """
+    import json
+
+    luat = luat_xep_cua(rules)
+    if luat == LUAT_XEP_MAC_DINH:
+        return None
+    return json.dumps(luat, sort_keys=True, ensure_ascii=False)
+
+
 def tham_so_luat(rules, students: dict[str, dict]) -> dict:
     """Luật workspace -> tham số cho `run_rbda_nhieu_buoi` / `verify_stability_tuan`.
 
@@ -1458,7 +1472,12 @@ CREATE TABLE IF NOT EXISTS run_history (
     -- Chay duoc RIENG tung buoi, nen mot bo ket qua trong CSDL co the la
     -- hop cua nhieu lan chay. Khong ghi lai lan chay nay phu nhung buoi
     -- nao thi khong ai truy nguoc duoc "ket qua thu Nam den tu dau".
-    buoi_da_chay TEXT
+    buoi_da_chay TEXT,
+    -- LUAT XEP cua workspace da dung cho lan chay nay (JSON: priority, tier_mode,
+    -- score_scope, tiers). NULL = luat mac dinh cua truong hoc. Luat doi duoc giua hai
+    -- lan chay; khong ghi lai thi hai lan chay cung seed ra ket qua khac nhau ma
+    -- khong dau vet nao giai thich.
+    luat_xep TEXT
 );
 
 -- Khoa so bac tham (STB). Chi 1 dong duy nhat. Khi da_khoa = 1, nut
@@ -1751,6 +1770,12 @@ def di_tru_schema(db_path: str) -> list[str]:
                 if not _co_cot(cur, bang, cot):
                     cur.execute("ALTER TABLE %s ADD COLUMN %s %s" % (bang, cot, kieu))
                     da_lam.append("%s.%s" % (bang, cot))
+
+        # `run_history.luat_xep` — luật xếp đã dùng. ADD COLUMN, NULL cho mọi dòng cũ (= luật
+        # mặc định, đúng với mọi lần chạy trước khi có workspace). Không dựng lại bảng.
+        if "run_history" in co_bang and not _co_cot(cur, "run_history", "luat_xep"):
+            cur.execute("ALTER TABLE run_history ADD COLUMN luat_xep TEXT")
+            da_lam.append("run_history.luat_xep")
 
         if "match_results" in co_bang and not _co_cot(cur, "match_results", "buoi"):
             cur.executescript("""
@@ -2138,6 +2163,36 @@ def _chan_neu_la_du_lieu_that(db_path: str) -> None:
         )
 
 
+def _chan_neu_luat_khac_mac_dinh(db_path: str) -> None:
+    """Từ chối chạy khi workspace có luật xếp KHÁC mặc định của trường học.
+
+    Đường thử nghiệm này gọi thẳng `run_rbda` và không truyền hạng nhóm (`tier_rank`) hay
+    cờ bỏ suất dự trữ, nên sẽ xếp theo luật trường học trong khi cấu hình đòi luật khác: kết
+    quả sai mà không báo. Đường thật (`PipelineAPI.run_pipeline`) xử lý luật đầy đủ.
+    """
+    import json
+    import sqlite3
+
+    conn = connect_db(db_path)
+    try:
+        dong = conn.execute(
+            "SELECT value FROM workspace_settings WHERE key = 'config'").fetchone()
+    except sqlite3.Error:
+        return
+    finally:
+        conn.close()
+    try:
+        rules = (json.loads(dong[0]) or {}).get("rules") if dong and dong[0] else None
+    except (TypeError, ValueError, AttributeError):
+        return
+    if luat_xep_de_ghi(rules if isinstance(rules, dict) else None) is not None:
+        raise RuntimeError(
+            "TU CHOI CHAY: '%s' co luat xep khac mac dinh cua truong hoc (%s).\n"
+            "run_full_pipeline() la duong THU NGHIEM va khong biet luat nay, nen se xep sai "
+            "ma khong bao. Dung giao dien phan mem, hoac PipelineAPI(db).run_pipeline(seed)."
+            % (db_path, luat_xep_de_ghi(rules)))
+
+
 def run_full_pipeline(db_path: str, seed: int, output_csv_path: str) -> MatchResult:
     """
     Chạy trọn 5 bước: validate -> STB -> RB-DA -> ghi DB -> export CSV.
@@ -2166,6 +2221,7 @@ def run_full_pipeline(db_path: str, seed: int, output_csv_path: str) -> MatchRes
     """
     _chan_neu_la_du_lieu_that(db_path)
     init_db(db_path)
+    _chan_neu_luat_khac_mac_dinh(db_path)
     students, clubs, tested_scores, applicants, preferences, _ = load_from_sqlite(
         db_path
     )

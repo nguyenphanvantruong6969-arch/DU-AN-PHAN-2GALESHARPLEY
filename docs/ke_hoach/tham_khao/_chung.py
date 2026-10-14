@@ -242,21 +242,27 @@ def _nguon_thuc(mod):
 _TEN = ("i18n_errors", "rbda_priority_pipeline")   # i18n_errors trước: mô-đun chính import nó theo tên
 
 
-def _nap_co_kiem(ao, nap, mo_ta, chuan_bi=None):
+def _ten_can_nap(co_nhan_ws):
+    """Các mô-đun cần nạp, theo thứ tự nạp. Từ bản có workspace, `i18n_errors` import `nhan_ws`
+    (từ vựng của workspace), nên `nhan_ws` phải nạp TRƯỚC nó; bản build cũ không có thì bỏ."""
+    return (("nhan_ws",) if co_nhan_ws else ()) + _TEN
+
+
+def _nap_co_kiem(ao, nap, mo_ta, chuan_bi=None, thu_tu=_TEN):
     """Một luật cho mọi nguồn: `ao` = {tên mô-đun: đường dẫn mong đợi}.
 
     Đã nạp đúng cả hai từ đó -> trả bản đã nạp. Đã nạp từ nơi khác -> SystemExit (mỗi tiến trình một bản).
     Chưa có -> gọi `chuan_bi(chua_co)` (nếu có) một lần cho mọi mô-đun còn thiếu, rồi `nap(ten)` theo thứ tự
-    _TEN; hỏng giữa chừng thì gỡ mọi mô-đun vừa thêm.
+    `thu_tu` (mặc định _TEN); hỏng giữa chừng thì gỡ mọi mô-đun vừa thêm.
     """
-    da_nap = {ten: getattr(sys.modules.get(ten), "__file__", None) for ten in _TEN}
-    if all(_cung_nguon(da_nap[ten], ao[ten]) for ten in _TEN):
+    da_nap = {ten: getattr(sys.modules.get(ten), "__file__", None) for ten in thu_tu}
+    if all(_cung_nguon(da_nap[ten], ao[ten]) for ten in thu_tu):
         return sys.modules["rbda_priority_pipeline"]
-    for ten in _TEN:
+    for ten in thu_tu:
         if ten in sys.modules and not _cung_nguon(da_nap[ten], ao[ten]):
             raise SystemExit("Tiến trình này đã nạp %s từ %s; muốn đo %s hãy chạy một tiến trình riêng."
                              % (ten, _nguon_thuc(sys.modules[ten]), mo_ta))
-    chua_co = [ten for ten in _TEN if ten not in sys.modules]
+    chua_co = [ten for ten in thu_tu if ten not in sys.modules]
     try:
         if chuan_bi is not None:
             chuan_bi(chua_co)
@@ -285,10 +291,11 @@ def nap_rb(duong_dan):
         thu_muc = os.path.abspath(duong_dan)
         # Nạp thẳng <thu_muc>/<tên>.py (không import theo tên qua sys.path, không đụng cache bộ tìm).
         # Kiểm mô-đun chính trước: thư mục sai thì báo thiếu rbda_priority_pipeline, đúng như cách dùng ghi.
-        tep = {ten: _tep_nguon(thu_muc, ten) for ten in reversed(_TEN)}
+        thu_tu = _ten_can_nap(os.path.isfile(os.path.join(thu_muc, "nhan_ws.py")))
+        tep = {ten: _tep_nguon(thu_muc, ten) for ten in reversed(thu_tu)}
         # Mô-đun được import mô-đun nào trong _TEN: chỉ mô-đun nạp TRƯỚC nó (i18n_errors nạp trước nên không
         # được import rbda_priority_pipeline — lúc đó bản này chưa có, import theo tên sẽ lấy nhầm bản khác).
-        cho_phep = {ten: set(_TEN[:i]) for i, ten in enumerate(_TEN)}
+        cho_phep = {ten: set(thu_tu[:i]) for i, ten in enumerate(thu_tu)}
         ma = {}
 
         def chuan_bi(chua_co):
@@ -308,13 +315,18 @@ def nap_rb(duong_dan):
             sys.modules[ten] = mod
             exec(ma[ten], mod.__dict__)
 
-        return _nap_co_kiem(tep, nap, "thư mục %s" % thu_muc, chuan_bi)
+        return _nap_co_kiem(tep, nap, "thư mục %s" % thu_muc, chuan_bi, thu_tu)
     if not os.path.isfile(duong_dan):
         raise SystemExit("%s không phải thư mục kho mã cũng không phải tệp PyInstaller (không tồn tại)."
                          % duong_dan)
     # Đường dẫn ảo bên trong tệp .exe: không bao giờ trùng một tệp .py thật của kho mã.
-    ao = {ten: os.path.join(os.path.abspath(duong_dan), ten + ".py") for ten in _TEN}
     trang_thai = {}
+    try:      # bản build có nhan_ws thì phải nạp nó; không đọc được thì để `nap` báo lỗi đúng chỗ
+        trang_thai["pyz"], trang_thai["mods"] = _doc_pyz(duong_dan)
+    except SystemExit:
+        trang_thai.clear()
+    thu_tu = _ten_can_nap("nhan_ws" in trang_thai.get("mods", ()))
+    ao = {ten: os.path.join(os.path.abspath(duong_dan), ten + ".py") for ten in thu_tu}
 
     def nap(ten):
         if "pyz" not in trang_thai:
@@ -329,7 +341,7 @@ def nap_rb(duong_dan):
         sys.modules[ten] = m
         exec(co, m.__dict__)
 
-    return _nap_co_kiem(ao, nap, "bản build %s" % duong_dan)
+    return _nap_co_kiem(ao, nap, "bản build %s" % duong_dan, thu_tu=thu_tu)
 
 
 def _doc_pyz(duong_dan):
