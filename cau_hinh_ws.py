@@ -179,12 +179,18 @@ def chuan_hoa(cfg: dict) -> dict:
     return _chuan_hoa(cfg)
 
 
-def doc_cau_hinh(db_path: str) -> dict:
+def doc_cau_hinh(db_path: str, nghiem: bool = False) -> dict:
     """Cấu hình của workspace ở `db_path`, trộn lên mặc định trường học.
 
-    Không bao giờ ném: tệp chưa có, bảng chưa có (CSDL cũ), hàng chưa có, JSON
+    Mặc định không bao giờ ném: tệp chưa có, bảng chưa có (CSDL cũ), hàng chưa có, JSON
     hỏng, hay giá trị không qua được kiểm đều cho ra mặc định. Đọc KHÔNG tạo
     tệp hay bảng — chỉ ghi mới làm vậy. Luôn trả bản sao mới.
+
+    `nghiem=True` dành cho nơi ĐỌC RỒI GHI LẠI cấu hình (đổi tên, nhân bản, lưu mẫu):
+    "mặc định" thay cho một cấu hình hiện có mà đọc không được (JSON hỏng, khoá lạ do bản
+    phần mềm mới hơn ghi, CSDL đang bị khoá…) rồi được ghi đè lên chính nó là xoá lặng lẽ
+    nhãn và luật của workspace. Ở chế độ này, CHỈ ba trường hợp "chưa có cấu hình" (tệp,
+    bảng, hàng chưa có) cho ra mặc định; còn lại ném ValueError / sqlite3.Error.
     """
     mac_dinh = copy.deepcopy(MAC_DINH_TRUONG_HOC)
     if not os.path.isfile(db_path):
@@ -192,6 +198,11 @@ def doc_cau_hinh(db_path: str) -> dict:
     try:
         conn = connect_db(db_path)
         try:
+            co_bang = conn.execute(
+                "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'workspace_settings'"
+            ).fetchone()
+            if not co_bang:
+                return mac_dinh
             dong = conn.execute(
                 "SELECT value FROM workspace_settings WHERE key = ?", (KHOA_CAU_HINH,)
             ).fetchone()
@@ -203,6 +214,8 @@ def doc_cau_hinh(db_path: str) -> dict:
     except (sqlite3.Error, ValueError):
         # json.JSONDecodeError là con của ValueError, nên một câu bắt đủ cả
         # JSON hỏng lẫn giá trị sai.
+        if nghiem:
+            raise
         return mac_dinh
 
 

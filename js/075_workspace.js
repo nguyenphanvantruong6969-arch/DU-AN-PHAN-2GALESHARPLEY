@@ -392,8 +392,16 @@ function wsGomBuoc() {
   }
 }
 
+/* Thứ tự nhóm có tác dụng khi nhóm xếp CỨNG: chế độ "nghiêm ngặt", HOẶC ưu tiên "chỉ theo
+   nhóm" (thuật toán coi đó là xếp cứng bất kể chế độ nhóm — rbda_priority_pipeline.tham_so_luat).
+   Chỉ xét chế độ mà bỏ qua ưu tiên thì "chỉ theo nhóm" + "suất dự trữ mềm" lặng lẽ mất danh
+   sách nhóm, và mọi người ngang nhau, chỉ còn bốc thăm. */
+function wsDungThuTuNhom(w) {
+  return w.tierMode === "strict" || w.priority === "tier";
+}
+
 function wsTiers(w) {
-  return w.tierMode === "strict"
+  return wsDungThuTuNhom(w)
     ? w.tiersText.split("\n").map((s) => s.trim()).filter(Boolean) : [];
 }
 
@@ -557,25 +565,29 @@ function wsBuoc2(hop) {
 /* --- Bước 3: luật --- */
 function wsBuoc3(hop) {
   const w = wsWizard;
-  const strict = w.tierMode === "strict";
   const oMaxTests = wsEl("input", { type: "number", id: "wzMaxTests", class: "text-input ws-so",
     min: "0", max: "20", step: "1", value: w.maxTests, disabled: w.khongGioiHan });
   const oKhong = wsEl("input", { type: "checkbox", id: "wzKhongGioiHan", checked: w.khongGioiHan,
     onchange: (ev) => { oMaxTests.disabled = ev.target.checked; } });
   const oTiers = wsEl("textarea", { id: "wzTiers", class: "text-input ws-tiers", rows: "4",
-    value: w.tiersText, disabled: !strict, placeholder: t("ws_r_tiers_ph") });
+    value: w.tiersText, disabled: !wsDungThuTuNhom(w), placeholder: t("ws_r_tiers_ph") });
   const oTierMode = wsChon("wzTierMode", w.tierMode, [
     ["reserve", t("ws_r_tm_reserve")], ["strict", t("ws_r_tm_strict")]]);
-  oTierMode.addEventListener("change", () => { oTiers.disabled = oTierMode.value !== "strict"; });
+  const oPriority = wsChon("wzPriority", w.priority, [
+    ["score", t("ws_r_priority_score")], ["tier", t("ws_r_priority_tier")],
+    ["score+tier", t("ws_r_priority_both")]]);
+  const capNhatODanhSachNhom = () => {
+    oTiers.disabled = !(oTierMode.value === "strict" || oPriority.value === "tier");
+  };
+  oTierMode.addEventListener("change", capNhatODanhSachNhom);
+  oPriority.addEventListener("change", capNhatODanhSachNhom);
 
   hop.append(
     wsTruong("wzMaxChoices", "ws_r_max_choices", wsEl("input", { type: "number", id: "wzMaxChoices",
       class: "text-input ws-so", min: "1", max: "20", step: "1", value: w.maxChoices })),
     wsTruong("wzMaxTests", "ws_r_max_tests", wsEl("div", { class: "ws-hang" }, oMaxTests,
       wsEl("label", { class: "ws-kem" }, oKhong, " ", t("ws_r_khong_gioi_han")))),
-    wsTruong("wzPriority", "ws_r_priority", wsChon("wzPriority", w.priority, [
-      ["score", t("ws_r_priority_score")], ["tier", t("ws_r_priority_tier")],
-      ["score+tier", t("ws_r_priority_both")]])),
+    wsTruong("wzPriority", "ws_r_priority", oPriority),
     wsTruong("wzTierMode", "ws_r_tier_mode", oTierMode),
     wsTruong("wzScoreScope", "ws_r_score_scope", wsChon("wzScoreScope", w.scoreScope, [
       ["per_slot", t("ws_r_ss_per_slot")], ["per_person", t("ws_r_ss_per_person")]])),
@@ -605,7 +617,9 @@ function wsBuoc4(hop) {
   hop.append(
     wsEl("p", { class: "hint-text", text: t("ws_wz_xem_lai_hint") }),
     wsEl("table", { class: "data-table ws-xem-lai" }, wsEl("tbody", null, dong)));
-  if (r.priority !== "score" && r.tier_mode !== "strict") {
+  /* Chỉ "nhóm trước, rồi đến điểm" mà để suất dự trữ mềm mới bỏ thứ tự nhóm; "chỉ theo
+     nhóm" luôn xếp cứng nên dùng danh sách nhóm. */
+  if (r.priority === "score+tier" && r.tier_mode !== "strict") {
     hop.append(wsEl("p", { class: "ws-canh-bao", text: t("ws_r_canh_bao_nhom") }));
   }
 }

@@ -263,7 +263,6 @@ def test_diem_theo_nguoi_mot_cot_sau_cot_nhom():
 
 
 def test_diem_theo_nguoi_chu_thi_va_diem_sai():
-    clubs = [_clb("a", "Dự án A")]
     cac_dong = [("NV01", "thi"), ("NV02", "abc"), ("NV03", -3), ("NV04", 7)]
     wb = openpyxl.Workbook()
     a = wb.active

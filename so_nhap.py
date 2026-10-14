@@ -34,7 +34,7 @@ import re
 import unicodedata
 
 from i18n_errors import err
-from nhan_ws import NHAN_MAC_DINH, dang_chu
+from nhan_ws import dang_chu
 
 # ---------------------------------------------------------------------------
 # Tên sheet, tiêu đề cột
@@ -818,7 +818,7 @@ def huong_dan(cfg=None) -> list:
         return dang_chu(nhan, *a)
 
     clb, hs = ten_sheet_clb(cfg), ten_sheet_hs(cfg)
-    slot_l, slot_s, slot_u = d("slot", "l", "vi"), d("slot", "s", "vi"), d("slot", "su", "vi")
+    slot_l, slot_u = d("slot", "l", "vi"), d("slot", "su", "vi")
     nguoi_l, nhom = d("person", "l", "vi"), nhan_nhom(cfg)
     diem, diem_l = nhan_diem(cfg), d("score", "l", "vi")
     ra = [
@@ -947,7 +947,7 @@ def ghi_so_nhap(duong_dan_hoac_tep, clubs=(), students=(), so_nv=None, co_nhom=T
     else:
         so_nv = max([max(SO_NV_MAC_DINH, max_choices), 2 * so_buoi] + dai_nhat)
     sheet_clb, sheet_hs = ten_sheet_clb(cfg), ten_sheet_hs(cfg)
-    ten_nhom, ten_diem = nhan_nhom(cfg), nhan_diem(cfg)
+    ten_diem = nhan_diem(cfg)
 
     NEN_TIEU_DE = PatternFill("solid", fgColor="1F3A5F")
     NEN_NHAP = PatternFill("solid", fgColor="FFF8DC")
