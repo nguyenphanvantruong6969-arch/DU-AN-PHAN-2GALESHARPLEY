@@ -62,6 +62,7 @@ from api_bao_cao import BaoCaoMixin
 from api_cham_diem import ChamDiemMixin
 from api_nhap import NhapDuLieuMixin
 from api_quan_ly import QuanLyMixin
+from api_workspace import WorkspaceMixin
 from api_xuat import XuatKetQuaMixin
 
 
@@ -74,9 +75,16 @@ from api_xuat import XuatKetQuaMixin
 # `api.connect_db`, `api.run_rbda_nhieu_buoi`... để giả lập sự cố, và phép
 # thay đó chỉ có tác dụng với mã nằm trong CHÍNH tệp này.
 class PipelineAPI(NhapDuLieuMixin, ChamDiemMixin, BaoCaoMixin,
-                  XuatKetQuaMixin, QuanLyMixin):
-    def __init__(self, db_path: str, thu_muc_xuat: str = ""):
+                  XuatKetQuaMixin, QuanLyMixin, WorkspaceMixin):
+    def __init__(self, db_path: str, thu_muc_xuat: str = "",
+                 thu_muc_goc_ws: str = None, ws_da_chon: bool = True):
         self.db_path = db_path
+        # Thư mục gốc chứa workspaces/ (xem api_workspace.py). None = chạy
+        # một CSDL như trước và mọi hàm workspace trả lỗi. `ws_da_chon` False
+        # = còn phải để người dùng chọn workspace (giao diện hiện màn chọn).
+        # Gạch dưới: không để pywebview dò vào (xem _set_window).
+        self._goc_ws = thu_muc_goc_ws
+        self._ws_da_chon = bool(ws_da_chon)
         # MỘT khoá cho mọi thao tác GHI trong tiến trình này.
         #
         # pywebview chạy mỗi lời gọi từ giao diện trên một luồng riêng, và

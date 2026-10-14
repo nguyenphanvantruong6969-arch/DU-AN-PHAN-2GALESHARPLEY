@@ -743,6 +743,27 @@ MESSAGES = {
         "vi": "Sheet \"{sheet}\", dòng {dong} ({ten}): mã tự tạo \"{ma}\" trùng mã của CLB \"{ten_cu}\" đã có trong phần mềm. Nếu đây chính là CLB đó (đổi tên), điền Mã CLB là {ma_cu}; nếu là CLB khác, điền một Mã CLB mới.",
         "en": "Sheet \"{sheet}\", row {dong} ({ten}): the generated code \"{ma}\" is already used by the club \"{ten_cu}\" in the app. If this is that club (renamed), fill in Mã CLB as {ma_cu}; if it is a different club, fill in a new Mã CLB.",
     },
+    # --- workspace (api_workspace.py) ---
+    "ws_tat_che_do": {
+        "vi": "Chương trình đang mở một tệp dữ liệu riêng (đường dẫn truyền lúc khởi động), nên chức năng workspace đang tắt.",
+        "en": "The program was started with its own data file (a path given at launch), so workspaces are turned off.",
+    },
+    "ws_khong_co": {
+        "vi": "Không tìm thấy workspace \"{slug}\". Có thể nó đã bị xoá hoặc đổi chỗ. Hãy mở lại danh sách.",
+        "en": "Workspace \"{slug}\" was not found. It may have been deleted or moved. Reopen the list.",
+    },
+    "ws_du_lieu_sai": {
+        "vi": "Không thực hiện được vì thông tin workspace chưa hợp lệ. Kiểm tra lại các ô đã điền.",
+        "en": "This couldn't be done because the workspace details are not valid. Check the fields that were filled in.",
+    },
+    "ws_khong_xoa_dang_mo": {
+        "vi": "Không xoá được workspace \"{slug}\" vì đang mở nó. Hãy mở workspace khác trước rồi xoá.",
+        "en": "Workspace \"{slug}\" can't be deleted because it is open. Open another workspace first, then delete it.",
+    },
+    "ws_loi_khong_ro": {
+        "vi": "Không thực hiện được thao tác với workspace. Hãy thử lại.",
+        "en": "Couldn't complete the workspace operation. Try again.",
+    },
 }
 
 

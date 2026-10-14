@@ -24,6 +24,12 @@
       <button type="button" class="lang-toggle" id="btnLangToggle" data-i18n="lang_toggle_label">EN</button>
     </div>
 
+    <button type="button" class="ws-switcher" id="btnWorkspace" hidden aria-haspopup="dialog"
+            data-i18n-aria-label="ws_switcher_aria">
+      <span class="ws-switcher-nhan" data-i18n="ws_switcher_nhan">Workspace</span>
+      <span class="ws-switcher-ten" id="wsTenHienTai"></span>
+    </button>
+
     <div class="nav-group">
       <button class="nav-item is-active" data-tab="pipeline">
         <span class="nav-icon">01</span> <span data-i18n="nav_pipeline">Vận hành sắp xếp</span>
@@ -742,6 +748,11 @@
 </div>
 
 <div class="bd-tooltip" id="bieuDoTooltip" role="tooltip" hidden></div>
+<!-- ===================== WORKSPACE: MÀN CHỌN + TRÌNH HƯỚNG DẪN (js/075_workspace.js) ===================== -->
+<div class="ws-overlay" id="wsOverlay" hidden role="dialog" aria-modal="true" aria-labelledby="wsTieuDe">
+  <div class="ws-hop" id="wsHop"></div>
+</div>
+
 <script src="i18n_loi.js"></script>
 <script src="i18n.js"></script>
 <script src="chung.js"></script>
@@ -753,6 +764,7 @@
 <script src="js/05_quan_ly.js"></script>
 <script src="js/06_cham_diem.js"></script>
 <script src="js/07_ngon_ngu.js"></script>
+<script src="js/075_workspace.js"></script>
 <script src="js/08_khoi_dong.js"></script>
 </body>
 </html>
