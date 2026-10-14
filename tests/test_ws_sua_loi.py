@@ -215,13 +215,13 @@ def _api_ws(goc, tmp_path, cfg):
 
 
 def test_nhan_la_cong_thuc_khong_thanh_cong_thuc_trong_tep_ho_so_hoc_sinh(goc, tmp_path):
-    api = _api_ws(goc, tmp_path, {"labels": {
-        "score": {"vi": '=HYPERLINK("http://x","Điểm")', "en": "Score"}}})
-    assert api.create_or_update_club("a", "A", 2, 0, "")["ok"]
-    assert api.create_student_if_missing("s1", "S1")["ok"]
-    r = api.export_hoc_sinh_csv(["s1"])
-    assert r["ok"], r
-    tieu_de = next(csv.reader(open(r["data"]["path"], encoding="utf-8-sig")))
+    # Lớp 1: cấu hình không nhận nhãn mở đầu bằng ký tự công thức (xem test_ws_sua_loi_2).
+    with pytest.raises(ValueError):
+        ws.tao(goc, "Xấu", {"labels": {"score": {"vi": '=HYPERLINK("http://x","Điểm")'}}})
+    # Lớp 2 (phòng thủ chiều sâu): dù tiêu đề lọt tới đây bằng đường nào, `_ghi_csv` vẫn chặn.
+    duong = str(tmp_path / "t.csv")
+    _ghi_csv(duong, ['=HYPERLINK("http://x","Điểm")', "ok"], [["1", "2"]])
+    tieu_de = next(csv.reader(open(duong, encoding="utf-8-sig")))
     assert all(o[:1] not in ("=", "+", "-", "@") for o in tieu_de), tieu_de
     assert '\'=HYPERLINK("http://x","Điểm")' in tieu_de
 
