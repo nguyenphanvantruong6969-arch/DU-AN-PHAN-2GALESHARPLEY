@@ -29,6 +29,7 @@ select = ["E9", "F", "PLE", "B006", "B008", "SIM115", "B023"]
 source = ["."]
 omit = [
     "tests/*", "du_lieu_test/*", "mau_csv/*", ".claude/*",
+    "docs/*",   # kich ban tham khao cua goi ke hoach, khong phai ma san pham
     "tao_logo.py",   # cong cu ve bieu tuong, chay tay mot lan
     "tao_bao_cao_docx.py",   # dung bao cao .docx tu trang HTML bang Chromium, chay tay
 ]
