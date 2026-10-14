@@ -17,6 +17,7 @@
 """
 
 import base64
+import contextlib
 import io
 import json
 import os
@@ -49,6 +50,12 @@ def _api(goc, tmp_path, cfg=None, ten="Thử", da_chon=True):
     xuat.mkdir(exist_ok=True)
     return PipelineAPI(ws.duong_dan_db(goc, slug), thu_muc_xuat=str(xuat),
                        thu_muc_goc_ws=goc, ws_da_chon=da_chon)
+
+
+def _cau_hinh_tho(db):
+    """Cấu hình đã lưu dạng dict, kết nối ĐÓNG tường minh (Windows không nhả tệp đang mở)."""
+    with contextlib.closing(sqlite3.connect(db)) as conn:
+        return json.loads(conn.execute("SELECT value FROM workspace_settings").fetchone()[0])
 
 
 def _hong_cau_hinh(db, gia_tri='{khong phai json'):
@@ -90,8 +97,7 @@ def test_run_pipeline_khong_ghi_luat_mac_dinh_cho_cau_hinh_hong(goc, tmp_path):
     """Khoá bất biến 4 theo hướng ngược: không bao giờ có dòng lịch sử ghi 'mặc định' sai."""
     api = _api(goc, tmp_path, {"rules": {"score_scope": "per_person"}})
     _dung_du_lieu(api)
-    cfg = json.loads(sqlite3.connect(api.db_path).execute(
-        "SELECT value FROM workspace_settings").fetchone()[0])
+    cfg = _cau_hinh_tho(api.db_path)
     cfg["rules"]["priority"] = "weighted"          # giá trị của bản phần mềm mới hơn
     _hong_cau_hinh(api.db_path, json.dumps(cfg))
     res = api.run_pipeline(seed=7)
@@ -137,7 +143,7 @@ def test_run_pipeline_doc_cau_hinh_mot_lan(goc, tmp_path, monkeypatch):
 def test_nhap_zip_tu_choi_khi_cau_hinh_trong_zip_khong_doc_duoc(goc, tmp_path):
     slug = ws.tao(goc, "Nguồn", {"rules": {"tier_mode": "strict", "tiers": ["A"]}})
     db = ws.duong_dan_db(goc, slug)
-    cfg = json.loads(sqlite3.connect(db).execute("SELECT value FROM workspace_settings").fetchone()[0])
+    cfg = _cau_hinh_tho(db)
     cfg["rules"]["priority"] = "weighted"
     _hong_cau_hinh(db, json.dumps(cfg))
     zp = str(tmp_path / "x.zip")

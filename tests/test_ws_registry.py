@@ -1,6 +1,7 @@
 """Workspace trên đĩa (workspace.py) và cách main.py chọn workspace lúc khởi động."""
 
 import json
+import contextlib
 import os
 import sqlite3
 import sys
@@ -14,14 +15,25 @@ import workspace as ws
 from rbda_priority_pipeline import init_db
 
 
+def _ket_noi(db):
+    """Kết nối ĐÓNG tường minh khi ra khỏi khối with.
+
+    `with sqlite3.connect(db) as c` chỉ commit, KHÔNG đóng; kết nối nằm trong vòng tham chiếu vòng
+    (bộ nhớ đệm câu lệnh) nên tới khi GC chạy mới nhả tệp. Trên Windows, tệp đang mở không dời / xoá
+    / đổi tên được (WinError 32) — CI Windows đỏ vì đúng chuyện này.
+    """
+    return contextlib.closing(sqlite3.connect(db))
+
+
 def _them_clb(db, club_id="A", ten="Bóng đá"):
-    with sqlite3.connect(db) as c:
+    with _ket_noi(db) as c:
         c.execute("INSERT INTO clubs (club_id, name, capacity, reserve_capacity) "
                   "VALUES (?, ?, 5, 0)", (club_id, ten))
+        c.commit()
 
 
 def _clb(db):
-    with sqlite3.connect(db) as c:
+    with _ket_noi(db) as c:
         return c.execute("SELECT club_id, name FROM clubs ORDER BY club_id").fetchall()
 
 
@@ -333,7 +345,7 @@ def test_zip_khu_hoi(root, tmp_path):
     db = ws.duong_dan_db(root, slug)
     _them_clb(db)
     open(os.path.join(os.path.dirname(db), "app.db.bak-20260101"), "wb").write(b"x")
-    open(os.path.join(os.path.dirname(db), "ghi-chu.txt"), "w").write("giữ")
+    open(os.path.join(os.path.dirname(db), "ghi-chu.txt"), "w", encoding="utf-8").write("giữ")
     dich = str(tmp_path / "ra" / "su-kien.zip")
 
     assert ws.xuat_zip(root, slug, dich) == dich
@@ -347,7 +359,7 @@ def test_zip_khu_hoi(root, tmp_path):
     db2 = ws.duong_dan_db(root, moi)
     assert _clb(db2) == [("A", "Bóng đá")]
     assert ch.doc_cau_hinh(db2) == ch.doc_cau_hinh(db)
-    assert open(os.path.join(os.path.dirname(db2), "ghi-chu.txt")).read() == "giữ"
+    assert open(os.path.join(os.path.dirname(db2), "ghi-chu.txt"), encoding="utf-8").read() == "giữ"
     # không còn thư mục tạm
     assert _ten_thu_muc(root) == ["su-kien", "su-kien-2"]
 
@@ -433,7 +445,7 @@ def test_nhap_zip_app_db_khong_phai_sqlite(root, tmp_path):
 
 def test_nhap_zip_khong_phai_zip_hoac_khong_ton_tai(root, tmp_path):
     p = tmp_path / "gia.zip"
-    p.write_text("không phải zip")
+    p.write_text("không phải zip", encoding="utf-8")
     with pytest.raises(ValueError):
         ws.nhap_zip(root, str(p))
     with pytest.raises(ValueError):
@@ -452,9 +464,10 @@ def test_nhap_zip_khong_co_cau_hinh_lay_ten_theo_tep_zip(root, tmp_path):
 def test_nhap_zip_ho_tro_zip_tu_csdl_cu_chua_co_bang_cau_hinh(root, tmp_path):
     p = str(tmp_path / "cu.db")
     init_db(p)
-    with sqlite3.connect(p) as c:
+    with _ket_noi(p) as c:
         c.execute("DROP TABLE workspace_settings")
         c.execute("INSERT INTO clubs (club_id, name, capacity) VALUES ('A','A',3)")
+        c.commit()
     z = _zip_voi(tmp_path / "cu.zip", [("app.db", open(p, "rb").read())])
     slug = ws.nhap_zip(root, z)
     db = ws.duong_dan_db(root, slug)
@@ -470,7 +483,7 @@ def _app_db_cu(root, co_sao_luu=True):
     _them_clb(db, "A", "Cờ vua")
     if co_sao_luu:
         for ts in ("20260101_000000_000001", "20260102_000000_000002"):
-            with sqlite3.connect(db) as src, sqlite3.connect(db + ".bak-" + ts) as dst:
+            with _ket_noi(db) as src, _ket_noi(db + ".bak-" + ts) as dst:
                 src.backup(dst)
     return db
 

@@ -1,5 +1,22 @@
 # CHANGELOG
 
+## 2026-10-14 — Sửa lỗi CI Windows của PR #1 (24 test đỏ; Linux đạt)
+
+Bộ test Windows đỏ 24 ca trong khi Linux xanh. Hai nguyên nhân, một thật của sản phẩm và một của test:
+- **Lỗi sản phẩm — `connect_db` rò kết nối khi tệp không phải SQLite.** PRAGMA đầu tiên ném mà kết nối chưa
+  được đóng. Trên Linux không ai hay; trên Windows tệp đang mở không dời / xoá / đổi tên được (WinError 32 / 5),
+  nên **xoá một workspace hỏng, nhập zip có `app.db` hỏng (thư mục tạm không dọn được), di trú `app.db` cũ hỏng**
+  đều hỏng đúng lúc người dùng cần. Nay `connect_db` đóng kết nối rồi mới ném lại. Bộ dò
+  `tests/test_ws_ket_noi_dong.py` bắt lỗi kiểu này NGAY TRÊN LINUX (kết nối bị huỷ mà chưa `close()`), và phủ các
+  đường workspace / zip / di trú / chạy xếp. Vì sao Linux không thấy: kết nối sqlite3 của CPython 3.11 nằm trong vòng
+  tham chiếu vòng (bộ nhớ đệm câu lệnh) nên chỉ nhả tệp khi GC chạy.
+- **Lỗi của test.** (1) `with sqlite3.connect(db) as c` chỉ commit, KHÔNG đóng — các helper của
+  `test_ws_registry.py` / `test_ws_sua_loi_3.py` nay dùng `contextlib.closing`. (2) Tiến trình con của
+  `test_tham_khao_verify_nhanh.py` in tiếng Việt ra cp1252 nên `UnicodeEncodeError`: nay chạy `python -X utf8` và
+  đọc đầu ra bằng UTF-8 (tái hiện được trên Linux bằng `LC_ALL=C PYTHONUTF8=0 PYTHONCOERCECLOCALE=0`: 33 ca đỏ
+  trước, 0 sau). (3) So đường dẫn bằng `'/'` ghép tay: dùng `os.path.join`. (4) `write_text` / `open(..., "w")` thiếu
+  `encoding="utf-8"` với nội dung tiếng Việt.
+
 ## 2026-10-14 — Workspace: vòng sửa lỗi thứ ba (hai lượt /code-review cuối, trước khi gộp vào main)
 
 Mỗi mục có test trong `tests/test_ws_sua_loi_3.py` (viết trước, đỏ trước khi sửa):

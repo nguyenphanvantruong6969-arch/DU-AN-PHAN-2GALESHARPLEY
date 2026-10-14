@@ -1596,16 +1596,8 @@ def khop_tim(cot, q) -> int:
     return 1 if chuan_hoa_tim_kiem(q) in chuan_hoa_tim_kiem(cot) else 0
 
 
-def connect_db(db_path: str):
-    """
-    Mo mot ket noi sqlite3 toi app.db voi cac pragma do ben vung da
-    thong nhat (busy_timeout dai + synchronous=FULL, KHONG WAL). Moi
-    noi trong code can ghi/doc app.db nen di qua ham nay thay vi goi
-    sqlite3.connect() truc tiep, de dam bao hanh vi nhat quan.
-    """
-    import sqlite3
-
-    conn = sqlite3.connect(db_path, timeout=_BUSY_TIMEOUT_MS / 1000)
+def _dat_pragma_va_ham(conn) -> None:
+    """Các PRAGMA bền vững và hàm / collation mọi kết nối của phần mềm cần (xem `connect_db`)."""
     conn.execute(f"PRAGMA busy_timeout = {_BUSY_TIMEOUT_MS}")
     conn.execute("PRAGMA synchronous = FULL")
     # SQLite TẮT kiểm khoá ngoại theo mặc định, và bật theo TỪNG kết nối.
@@ -1621,6 +1613,26 @@ def connect_db(db_path: str):
     # Đăng ký theo TỪNG kết nối, như khoá ngoại ở trên: mọi ô tìm kiếm của
     # phần mềm gọi `khop_tim` trong câu SQL.
     conn.create_function("khop_tim", 2, khop_tim, deterministic=True)
+
+
+def connect_db(db_path: str):
+    """
+    Mo mot ket noi sqlite3 toi app.db voi cac pragma do ben vung da
+    thong nhat (busy_timeout dai + synchronous=FULL, KHONG WAL). Moi
+    noi trong code can ghi/doc app.db nen di qua ham nay thay vi goi
+    sqlite3.connect() truc tiep, de dam bao hanh vi nhat quan.
+    """
+    import sqlite3
+
+    conn = sqlite3.connect(db_path, timeout=_BUSY_TIMEOUT_MS / 1000)
+    try:
+        _dat_pragma_va_ham(conn)
+    except BaseException:
+        # Tệp không phải SQLite (hỏng) thì PRAGMA đầu tiên đã ném. Đóng NGAY: kết nối bỏ quên giữ
+        # tệp mở tới khi thu gom rác, mà trên Windows tệp đang mở không dời / xoá / đổi tên được
+        # (WinError 32) — xoá hay di trú một workspace hỏng sẽ hỏng theo, đúng lúc người dùng cần.
+        conn.close()
+        raise
     return conn
 
 

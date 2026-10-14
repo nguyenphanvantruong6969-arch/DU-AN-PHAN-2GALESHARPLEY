@@ -524,8 +524,8 @@ def test_nap_rb_nap_dung_thu_muc_trong_tien_trinh_moi(tmp_path):
           "m = importlib.util.module_from_spec(sp); sp.loader.exec_module(m);"
           "r = m.nap_rb(sys.argv[2]); print(r.__file__);"
           "print(sys.modules['i18n_errors'].__file__); print(sys.argv[2] in sys.path)")
-    kq = subprocess.run([sys.executable, "-I", "-c", ma, os.path.join(_THAM_KHAO, "_chung.py"), str(tmp_path)],
-                        capture_output=True, text=True, check=True, cwd=str(tmp_path.parent))
+    kq = subprocess.run([sys.executable, "-X", "utf8", "-I", "-c", ma, os.path.join(_THAM_KHAO, "_chung.py"), str(tmp_path)],
+                        capture_output=True, text=True, encoding="utf-8", check=True, cwd=str(tmp_path.parent))
     tep_rb, tep_loi, con_trong_path = kq.stdout.split()
     assert os.path.realpath(tep_rb) == os.path.realpath(str(tmp_path / "rbda_priority_pipeline.py"))
     assert os.path.realpath(tep_loi) == os.path.realpath(str(tmp_path / "i18n_errors.py"))
@@ -544,8 +544,8 @@ def test_nap_rb_nap_i18n_errors_khi_mo_dun_chinh_da_co(tmp_path):
           "sp = importlib.util.spec_from_file_location('c', sys.argv[1]);"
           "m = importlib.util.module_from_spec(sp); sp.loader.exec_module(m); m.nap_rb(sys.argv[2]);"
           "print(sys.modules['i18n_errors'].__file__)")
-    kq = subprocess.run([sys.executable, "-I", "-c", ma, os.path.join(_THAM_KHAO, "_chung.py"), str(tmp_path)],
-                        capture_output=True, text=True, check=True, cwd=str(tmp_path.parent))
+    kq = subprocess.run([sys.executable, "-X", "utf8", "-I", "-c", ma, os.path.join(_THAM_KHAO, "_chung.py"), str(tmp_path)],
+                        capture_output=True, text=True, encoding="utf-8", check=True, cwd=str(tmp_path.parent))
     assert os.path.realpath(kq.stdout.strip()) == os.path.realpath(str(tmp_path / "i18n_errors.py"))
 
 
@@ -581,8 +581,8 @@ def _chay_tien_trinh_moi(ma, *thong_so):
     dau = ("import importlib.util, sys;"
            "sp = importlib.util.spec_from_file_location('c', sys.argv[1]);"
            "m = importlib.util.module_from_spec(sp); sp.loader.exec_module(m)\n")
-    return subprocess.run([sys.executable, "-I", "-c", dau + ma, os.path.join(_THAM_KHAO, "_chung.py"), *thong_so],
-                          capture_output=True, text=True)
+    return subprocess.run([sys.executable, "-X", "utf8", "-I", "-c", dau + ma, os.path.join(_THAM_KHAO, "_chung.py"), *thong_so],
+                          capture_output=True, text=True, encoding="utf-8")
 
 
 def test_nap_rb_doc_ban_build_va_nap_lai_cung_tep(tmp_path):
@@ -1033,8 +1033,8 @@ def test_nap_rb_khong_kiem_lai_i18n_errors_da_nap_dung(tmp_path):
 def test_nap_rb_spec_khong_tro_toi_pyc_va_khong_nap_lai_vong_qua_kiem(tmp_path):
     _ghi_hai_tep(tmp_path)
     kq = _chay_tien_trinh_moi(
-        "r = m.nap_rb(sys.argv[2])\nprint(r.__spec__.cached, r.__spec__.loader, r.__file__ == sys.argv[2] + "
-        "'/rbda_priority_pipeline.py')", str(tmp_path))
+        "r = m.nap_rb(sys.argv[2])\nprint(r.__spec__.cached, r.__spec__.loader, r.__file__ == "
+        "__import__('os').path.join(sys.argv[2], 'rbda_priority_pipeline.py'))", str(tmp_path))
     assert kq.returncode == 0, kq.stderr
     assert kq.stdout.split() == ["None", "None", "True"]
 
@@ -1144,8 +1144,8 @@ def test_nap_rb_bao_loi_ro_khi_tep_khong_phai_pyinstaller(tmp_path):
     ma = ("import importlib.util, sys;"
           "sp = importlib.util.spec_from_file_location('c', sys.argv[1]);"
           "m = importlib.util.module_from_spec(sp); sp.loader.exec_module(m); m.nap_rb(sys.argv[2])")
-    kq = subprocess.run([sys.executable, "-I", "-c", ma, os.path.join(_THAM_KHAO, "_chung.py"), str(tep)],
-                        capture_output=True, text=True)
+    kq = subprocess.run([sys.executable, "-X", "utf8", "-I", "-c", ma, os.path.join(_THAM_KHAO, "_chung.py"), str(tep)],
+                        capture_output=True, text=True, encoding="utf-8")
     assert kq.returncode != 0 and "PyInstaller" in kq.stderr
 
 
