@@ -103,9 +103,9 @@ class XuatKetQuaMixin:
         """Tên trang Excel: bỏ ký tự Excel cấm (`[ ] : * ? / \\`), tối đa 31 ký tự, không trùng.
 
         Nhãn do người dùng đặt ("Dự án/Phòng") có thể mang ký tự cấm; để nguyên thì
-        openpyxl từ chối và cả lần xuất hỏng."""
-        sach = "".join("-" if c in '[]:*?/\\' else c for c in ten).strip() or "Trang"
-        sach = sach[:31]
+        openpyxl từ chối và cả lần xuất hỏng. Phần lọc ký tự dùng `so_nhap._ten_sheet` (nguồn
+        duy nhất); ở đây chỉ thêm khử trùng."""
+        sach = so_nhap._ten_sheet(ten) or "Trang"      # MỘT bộ lọc ký tự cấm, chung với sổ nhập
         ung_vien, n = sach, 1
         while ung_vien.casefold() in da_dung:
             n += 1

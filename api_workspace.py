@@ -17,6 +17,7 @@ import base64
 import binascii
 import functools
 import os
+import sqlite3
 import tempfile
 
 import cau_hinh_ws
@@ -25,6 +26,14 @@ from i18n_errors import err
 from i18n_errors import phan_hoi_loi as _fail
 from i18n_errors import phan_hoi_ok as _ok
 from rbda_priority_pipeline import init_db
+
+
+class CauHinhHong(Exception):
+    """Cấu hình của workspace đang mở có nhưng ĐỌC KHÔNG ĐƯỢC (JSON hỏng, khoá/giá trị của bản
+    phần mềm khác, CSDL đang bị khoá...). Khác "chưa có cấu hình" (= mặc định trường học).
+
+    Nơi quyết định kết quả (chạy xếp, trần nhập) phải DỪNG khi gặp nó, không được lặng lẽ
+    lùi về luật trường học."""
 
 
 class _LoiWs(Exception):
@@ -63,20 +72,34 @@ class WorkspaceMixin:
 
     # ---------------------------------------------------------------- nội bộ
 
-    def _cfg_ws(self) -> dict:
+    def _cfg_ws(self, nghiem: bool = False) -> dict:
         """Cấu hình của workspace đang mở (mặc định trường học nếu CSDL chưa có).
 
         Dùng được cả khi chạy với đường dẫn CSDL riêng. Đọc ở ĐẦU mỗi thao tác — trước khi
-        mở giao dịch ghi — chứ không giữa chừng."""
-        return cau_hinh_ws.doc_cau_hinh(self.db_path)
+        mở giao dịch ghi — chứ không giữa chừng.
+
+        `nghiem=False` (mặc định): cấu hình đọc không được thì lùi về mặc định — đủ cho nơi chỉ
+        HIỂN THỊ (nhãn, tên). `nghiem=True`: ném `CauHinhHong` — cho nơi QUYẾT ĐỊNH."""
+        if not nghiem:
+            return cau_hinh_ws.doc_cau_hinh(self.db_path)
+        try:
+            return cau_hinh_ws.doc_cau_hinh(self.db_path, nghiem=True)
+        except (ValueError, sqlite3.Error) as e:
+            raise CauHinhHong(
+                "Không đọc được cấu hình của workspace (%s). Hãy kiểm tra hoặc đặt lại cấu "
+                "hình rồi thử lại." % e) from e
+
+    def _luat_nghiem(self) -> dict:
+        """`rules` của workspace đang mở, đọc NGHIÊM (xem `_cfg_ws`)."""
+        return self._cfg_ws(nghiem=True)["rules"]
 
     def _tran_nguyen_vong(self) -> int:
         """Số nguyện vọng tối đa mỗi buổi (`rules.max_choices`)."""
-        return self._cfg_ws()["rules"]["max_choices"]
+        return self._luat_nghiem()["max_choices"]
 
     def _tran_thi(self):
         """Số CLB thi tối đa mỗi buổi (`rules.max_tests`); None = không giới hạn."""
-        return self._cfg_ws()["rules"]["max_tests"]
+        return self._luat_nghiem()["max_tests"]
 
     def _ws_slug_dang_mo(self):
         """Slug của workspace đang mở, None nếu db_path nằm ngoài workspaces/."""
@@ -216,7 +239,15 @@ class WorkspaceMixin:
         if self._ws_da_chon and slug == self._ws_slug_dang_mo():
             raise _LoiWs("ws_khong_xoa_dang_mo", slug=slug)
         with self._khoa_ghi:
+            la_cho_tam = slug == self._ws_slug_dang_mo()     # chưa ai chọn, chỉ là chỗ đứng tạm
             thung = workspace.xoa(self._goc_ws, slug)
+            if la_cho_tam:
+                # `db_path` không được trỏ vào thư mục vừa dời đi: mọi lời gọi sau (trạng thái,
+                # kiểm tra dữ liệu...) sẽ đọc một tệp không còn. Chuyển sang workspace còn lại,
+                # cái sửa gần nhất (như main.khoi_dong_workspace).
+                con_lai = workspace.danh_sach(self._goc_ws)
+                if con_lai:
+                    self.db_path = max(con_lai, key=lambda w: w["modified"])["path"]
         return _ok({"slug": slug, "thung_rac": thung})
 
     # ---------------------------------------------------------------- mẫu / zip
@@ -263,9 +294,13 @@ class WorkspaceMixin:
 
     @_ws_phuong_thuc
     def update_workspace_config(self, cfg, slug=""):
-        """Kiểm rồi ghi cấu hình. Thư mục (slug) giữ nguyên dù đổi tên."""
+        """Kiểm rồi ghi cấu hình. Thư mục (slug) giữ nguyên dù đổi tên.
+
+        `cfg` có thể chỉ một phần: phần không nhắc tới GIỮ NGUYÊN như đã lưu (không đặt lại về
+        mặc định trường học). Cấu hình đã lưu mà đọc không được thì từ chối, không ghi đè."""
         slug = self._ws_hien_tai(slug)
         db = self._ws_db(slug)
         with self._khoa_ghi:
-            moi = cau_hinh_ws.ghi_cau_hinh(db, cfg)
+            da_luu = cau_hinh_ws.doc_cau_hinh(db, nghiem=True)
+            moi = cau_hinh_ws.ghi_cau_hinh(db, cau_hinh_ws.tron_len(da_luu, cfg))
         return _ok({"slug": slug, "config": moi})

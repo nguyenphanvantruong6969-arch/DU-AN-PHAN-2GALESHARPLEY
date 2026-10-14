@@ -87,7 +87,7 @@ def test_mac_dinh_trong_workspace_cung_ra_dung_ket_qua(goc, tmp_path):
 
 def test_luat_tham_so_mac_dinh_la_duong_cu():
     assert rp.tham_so_luat(None, {"a": {"reserve_group": "x"}}) == {
-        "tier_rank": None, "bo_qua_du_tru": False, "bo_diem": False}
+        "tier_rank": None, "bo_qua_du_tru": False}
     assert rp.tham_so_luat({}, {}) == rp.tham_so_luat(rp.luat_xep_cua(None), {})
     assert rp.diem_theo_nguoi(None) is False
 
@@ -153,13 +153,13 @@ def test_tham_so_luat_ma_tran():
     sv = {"1": {"reserve_group": "A"}, "2": {"reserve_group": "B"}}
     # strict, điểm: nhóm cứng, bỏ suất dự trữ, vẫn dùng điểm
     t = rp.tham_so_luat({"tier_mode": "strict", "tiers": ["B", "A"]}, sv)
-    assert t == {"tier_rank": {"2": 0, "1": 1}, "bo_qua_du_tru": True, "bo_diem": False}
+    assert t == {"tier_rank": {"2": 0, "1": 1}, "bo_qua_du_tru": True}
     # score+tier ở chế độ reserve: giữ suất dự trữ như cũ
     t = rp.tham_so_luat({"priority": "score+tier", "tiers": ["A"]}, sv)
-    assert t == {"tier_rank": None, "bo_qua_du_tru": False, "bo_diem": False}
+    assert t == {"tier_rank": None, "bo_qua_du_tru": False}
     # chỉ theo nhóm: nhóm cứng + bỏ điểm, kể cả khi tier_mode là reserve
     t = rp.tham_so_luat({"priority": "tier", "tiers": ["A"]}, sv)
-    assert t == {"tier_rank": {"1": 0}, "bo_qua_du_tru": True, "bo_diem": True}
+    assert t == {"tier_rank": {"1": 0}, "bo_qua_du_tru": True}
     assert rp.diem_theo_nguoi({"score_scope": "per_person"}) is True
     assert rp.diem_theo_nguoi({"score_scope": "per_person", "priority": "tier"}) is False
 
@@ -339,12 +339,14 @@ def test_cham_diem_theo_nguoi_bi_tu_choi_khi_workspace_cham_theo_clb(goc, tmp_pa
     assert api2.get_scoring_overview()["ok"]
 
 
-def test_dat_lai_nguoi_xoa_ca_diem_theo_nguoi(goc, tmp_path):
+def test_dat_lai_nguoi_giu_diem_theo_nguoi(goc, tmp_path):
+    # Điểm theo người do giáo viên chấm, không gắn với ô tick: em nhập lại nguyện vọng ở kiosk
+    # không được xoá nó (khác điểm từng CLB, đi theo ô tick).
     api = _api(goc, tmp_path, _luat(score_scope="per_person"))
     _dung(api, {"a": 1}, ["N1"], {"N1": ["a"]}, diem_ca_nhan={"N1": 7.0})
     res = api.reset_student_entry("N1")
-    assert res["ok"] and res["data"]["n_scores_removed"] == 1
-    assert api.get_person_scoring_list()["data"]["persons"][0]["score"] is None
+    assert res["ok"] and res["data"]["n_scores_removed"] == 0
+    assert api.get_person_scoring_list()["data"]["persons"][0]["score"] == 7.0
 
 
 def test_nap_so_diem_theo_nguoi_ghi_o_nguoi_va_nap_lai_xoa_diem(goc, tmp_path):

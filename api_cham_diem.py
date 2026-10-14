@@ -143,6 +143,10 @@ class ChamDiemMixin:
         try:
             if not isinstance(scores, list) or not scores:
                 return _fail(err("scores_must_be_nonempty_list"))
+            luat = self._luat_nghiem()
+            if luat["score_scope"] == "per_person" or luat["priority"] == "tier":
+                # Thuật toán bỏ qua club_scores ở hai chế độ này: lưu mà báo "đã lưu" là nói dối.
+                return _fail(err("scoring_not_per_slot"))
 
             with self._ket_noi_ghi() as cur:
                 club_exists = cur.execute(

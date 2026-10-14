@@ -502,7 +502,8 @@ class QuanLyMixin:
         (Bước 2) hiện tại của học sinh để nhập lại từ đầu tại kiosk.
         Không còn ô tick nào thì điểm đã chấm của em cũng đi theo
         (`n_scores_removed`, xem `_xoa_diem_khong_con_tick`) — nếu không,
-        em chỉ nhập lại nguyện vọng là điểm cũ tự sống lại.
+        em chỉ nhập lại nguyện vọng là điểm cũ tự sống lại. Điểm theo NGƯỜI
+        (`diem_ca_nhan`) thì giữ nguyên.
         KHÔNG xoá bản ghi học sinh (giữ nguyên student_id/tên/STB/reserve_group).
         """
         try:
@@ -515,10 +516,10 @@ class QuanLyMixin:
                 cur.execute("DELETE FROM club_test_selection WHERE student_id = ?", (student_id,))
                 cur.execute("DELETE FROM preferences WHERE student_id = ?", (student_id,))
                 n_xoa = self._xoa_diem_khong_con_tick(cur, student_id)
-                # Điểm theo NGƯỜI (workspace per_person) cũng đi theo, như điểm từng CLB.
-                cur.execute("UPDATE students SET diem_ca_nhan = NULL "
-                            "WHERE student_id = ? AND diem_ca_nhan IS NOT NULL", (student_id,))
-                n_xoa += cur.rowcount
+                # Điểm theo NGƯỜI (workspace per_person, `students.diem_ca_nhan`) ở LẠI. Điểm
+                # từng CLB đi theo ô tick vì nó được chấm cho đúng lựa chọn đó; điểm theo người
+                # do giáo viên chấm cho cả người, không gắn với tick hay nguyện vọng nào, nên
+                # em nhập lại nguyện vọng ở kiosk không được xoá điểm của giáo viên.
             return _ok({"student_id": student_id, "reset": True,
                         "n_scores_removed": n_xoa})
         except Exception as e:

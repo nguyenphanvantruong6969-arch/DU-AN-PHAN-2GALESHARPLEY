@@ -18,6 +18,8 @@ from rbda_priority_pipeline import (
     BUOI_MAC_DINH,
     gom_theo_buoi,
     loi_suc_chua,
+    luat_xep_cua,
+    nhom_xep_cung,
 )
 
 
@@ -881,7 +883,7 @@ class NhapDuLieuMixin:
         return khop
 
     @staticmethod
-    def _soat_nhom_du_tru_la(cur, nhom_da_ghi: dict) -> list:
+    def _soat_nhom_du_tru_la(cur, nhom_da_ghi: dict, nhom_cung: bool = False) -> list:
         """Cảnh báo NGAY LÚC NHẬP nếu nhãn nhóm không CLB nào nhận.
 
         Mục "Cảnh báo dữ liệu" cũng bắt được ca này, nhưng nằm ở panel
@@ -890,8 +892,13 @@ class NhapDuLieuMixin:
         khi vừa nạp file.
 
         nhom_da_ghi: { nhãn đã chuẩn hoá: số học sinh mang nhãn đó }
+        nhom_cung: workspace xếp nhóm CỨNG — nhãn nhóm của người là hạng ưu tiên trong
+            `rules.tiers`, không liên quan suất dự trữ của CLB, nên "không CLB nào nhận" là
+            cảnh báo sai (và buộc người dùng sửa thứ không hỏng).
         """
         import difflib
+        if nhom_cung:
+            return []
 
         if not nhom_da_ghi:
             return []
@@ -1057,7 +1064,9 @@ class NhapDuLieuMixin:
         tới học sinh không có trong file.
         """
         try:
-            tran_nv = self._tran_nguyen_vong()   # trần của workspace; đọc TRƯỚC khi mở giao dịch
+            luat = self._luat_nghiem()
+            tran_nv = luat["max_choices"]        # trần của workspace; đọc TRƯỚC khi mở giao dịch
+            nhom_cung = nhom_xep_cung(luat_xep_cua(luat))
             fieldnames, rows = self._parse_csv_rows(csv_text)
             if not rows:
                 return _fail(err("csv_empty"))
@@ -1217,7 +1226,7 @@ class NhapDuLieuMixin:
                     )
                     n_updated += 1
 
-                row_errors.extend(self._soat_nhom_du_tru_la(cur, nhom_da_ghi))
+                row_errors.extend(self._soat_nhom_du_tru_la(cur, nhom_da_ghi, nhom_cung))
 
             # Nguyen vong lech buoi: bao TRUOC cac canh bao khac. Day la loi
             # nguoi nhap sua duoc ngay va sua xong thi ket qua doi that, nen
@@ -1242,7 +1251,12 @@ class NhapDuLieuMixin:
         sinh xuất hiện trong file, giống hành vi submit_test_selection.
         """
         try:
-            tran_thi = self._tran_thi()          # None = không giới hạn
+            luat = self._luat_nghiem()
+            tran_thi = luat["max_tests"]         # None = không giới hạn
+            nhom_cung = nhom_xep_cung(luat_xep_cua(luat))
+            # Điểm theo từng CLB chỉ có nghĩa khi workspace chấm theo CLB và có dùng điểm.
+            diem_tung_clb = luat["score_scope"] != "per_person" and luat["priority"] != "tier"
+            n_diem_bo_che_do = 0
             fieldnames, rows = self._parse_csv_rows(csv_text)
             if not rows:
                 return _fail(err("csv_empty"))
@@ -1378,6 +1392,11 @@ class NhapDuLieuMixin:
                     # thô trong file — ghi thô sẽ tạo một dòng điểm mồ côi mà
                     # không màn hình nào đọc tới.
                     diem_hs = diem_tho.get(sid)
+                    if diem_hs and not diem_tung_clb:
+                        # Thuật toán bỏ qua club_scores ở chế độ này: lưu thì người dùng tưởng
+                        # điểm đã được dùng. Không lưu, và báo một lần cuối lệnh nhập.
+                        n_diem_bo_che_do += sum(1 for v in diem_hs.values() if (v or "").strip())
+                        diem_hs = None
                     if diem_hs:
                         anh_xa = {tho: that for tho, that in da_khop}
                         for tho, chuoi in diem_hs.items():
@@ -1421,8 +1440,9 @@ class NhapDuLieuMixin:
                         row_errors.append(err("csv_score_removed_unselected",
                                               student_id=sid, n=n_xoa))
 
-                row_errors.extend(self._soat_nhom_du_tru_la(cur, nhom_da_ghi))
-
+                row_errors.extend(self._soat_nhom_du_tru_la(cur, nhom_da_ghi, nhom_cung))
+                if n_diem_bo_che_do:
+                    row_errors.append(err("csv_score_ignored_mode", n=n_diem_bo_che_do))
 
             return _ok({
                 "n_students_created": n_created,

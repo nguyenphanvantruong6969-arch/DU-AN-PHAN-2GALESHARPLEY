@@ -545,20 +545,25 @@ def _doc_sheet_hs(ws, clubs, loi, cfg=None, ten_sheet=SHEET_HS) -> list:
     mau_diem = _mau_diem(cfg)
     nhan_diem_ca_nhan = {"diem"} | _bien_the(cfg, "score")
     cot_nv, cot_diem, cot_diem_cn = {}, {}, None
+    cot_sai_che_do: list = []
     for i, t in enumerate(tieu_de):
         b = bo_dau(t)
         m = _MAU_NV.match(b)
         if m:
             cot_nv.setdefault(int(m.group(1)), i)
             continue
-        # Điểm theo người: MỘT cột tên đúng nhãn điểm ("Điểm"), không kèm số. Khớp cột
-        # "Điểm 1…" thì là điểm theo từng CLB và bị bỏ qua ở chế độ này.
+        # Điểm theo người: MỘT cột tên đúng nhãn điểm ("Điểm"), không kèm số.
         if ca_nhan and cot_diem_cn is None and b in nhan_diem_ca_nhan:
             cot_diem_cn = i
             continue
         m = mau_diem.match(b)
         if m and not ca_nhan:
             cot_diem.setdefault(int(m.group(1)), i)
+        elif m or (not ca_nhan and b in nhan_diem_ca_nhan):
+            # Cột điểm KHÔNG đúng kiểu chấm của workspace: "Điểm 1…" ở workspace chấm theo
+            # người, hoặc một cột "Điểm" đơn ở workspace chấm theo CLB. Không dùng được; có dữ
+            # liệu trong đó thì phải báo (xem vòng đọc dòng), không lặng lẽ bỏ.
+            cot_sai_che_do.append(i)
     if "student_id" not in cot:
         loi.append(err("so_nhap_thieu_cot", sheet=ten_sheet, cot="Mã HS"))
     if not cot_nv:
@@ -612,6 +617,12 @@ def _doc_sheet_hs(ws, clubs, loi, cfg=None, ten_sheet=SHEET_HS) -> list:
                            dong_truoc=ma_da_gap[sid], student_id=sid))
             continue
         ma_da_gap[sid] = so_dong
+
+        for i in cot_sai_che_do:
+            if lay(o, i):
+                loi.append(err("so_nhap_diem_sai_che_do", sheet=ten_sheet, dong=so_dong,
+                               student_id=sid, cot=tieu_de[i]))
+                break
 
         nv, da_chon = [], {}
         # Điểm theo NGƯỜI: một ô cho cả dòng, kiểm một lần. Có điểm (hoặc chữ `thi`) =

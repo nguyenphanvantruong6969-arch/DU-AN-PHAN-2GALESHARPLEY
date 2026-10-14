@@ -19,6 +19,7 @@ import chan_doan
 import nhan_ws
 import workspace
 from api import PipelineAPI
+from rbda_priority_pipeline import init_db
 from recovery import RecoveryAPI
 
 APP_TITLE = "Sắp xếp Câu lạc bộ — RB-DA"
@@ -51,6 +52,14 @@ def resolve_db_path() -> str:
     return os.path.join(BASE_DIR, "app.db")
 
 
+class WorkspaceKhoiDongHong(Exception):
+    """Không workspace nào mở được lúc khởi động. `db_path` là tệp hỏng cần đưa ra màn phục hồi."""
+
+    def __init__(self, db_path: str, loi: Exception):
+        super().__init__(str(loi))
+        self.db_path = db_path
+
+
 def khoi_dong_workspace() -> tuple:
     """(db_path, thu_muc_goc_ws, da_chon) — app.db sẽ mở lúc khởi động.
 
@@ -62,7 +71,10 @@ def khoi_dong_workspace() -> tuple:
     học" trước. Chưa có workspace nào thì dựng "Trường học" mặc định. Có đúng
     một thì mở luôn (trường chỉ dùng một workspace không phải chọn gì). Có
     nhiều thì `da_chon` False: giao diện hiện màn chọn, còn CSDL trả về là
-    cái sửa gần nhất — chỉ để đối tượng API có chỗ đứng cho tới khi chọn.
+    cái sửa gần nhất MỞ ĐƯỢC — chỉ để đối tượng API có chỗ đứng cho tới khi chọn.
+    Workspace hỏng không được chiếm chỗ đó: nó làm cả chương trình rơi vào màn phục hồi
+    trong khi các workspace lành vẫn dùng được. Chỉ khi KHÔNG cái nào mở được mới ném
+    `WorkspaceKhoiDongHong` (mang đường dẫn tệp hỏng gần nhất, cho màn phục hồi).
     """
     if len(sys.argv) > 1:
         return resolve_db_path(), None, True
@@ -71,13 +83,29 @@ def khoi_dong_workspace() -> tuple:
     if not ds:
         slug = workspace.tao(BASE_DIR, workspace.TEN_TRUONG_HOC, None)
         return workspace.duong_dan_db(BASE_DIR, slug), BASE_DIR, True
-    gan_nhat = max(ds, key=lambda w: w["modified"])["path"]
-    return gan_nhat, BASE_DIR, len(ds) == 1
+    loi_dau = None
+    for w in sorted(ds, key=lambda w: w["modified"], reverse=True):
+        try:
+            init_db(w["path"])           # đúng điều PipelineAPI(db_path) đòi
+        except Exception as e:
+            loi_dau = loi_dau or (w["path"], e)
+            continue
+        return w["path"], BASE_DIR, len(ds) == 1
+    raise WorkspaceKhoiDongHong(*loi_dau)
 
 
-def chon_db_path() -> str:
-    """Chỉ phần đường dẫn của `khoi_dong_workspace`."""
-    return khoi_dong_workspace()[0]
+def _db_phuc_hoi_du_phong(db_cu: str) -> str:
+    """Tệp cho màn phục hồi khi lỗi khởi động KHÔNG nêu rõ tệp nào hỏng.
+
+    `app.db` cạnh chương trình chỉ còn khi chưa di trú; sau di trú nó không còn, và bắt đầu lại
+    trên đường dẫn đó đẻ ra một app.db mồ côi không ai đọc. Lúc đó dùng workspace sửa gần nhất."""
+    if os.path.exists(db_cu):
+        return db_cu
+    try:
+        ds = workspace.danh_sach(BASE_DIR)
+    except Exception:
+        return db_cu
+    return max(ds, key=lambda w: w["modified"])["path"] if ds else db_cu
 
 
 def tieu_de_cua_so(db_path: str, goc_ws) -> str:
@@ -200,10 +228,13 @@ def main() -> None:
         db_path, goc_ws, da_chon = khoi_dong_workspace()
         api = PipelineAPI(db_path, thu_muc_goc_ws=goc_ws, ws_da_chon=da_chon)
     except Exception as e:
+        # Lỗi nêu rõ tệp hỏng thì phục hồi đúng tệp đó; không thì tệp dự phòng (xem hàm).
+        db_phuc_hoi = getattr(e, "db_path", None) or (
+            _db_phuc_hoi_du_phong(db_path) if len(sys.argv) <= 1 else db_path)
         _show_ui(
             APP_TITLE + " — Phục hồi dữ liệu",
             "recovery.html",
-            RecoveryAPI(db_path, f"{e}\n\n{traceback.format_exc()}"),
+            RecoveryAPI(db_phuc_hoi, f"{e}\n\n{traceback.format_exc()}"),
             width=900, height=700, min_size=(700, 560),
         )
         return

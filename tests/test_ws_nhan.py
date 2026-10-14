@@ -46,6 +46,8 @@ TRAN_MAC_DINH = {"pref_too_many": 10, "pref_too_many_buoi": 10,
 MA_MOI_SAU_ANH_CHUP = {
     "so_nhap_diem_ca_nhan_sai", "scoring_not_per_person", "health_person_score_none",
     "health_person_score_missing", "health_tier_missing", "health_tiers_empty",
+    # Vòng sửa lỗi cuối: điểm theo CLB sai chế độ (chấm tay, CSV, cột trong sổ).
+    "scoring_not_per_slot", "csv_score_ignored_mode", "so_nhap_diem_sai_che_do",
 }
 
 

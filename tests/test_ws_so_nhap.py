@@ -284,9 +284,17 @@ def test_diem_theo_nguoi_chu_thi_va_diem_sai():
     assert nv01["diem_ca_nhan"] == "thi" and so_nhap.diem_cua_nguoi(nv01) is None   # đã thi, chưa có điểm
 
 
-def test_diem_theo_nguoi_bo_qua_cot_diem_tung_clb():
-    """Sổ cũ có 'Điểm 1, Điểm 2…' nạp vào workspace per_person: không đoán, bỏ các cột đó."""
+def test_diem_theo_nguoi_tu_choi_cot_diem_tung_clb_co_du_lieu():
+    """Sổ cũ có 'Điểm 1, Điểm 2…' CÓ SỐ nạp vào workspace per_person: không đoán một điểm cho cả
+    người từ các điểm từng CLB, và cũng không lặng lẽ bỏ (điểm mất mà không ai biết) — báo lỗi."""
     cu = _bytes([_clb("a", "A")], [_hs("H", "h", [{"club_id": "a", "thi": True, "diem": "9"}])])
+    doc = _doc(cu, cfg=CA_NHAN)
+    assert [e["code"] for e in doc["loi"]] == ["so_nhap_diem_sai_che_do"]
+
+
+def test_diem_theo_nguoi_cot_diem_tung_clb_trong_thi_bo_qua_khong_loi():
+    """Cột 'Điểm k' còn đó nhưng TRỐNG (sổ mẫu cũ chưa điền điểm): không có gì để mất, không lỗi."""
+    cu = _bytes([_clb("a", "A")], [_hs("H", "h", [{"club_id": "a", "thi": False, "diem": ""}])])
     doc = _doc(cu, cfg=CA_NHAN)
     assert not doc["loi"]
     assert doc["students"][0]["nv"][0]["thi"] is False

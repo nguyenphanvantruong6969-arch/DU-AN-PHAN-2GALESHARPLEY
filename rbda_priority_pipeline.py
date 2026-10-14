@@ -262,15 +262,43 @@ def luat_xep_cua(rules) -> dict:
             for k, v in LUAT_XEP_MAC_DINH.items()}
 
 
-def luat_xep_de_ghi(rules):
-    """Luật xếp dạng chuỗi JSON để ghi vào `run_history.luat_xep`.
+def nhom_xep_cung(luat: dict) -> bool:
+    """Nhóm xếp CỨNG (hạng nhóm đứng trước điểm, bỏ suất dự trữ)? `luat` từ `luat_xep_cua`."""
+    return luat["tier_mode"] == "strict" or luat["priority"] == "tier"
 
-    Trả None khi là luật mặc định của trường học: dòng lịch sử của trường không dùng
+
+def luat_xep_hieu_luc(rules) -> dict:
+    """`luat_xep_cua` đã bỏ phần VÔ TÁC DỤNG, để hai cấu hình xếp giống hệt nhau thì giống hệt.
+
+    Dấu vân tay kết quả và `run_history.luat_xep` dùng bản này, không dùng bản thô: sửa danh
+    sách nhóm khi chưa dùng nhóm cứng không đổi ai được suất, nên không được làm kết quả báo
+    "cũ" (hay `run_full_pipeline` từ chối). Quy tắc, theo đúng cách `tham_so_luat` và
+    `_doc_du_lieu` dùng luật:
+      * `tiers` chỉ có nghĩa khi nhóm xếp cứng;
+      * priority "tier": mọi người coi như chưa chấm — `score_scope` vô nghĩa, và nhóm luôn
+        cứng nên `tier_mode` cũng vô nghĩa (đưa về "strict");
+      * priority "score+tier" mà nhóm không cứng: điểm với suất dự trữ — y hệt "score".
+    """
+    luat = luat_xep_cua(rules)
+    if luat["priority"] == "tier":
+        luat["score_scope"] = "per_slot"
+        luat["tier_mode"] = "strict"
+    elif luat["priority"] == "score+tier" and not nhom_xep_cung(luat):
+        luat["priority"] = "score"
+    if not nhom_xep_cung(luat):
+        luat["tiers"] = []
+    return luat
+
+
+def luat_xep_de_ghi(rules):
+    """Luật xếp HIỆU LỰC dạng chuỗi JSON để ghi vào `run_history.luat_xep`.
+
+    Trả None khi hiệu lực là luật mặc định của trường học: dòng lịch sử của trường không dùng
     workspace tùy biến vẫn y như trước, và NULL nghĩa là "mặc định".
     """
     import json
 
-    luat = luat_xep_cua(rules)
+    luat = luat_xep_hieu_luc(rules)
     if luat == LUAT_XEP_MAC_DINH:
         return None
     return json.dumps(luat, sort_keys=True, ensure_ascii=False)
@@ -279,23 +307,22 @@ def luat_xep_de_ghi(rules):
 def tham_so_luat(rules, students: dict[str, dict]) -> dict:
     """Luật workspace -> tham số cho `run_rbda_nhieu_buoi` / `verify_stability_tuan`.
 
-    Trả {"tier_rank", "bo_qua_du_tru", "bo_diem"}:
+    Trả {"tier_rank", "bo_qua_du_tru"}:
       * priority "score"      — như cũ: điểm rồi số bốc thăm. Chỉ khi `tier_mode = strict`
                                 mới thêm hạng nhóm lên TRƯỚC điểm.
       * priority "score+tier" — điểm và nhóm; `tier_mode` quyết định nhóm là suất dự trữ mềm
                                 (reserve, như cũ) hay xếp cứng lên trước điểm (strict).
-      * priority "tier"       — CHỈ nhóm rồi số bốc thăm: `bo_diem` = True, điểm bị bỏ qua
-                                hoàn toàn; nhóm luôn xếp cứng.
+      * priority "tier"       — CHỈ nhóm rồi số bốc thăm; nhóm luôn xếp cứng. Việc bỏ điểm
+                                làm ở lúc ĐỌC dữ liệu (`_doc_du_lieu`), không ở đây.
     Nhóm xếp cứng (`tier_rank` khác None) thì `bo_qua_du_tru` = True: nhóm đã được ưu tiên
     bằng thứ tự rồi, giữ thêm suất dự trữ là cho cùng một nhóm ưu tiên hai lần.
-    Luật mặc định cho ra (None, False, False): đúng đường chạy cũ, từng byte.
+    Luật mặc định cho ra (None, False): đúng đường chạy cũ, từng byte.
     """
     luat = luat_xep_cua(rules)
-    cung = luat["tier_mode"] == "strict" or luat["priority"] == "tier"
+    cung = nhom_xep_cung(luat)
     return {
         "tier_rank": xay_tier_rank(students, luat["tiers"]) if cung else None,
         "bo_qua_du_tru": cung,
-        "bo_diem": luat["priority"] == "tier",
     }
 
 
@@ -1959,7 +1986,7 @@ def dau_van_tay_du_lieu(cur, rules=None) -> str:
         ("nv", "SELECT student_id, club_id, rank FROM preferences "
                "ORDER BY student_id, rank, club_id"),
     ]
-    luat = luat_xep_cua(rules)
+    luat = luat_xep_hieu_luc(rules)
     if diem_theo_nguoi(rules):
         cac_phan.append(("diem_ca_nhan", "SELECT student_id, diem_ca_nhan FROM students "
                                          "ORDER BY student_id"))

@@ -1,5 +1,38 @@
 # CHANGELOG
 
+## 2026-10-14 — Workspace: vòng sửa lỗi thứ ba (hai lượt /code-review cuối, trước khi gộp vào main)
+
+Mỗi mục có test trong `tests/test_ws_sua_loi_3.py` (viết trước, đỏ trước khi sửa):
+- **Đọc cấu hình NGHIÊM ở nơi quyết định.** `run_pipeline`, `check_data_integrity`, trần nguyện vọng / thi
+  (nhập tay, CSV, sổ), chấm điểm theo CLB đọc bằng `doc_cau_hinh(nghiem=True)` (`PipelineAPI._luat_nghiem`).
+  Cấu hình có mà đọc không được (JSON hỏng, khoá của bản khác, CSDL bị khoá) thì dừng với lỗi mới
+  `ws_cau_hinh_hong`, không lặng lẽ chạy bằng luật trường học rồi ghi `luat_xep = NULL`. `get_data_health_report`
+  vẫn trả báo cáo nhưng thêm cảnh báo mức cao. `run_pipeline` đọc cấu hình MỘT lần (trước: hai lần, hai kết
+  nối). Không có hàng cấu hình = mặc định, như cũ.
+- `workspace.nhap_zip`: cấu hình trong zip đọc không được thì từ chối cả zip (trước: ghi mặc định đè lên luật thật).
+- `update_workspace_config`: cập nhật MỘT PHẦN giữ nguyên phần không nhắc tới (`cau_hinh_ws.tron_len`); trước
+  đây trộn lên mặc định trường học nên `{"name": "X"}` đặt lại mọi luật. Cấu hình cũ hỏng thì từ chối.
+- `reset_student_entry` ("Sửa lại từ đầu") KHÔNG xoá `diem_ca_nhan` nữa (điểm do giáo viên chấm, không gắn
+  với ô tick). *Đổi hành vi so với bản trước; test cũ đổi theo.*
+- `delete_workspace` trên workspace "mở tạm" chuyển `db_path` sang workspace còn lại (không để trỏ vào `_trash`).
+- `submit_club_scores` từ chối (`scoring_not_per_slot`) khi workspace chấm theo người hoặc `priority = tier`;
+  CSV có điểm ở các chế độ đó: không lưu, cảnh báo `csv_score_ignored_mode`.
+- Dấu vân tay kết quả, `run_history.luat_xep` và `run_full_pipeline` dùng luật HIỆU LỰC
+  (`luat_xep_hieu_luc`): danh sách nhóm khi nhóm không cứng, `score_scope` khi chỉ theo nhóm... không còn
+  làm kết quả báo "cũ". Luật mặc định không đổi (vân tay cũ giữ nguyên).
+- Sổ nhập: cột điểm sai kiểu chấm (cột "Điểm k" ở workspace chấm theo người, hoặc cột "Điểm" đơn ở workspace
+  chấm theo CLB) mà có dữ liệu thì báo `so_nhap_diem_sai_che_do` (trước: bỏ lặng lẽ, điểm mất).
+- `xuat_zip` không nén chính zip đích (nằm trong thư mục workspace) và bỏ mọi `*.zip` trong thư mục.
+- `main.khoi_dong_workspace`: bỏ qua workspace hỏng khi còn workspace lành (không còn rơi vào màn phục hồi vì một
+  workspace hỏng); chỉ khi không cái nào mở được mới ném `WorkspaceKhoiDongHong(db_path)` cho màn phục hồi. Màn
+  phục hồi dùng đúng tệp hỏng, hoặc workspace gần nhất khi `app.db` cũ đã di trú (trước: trỏ vào `app.db` không
+  còn, "bắt đầu lại" đẻ ra tệp mồ côi).
+- Nhóm cứng: nhập CSV không còn cảnh báo `csv_reserve_group_unknown` cho tên nhóm.
+- Dọn: bỏ `main.chon_db_path` (chỉ test dùng) và khoá `bo_diem` của `tham_so_luat` (không ai đọc); tên trang
+  Excel của tệp xuất dùng chung `so_nhap._ten_sheet`; docstring `cau_hinh_ws.py` nói đúng việc cấu hình
+  nối vào thuật toán.
+- `docs/ke_hoach/TIEN_DO.md`: thêm hàng WS (ngoài sổ) và ghi chú chồng lấn ở Z1, Z2 (chưa đóng mục).
+
 ## 2026-10-14 — Workspace: ghép các nhánh và vòng sửa lỗi sau review (/code-review trên 4 nhánh)
 
 Ghép `practical-faraday` (nền), `cool-hamilton` (tài liệu) và `upbeat-ride` vào nhánh này; bản workspace

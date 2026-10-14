@@ -356,7 +356,8 @@ def xuat_zip(root: str, slug: str, dest_path: str) -> str:
     """Nén workspace `slug` vào `dest_path`. app.db nằm ở GỐC zip.
 
     app.db đi vào zip qua Backup API (ảnh chụp nhất quán dù app đang mở). Bản
-    sao lưu `app.db.bak-*` không đi theo: chúng chỉ làm zip phình ra.
+    sao lưu `app.db.bak-*` và các tệp `*.zip` trong thư mục không đi theo: bản sao
+    lưu chỉ làm zip phình ra, còn zip là kết quả của các lần xuất trước.
     """
     thu_muc = _thu_muc_ton_tai(root, slug)
     dest_path = os.path.abspath(dest_path)
@@ -372,6 +373,12 @@ def xuat_zip(root: str, slug: str, dest_path: str) -> str:
                         day_du = os.path.join(thu, t)
                         tuong_doi = os.path.relpath(day_du, thu_muc)
                         if tuong_doi == TEN_DB or _la_tep_phu(t):
+                            continue
+                        # Zip đích có thể nằm NGAY trong thư mục workspace (Tải xuống không ghi
+                        # được thì xuất lùi về cạnh app.db): không nén chính nó, và không nén các
+                        # zip xuất trước (mỗi lần xuất sẽ phình thêm một lớp).
+                        if t.lower().endswith(".zip") or \
+                                os.path.realpath(day_du) == os.path.realpath(dest_path):
                             continue
                         z.write(day_du, tuong_doi.replace(os.sep, "/"))
         except BaseException:
@@ -464,9 +471,15 @@ def nhap_zip(root: str, zip_path: str) -> str:
         db = os.path.join(tam, TEN_DB)
         try:
             init_db(db)  # từ chối tệp không phải SQLite; nâng zip bản cũ lên schema mới
-            cfg = doc_cau_hinh(db)
+            # NGHIÊM: cấu hình có mà đọc không được (JSON hỏng, khoá/giá trị của bản phần mềm
+            # khác...) thì từ chối cả zip. Đọc "dễ tính" sẽ ra mặc định trường học với tên rỗng,
+            # rồi `ghi_cau_hinh` ở dưới ghi mặc định đó ĐÈ lên nhãn và luật thật trong zip.
+            cfg = doc_cau_hinh(db, nghiem=True)
         except sqlite3.DatabaseError as e:
             raise ValueError("app.db trong zip không phải CSDL hợp lệ: %s" % e)
+        except ValueError as e:
+            raise ValueError("Cấu hình workspace trong zip không đọc được (có thể do bản phần mềm "
+                             "khác tạo ra): %s" % e)
         if not cfg["name"]:
             cfg["name"] = os.path.splitext(os.path.basename(zip_path))[0] or "workspace"
             ghi_cau_hinh(db, cfg)

@@ -64,7 +64,7 @@ from api_bao_cao import BaoCaoMixin
 from api_cham_diem import ChamDiemMixin
 from api_nhap import NhapDuLieuMixin
 from api_quan_ly import QuanLyMixin
-from api_workspace import WorkspaceMixin
+from api_workspace import CauHinhHong, WorkspaceMixin
 from api_xuat import XuatKetQuaMixin
 
 
@@ -200,12 +200,13 @@ class PipelineAPI(NhapDuLieuMixin, ChamDiemMixin, BaoCaoMixin,
     def check_data_integrity(self):
         """Nút 'Kiểm tra dữ liệu' — chỉ validate, KHÔNG chạy pipeline."""
         try:
+            luat = self._luat_nghiem()
             students, clubs, tested_scores, applicants, preferences, _ = (
-                load_from_sqlite(self.db_path)
+                load_from_sqlite(self.db_path, luat)
             )
             errors = validate_data_integrity(
                 students, clubs, preferences, applicants,
-                tran_nguyen_vong=self._tran_nguyen_vong())
+                tran_nguyen_vong=luat["max_choices"])
             if errors:
                 return _fail(errors)
             return _ok({
@@ -213,6 +214,8 @@ class PipelineAPI(NhapDuLieuMixin, ChamDiemMixin, BaoCaoMixin,
                 "n_students": len(students),
                 "n_clubs": len(clubs),
             })
+        except CauHinhHong as e:
+            return _fail(err("ws_cau_hinh_hong", detail=str(e)))
         except Exception as e:
             return _fail(self._loi_co_ghi_vet(err("error_checking_integrity", detail=str(e))))
 
@@ -253,7 +256,12 @@ class PipelineAPI(NhapDuLieuMixin, ChamDiemMixin, BaoCaoMixin,
         "high" (gần như chắc chắn làm sai kết quả) hoặc "medium"/"info".
         """
         try:
-            luat = self._cfg_ws()["rules"]
+            try:
+                luat, cau_hinh_hong = self._luat_nghiem(), None
+            except CauHinhHong as e:
+                # Báo thẳng thay vì lặng lẽ soát theo luật trường học: phần còn lại của báo cáo
+                # dùng luật mặc định, nên cảnh báo này đứng đầu và là mức cao.
+                luat, cau_hinh_hong = self._cfg_ws()["rules"], str(e)
             tran_thi = luat["max_tests"]   # trần của workspace; None = không giới hạn
             # Điểm theo NGƯỜI, hay không dùng điểm (priority "tier"): không còn "chấm từng
             # CLB" để mà soát — các mục 1, 2b, 8 (điểm từng CLB) bỏ qua; mục 1b thay vào.
@@ -269,6 +277,9 @@ class PipelineAPI(NhapDuLieuMixin, ChamDiemMixin, BaoCaoMixin,
                     entry = err(code, **params)
                     entry["severity"] = severity
                     warnings.append(entry)
+
+                if cau_hinh_hong:
+                    warn("high", "ws_cau_hinh_hong", detail=cau_hinh_hong)
 
                 # --- 1. Chấm điểm thiếu / chưa chấm ---------------------------
                 for row in ([] if not diem_tung_clb else cur.execute("""
@@ -939,12 +950,20 @@ class PipelineAPI(NhapDuLieuMixin, ChamDiemMixin, BaoCaoMixin,
             # vân tay ghi lên kết quả ở bước 5 phải là của đúng dữ liệu này.
             # Luật xếp của workspace (cách ưu tiên, nhóm, điểm theo người): đọc TRƯỚC khi
             # mở giao dịch ghi, và dùng CÙNG bản này cho đọc dữ liệu, dấu vân tay và chạy.
-            luat = self._cfg_ws()["rules"]
+            # NGHIÊM: cấu hình có mà đọc không được thì DỪNG, không lặng lẽ chạy bằng luật trường
+            # học (kết quả sai, mà run_history.luat_xep lại ghi "mặc định"). MỘT lần đọc cho cả
+            # trần nguyện vọng lẫn luật xếp.
+            try:
+                luat = self._luat_nghiem()
+            except CauHinhHong as e:
+                loi_ch = err("ws_cau_hinh_hong", detail=str(e))
+                steps_log.append({"step": "validate", "status": "error", "detail": loi_ch})
+                return _fail_co_buoc(steps_log, [loi_ch])
             (students, clubs, tested_scores, applicants, preferences, _), \
                 dau_van_tay = load_from_sqlite_kem_dau_van_tay(self.db_path, luat)
             errors = validate_data_integrity(
                 students, clubs, preferences, applicants,
-                tran_nguyen_vong=self._tran_nguyen_vong())
+                tran_nguyen_vong=luat["max_choices"])
             if errors:
                 steps_log.append({"step": "validate", "status": "error", "detail": errors})
                 return _fail_co_buoc(steps_log, errors)

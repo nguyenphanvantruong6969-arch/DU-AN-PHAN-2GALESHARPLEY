@@ -567,18 +567,18 @@ def main_mod(monkeypatch, tmp_path):
 
 def test_main_khong_co_gi_thi_dung_truong_hoc_mac_dinh(main_mod, tmp_path):
     goc = Path(main_mod.BASE_DIR)
-    db = main_mod.chon_db_path()
+    db = main_mod.khoi_dong_workspace()[0]
     assert db == str(goc / "workspaces" / "truong-hoc" / "app.db")
     assert ch.doc_cau_hinh(db) == {**ch.MAC_DINH_TRUONG_HOC, "name": "Trường học"}
     assert not (goc / "app.db").exists()  # không còn app.db rải cạnh chương trình
-    assert main_mod.chon_db_path() == db      # lần sau mở lại đúng nó
+    assert main_mod.khoi_dong_workspace()[0] == db      # lần sau mở lại đúng nó
     assert [w["slug"] for w in ws.danh_sach(str(goc))] == ["truong-hoc"]
 
 
 def test_main_co_app_db_cu_thi_di_tru_roi_mo_no(main_mod, tmp_path):
     goc = Path(main_mod.BASE_DIR)
     _app_db_cu(str(goc), co_sao_luu=False)
-    db = main_mod.chon_db_path()
+    db = main_mod.khoi_dong_workspace()[0]
     assert db == str(goc / "workspaces" / "truong-hoc" / "app.db")
     assert _clb(db) == [("A", "Cờ vua")]
     assert not (goc / "app.db").exists()
@@ -587,7 +587,7 @@ def test_main_co_app_db_cu_thi_di_tru_roi_mo_no(main_mod, tmp_path):
 def test_main_dung_mot_workspace_thi_mo_no(main_mod, tmp_path):
     goc = Path(main_mod.BASE_DIR)
     slug = ws.tao(str(goc), "Câu lạc bộ", None)
-    assert main_mod.chon_db_path() == ws.duong_dan_db(str(goc), slug)
+    assert main_mod.khoi_dong_workspace()[0] == ws.duong_dan_db(str(goc), slug)
     assert [w["slug"] for w in ws.danh_sach(str(goc))] == ["cau-lac-bo"]  # không tạo thêm
 
 
@@ -597,14 +597,14 @@ def test_main_nhieu_workspace_thi_mo_cai_sua_gan_nhat(main_mod, tmp_path):
     cu = ws.tao(root, "Cũ", None)
     moi = ws.tao(root, "Mới", None)
     os.utime(ws.duong_dan_db(root, cu), (1_000_000_000, 1_000_000_000))
-    assert main_mod.chon_db_path() == ws.duong_dan_db(root, moi)
+    assert main_mod.khoi_dong_workspace()[0] == ws.duong_dan_db(root, moi)
 
 
 def test_main_co_duong_dan_argv_thi_giu_hanh_vi_cu(main_mod, monkeypatch, tmp_path):
     goc = Path(main_mod.BASE_DIR)
     db = str(goc / "rieng" / "x.db")
     monkeypatch.setattr(sys, "argv", ["main.py", db])
-    assert main_mod.chon_db_path() == os.path.abspath(db)
+    assert main_mod.khoi_dong_workspace()[0] == os.path.abspath(db)
     # không đụng gì tới đĩa: không workspaces, không di trú
     assert not (goc / "workspaces").exists()
     assert not (goc / "rieng").exists()
@@ -614,7 +614,7 @@ def test_main_co_app_db_canh_chuong_trinh_va_argv_thi_khong_di_tru(main_mod, mon
     goc = Path(main_mod.BASE_DIR)
     _app_db_cu(str(goc), co_sao_luu=False)
     monkeypatch.setattr(sys, "argv", ["main.py", str(goc / "app.db")])
-    main_mod.chon_db_path()
+    main_mod.khoi_dong_workspace()[0]
     assert (goc / "app.db").exists()
     assert not (goc / "workspaces").exists()
 

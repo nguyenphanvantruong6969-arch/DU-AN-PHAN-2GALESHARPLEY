@@ -9,8 +9,12 @@ Giá trị mặc định là của TRƯỜNG HỌC (`MAC_DINH_TRUONG_HOC`). Thi�
 JSON, hay thiếu một khoá đều cho ra mặc định — nên CSDL cũ và mọi test cũ chạy
 y như trước khi có module này.
 
-Module này CHỈ đọc/ghi/kiểm cấu hình. Nó không nối vào thuật toán: chưa có
-chỗ nào trong rbda_priority_pipeline.py đọc các luật này.
+Module này CHỈ đọc/ghi/kiểm cấu hình; việc dùng nó nằm ở chỗ khác. Các luật xếp
+(`priority`, `tier_mode`, `score_scope`, `tiers`) được rbda_priority_pipeline.py
+đọc (qua `luat_xep_cua`, `tham_so_luat`) và thật sự đổi AI ĐƯỢC SUẤT, dấu vân tay
+kết quả và `run_history.luat_xep`; `max_choices`/`max_tests` là trần nhập liệu của
+api_*.py; nhãn đi vào giao diện, sổ nhập và tệp xuất. Sửa cấu hình là sửa kết quả:
+nơi quyết định (chạy xếp, trần nhập) phải đọc bằng `doc_cau_hinh(nghiem=True)`.
 """
 
 from __future__ import annotations
@@ -174,6 +178,27 @@ def _chuan_hoa(cfg) -> dict:
     if len(set(luat["tiers"])) != len(luat["tiers"]):
         raise ValueError("tiers có tên nhóm trùng nhau.")
 
+    return kq
+
+
+def tron_len(da_luu: dict, moi: dict) -> dict:
+    """Trộn cấu hình `moi` (có thể chỉ một phần) lên cấu hình `da_luu` của workspace.
+
+    Khác `chuan_hoa` (trộn lên mặc định trường học): đây là cho CẬP NHẬT — phần `moi` không
+    nhắc tới thì giữ nguyên như đã lưu. `labels`: thay nguyên CẶP vi/en của danh từ nào được
+    nhắc tới (nhãn là một cặp đi cùng nhau, xem `_nhan_thieu_en_lay_vi`); `rules`: thay từng
+    khoá; khoá cấp trên (name, industry...): thay. Không sửa đầu vào, không kiểm — người gọi
+    đưa kết quả qua `ghi_cau_hinh`.
+    """
+    kq = copy.deepcopy(da_luu)
+    if not isinstance(moi, dict):
+        return kq
+    for khoa, gia_tri in moi.items():
+        if khoa in ("labels", "rules") and isinstance(gia_tri, dict) \
+                and isinstance(kq.get(khoa), dict):
+            kq[khoa].update(copy.deepcopy(gia_tri))
+        else:
+            kq[khoa] = copy.deepcopy(gia_tri)
     return kq
 
 
