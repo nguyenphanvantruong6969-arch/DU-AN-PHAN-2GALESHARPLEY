@@ -32,6 +32,16 @@ Mỗi mục có test trong `tests/test_ws_sua_loi_3.py` (viết trước, đỏ 
   Excel của tệp xuất dùng chung `so_nhap._ten_sheet`; docstring `cau_hinh_ws.py` nói đúng việc cấu hình
   nối vào thuật toán.
 - `docs/ke_hoach/TIEN_DO.md`: thêm hàng WS (ngoài sổ) và ghi chú chồng lấn ở Z1, Z2 (chưa đóng mục).
+- Hai việc còn lại sau vòng này (cùng ngày):
+  - Mã lỗi riêng `ws_cau_hinh_hong` ở MỌI chỗ phụ thuộc cấu hình (trước chỉ ở chạy xếp / kiểm tra dữ liệu / báo
+    cáo sức khoẻ; còn lại ra lỗi chung): nhập tay nguyện vọng và thi, nhập CSV, chấm điểm theo CLB và theo
+    người, đọc / xem trước sổ nhập, tạo sổ mẫu, xuất dữ liệu đầu vào, hồ sơ học sinh, trạng thái kết quả. Bố
+    cục sổ và tệp xuất cũng đọc cấu hình NGHIÊM (trước: đoán bằng mặc định trường học). Nhãn hiển thị vẫn
+    đọc dễ tính. Test: `tests/test_ws_sua_loi_3.py` (mục P).
+  - Màn phục hồi lúc khởi động được kiểm bằng `main.main()` thật và Chromium thật
+    (`tests/test_ws_phuc_hoi.py`): đúng tệp hỏng trong thư mục workspace, thấy bản sao lưu cạnh nó, bấm
+    "Khôi phục" đưa workspace về đúng dữ liệu, lần khởi động sau vào giao diện chính, và lỗi không nêu tệp thì
+    dùng workspace gần nhất chứ không phải `app.db` cũ đã di trú.
 
 ## 2026-10-14 — Workspace: ghép các nhánh và vòng sửa lỗi sau review (/code-review trên 4 nhánh)
 

@@ -11,6 +11,7 @@ from api_chung import (
     _now,
 )
 import so_nhap
+from api_workspace import CauHinhHong
 from i18n_errors import err
 from i18n_errors import phan_hoi_loi as _fail
 from i18n_errors import phan_hoi_ok as _ok
@@ -428,6 +429,8 @@ class QuanLyMixin:
                 n_xoa = self._xoa_diem_khong_con_tick(cur, student_id)
             return _ok({"student_id": student_id, "n_selected": len(club_ids),
                         "n_scores_removed": n_xoa})
+        except CauHinhHong as e:
+            return _fail(err("ws_cau_hinh_hong", detail=str(e)))
         except Exception as e:
             return _fail(err("error_saving_test_selection", detail=str(e)))
 
@@ -476,6 +479,8 @@ class QuanLyMixin:
                     [(student_id, cid, i + 1) for i, cid in enumerate(ordered_club_ids)],
                 )
             return _ok({"student_id": student_id, "n_ranked": len(ordered_club_ids)})
+        except CauHinhHong as e:
+            return _fail(err("ws_cau_hinh_hong", detail=str(e)))
         except Exception as e:
             return _fail(err("error_saving_preferences", detail=str(e)))
 

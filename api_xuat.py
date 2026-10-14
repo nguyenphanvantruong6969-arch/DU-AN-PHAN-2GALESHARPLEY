@@ -18,6 +18,7 @@ from api_chung import (
     thu_muc_tai_ve,
 )
 from cau_hinh_ws import doc_cau_hinh
+from api_workspace import CauHinhHong
 from i18n_errors import err
 from nhan_ws import dien as dien_nhan
 from i18n_errors import phan_hoi_loi as _fail
@@ -701,7 +702,7 @@ class XuatKetQuaMixin:
         thẻ Kết quả, cho mọi lần xuất tệp, và cho tệp tổng hợp.
         """
         try:
-            rules = self._cfg_ws()["rules"]
+            rules = self._luat_nghiem()
             with self._ket_noi_doc() as cur:
                 co_ket_qua = cur.execute(
                     "SELECT COUNT(*) FROM match_results").fetchone()[0] > 0
@@ -717,6 +718,8 @@ class XuatKetQuaMixin:
                 "ket_qua_cu": ket_qua_cu,
                 "luc_chay": meta[0] if meta else None,
             })
+        except CauHinhHong as e:
+            return _fail(err("ws_cau_hinh_hong", detail=str(e)))
         except Exception as e:
             return _fail(err("error_reading_results", detail=str(e)))
     # Thứ tự cố định để tệp và màn hình liệt kê giống nhau.
@@ -872,7 +875,7 @@ class XuatKetQuaMixin:
                   "SELECT student_id, name, COALESCE(reserve_group, '') "
                   "FROM students ORDER BY student_id")}
         # Workspace chấm điểm theo NGƯỜI: điểm chung của mỗi người đi vào cột "Điểm" của sổ.
-        if self._cfg_ws()["rules"]["score_scope"] == "per_person":
+        if self._cfg_ws(nghiem=True)["rules"]["score_scope"] == "per_person":
             for sid, diem in cur.execute(
                     "SELECT student_id, diem_ca_nhan FROM students "
                     "WHERE diem_ca_nhan IS NOT NULL"):
@@ -911,7 +914,7 @@ class XuatKetQuaMixin:
             path = self._duong_xuat(output_path, ten)
             with self._ket_noi_doc() as cur:
                 clubs, students, n_ngoai, n_ten_doi = self._du_lieu_so_nhap(cur)
-            so_nhap.ghi_so_nhap(path, clubs, students, cfg=self._cfg_ws())
+            so_nhap.ghi_so_nhap(path, clubs, students, cfg=self._cfg_ws(nghiem=True))
             return _ok({
                 "path": path,
                 "dir": os.path.dirname(path),
@@ -924,6 +927,8 @@ class XuatKetQuaMixin:
                 "n_thi_ngoai_nv": n_ngoai,
                 "n_ten_doi": n_ten_doi,
             })
+        except CauHinhHong as e:
+            return _fail(err("ws_cau_hinh_hong", detail=str(e)))
         except Exception as e:
             return _fail(err("error_exporting_csv", detail=str(e)))
 
@@ -937,9 +942,11 @@ class XuatKetQuaMixin:
             path = self._duong_xuat(output_path, "SO_NHAP_CLB.xlsx")
             with self._ket_noi_doc() as cur:
                 clubs, _, _, n_ten_doi = self._du_lieu_so_nhap(cur)
-            so_nhap.ghi_so_nhap(path, clubs, [], cfg=self._cfg_ws())
+            so_nhap.ghi_so_nhap(path, clubs, [], cfg=self._cfg_ws(nghiem=True))
             return _ok({"path": path, "dir": os.path.dirname(path),
                         "n_clubs": len(clubs), "n_ten_doi": n_ten_doi})
+        except CauHinhHong as e:
+            return _fail(err("ws_cau_hinh_hong", detail=str(e)))
         except Exception as e:
             return _fail(err("so_nhap_mau_loi", detail=str(e)))
 
@@ -965,7 +972,7 @@ class XuatKetQuaMixin:
                 return _fail(err("chua_chon_hoc_sinh"))
             ids = list(dict.fromkeys(str(s) for s in student_ids))
             # Luật và nhãn đọc MỘT lần, TRƯỚC khi mở giao dịch đọc dữ liệu.
-            cau_hinh = self._cfg_ws()
+            cau_hinh = self._cfg_ws(nghiem=True)
             theo_nguoi = diem_theo_nguoi(cau_hinh["rules"])
             nhan = cau_hinh["labels"]
 
@@ -1074,6 +1081,8 @@ class XuatKetQuaMixin:
                 "n_dong": len(dong),
                 "ket_qua_cu": bool(tt["ok"] and tt["data"]["ket_qua_cu"]),
             })
+        except CauHinhHong as e:
+            return _fail(err("ws_cau_hinh_hong", detail=str(e)))
         except Exception as e:
             return _fail(err("error_exporting_csv", detail=str(e)))
 

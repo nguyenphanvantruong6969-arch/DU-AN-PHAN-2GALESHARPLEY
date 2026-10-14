@@ -428,3 +428,65 @@ def test_ten_trang_chi_co_mot_nguon_bo_loc(monkeypatch):
     """Đổi bộ lọc ở so_nhap thì tên trang của tệp xuất đổi theo (không còn bản sao thứ hai)."""
     monkeypatch.setattr(so_nhap, "_ten_sheet", lambda t: "ZZ")
     assert XuatKetQuaMixin._ten_trang_hop_le("bất kỳ", set()) == "ZZ"
+
+
+# ------------------------------------------------------------------ P. mã lỗi riêng ở mọi chỗ nhập
+
+def _api_hong(goc, tmp_path):
+    api = _api(goc, tmp_path, {"rules": {"max_choices": 3}})
+    assert api.create_or_update_club("a", "A", 2, 0, "")["ok"]
+    assert api.create_student_if_missing("N1", "N1")["ok"]
+    _hong_cau_hinh(api.db_path)
+    return api
+
+
+@pytest.mark.parametrize("goi", [
+    lambda a: a.submit_preferences("N1", ["a"]),
+    lambda a: a.submit_test_selection("N1", ["a"]),
+    lambda a: a.submit_club_scores("a", [{"student_id": "N1", "score": 5}]),
+    lambda a: a.import_preferences_csv("student_id,pref_1\nN1,a\n"),
+    lambda a: a.import_test_selection_csv("student_id,test_club_1,score_1\nN1,a,7\n"),
+    lambda a: a.check_data_integrity(),
+], ids=["submit_preferences", "submit_test_selection", "submit_club_scores",
+        "import_preferences_csv", "import_test_selection_csv", "check_data_integrity"])
+def test_cau_hinh_hong_tra_ma_loi_rieng_o_moi_cho_nhap(goc, tmp_path, goi):
+    api = _api_hong(goc, tmp_path)
+    res = goi(api)
+    assert res["ok"] is False
+    assert _ma(res) == ["ws_cau_hinh_hong"], res["errors"]
+
+
+def test_import_so_nhap_cau_hinh_hong_tra_ma_loi_rieng(goc, tmp_path):
+    api = _api_hong(goc, tmp_path)
+    wb = openpyxl.load_workbook(_api(goc, tmp_path, ten="Mẫu").tao_so_nhap_mau()["data"]["path"])
+    b = io.BytesIO()
+    wb.save(b)
+    res = api.import_so_nhap(base64.b64encode(b.getvalue()).decode())
+    assert res["ok"] is False
+    assert "ws_cau_hinh_hong" in _ma(res), res["errors"]
+
+
+def _api_hong_per_person(goc, tmp_path):
+    api = _api(goc, tmp_path, {"rules": {"score_scope": "per_person"}}, ten="Người")
+    _dung_du_lieu(api)
+    _hong_cau_hinh(api.db_path)
+    return api
+
+
+@pytest.mark.parametrize("goi", [
+    lambda a: a.tao_so_nhap_mau(),
+    lambda a: a.export_du_lieu_dau_vao(),
+    lambda a: a.export_hoc_sinh_csv(["N1"]),
+    lambda a: a.get_trang_thai_ket_qua(),
+    lambda a: a.get_person_scoring_list(),
+    lambda a: a.submit_person_scores([{"student_id": "N1", "score": 5}]),
+    lambda a: a.xem_truoc_so_nhap(base64.b64encode(b"khong phai xlsx").decode()),
+], ids=["tao_so_nhap_mau", "export_du_lieu_dau_vao", "export_hoc_sinh_csv",
+        "get_trang_thai_ket_qua", "get_person_scoring_list", "submit_person_scores",
+        "xem_truoc_so_nhap"])
+def test_cau_hinh_hong_chan_bo_cuc_so_va_tep_xuat(goc, tmp_path, goi):
+    """Bố cục sổ nhập / tệp xuất / cách chấm điểm phụ thuộc cấu hình: hỏng thì dừng, không đoán."""
+    api = _api_hong_per_person(goc, tmp_path)
+    res = goi(api)
+    assert res["ok"] is False
+    assert "ws_cau_hinh_hong" in _ma(res), res["errors"]

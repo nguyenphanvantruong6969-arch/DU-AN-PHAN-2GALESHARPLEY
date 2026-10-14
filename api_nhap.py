@@ -9,6 +9,7 @@ import csv
 import io
 import re
 import so_nhap
+from api_workspace import CauHinhHong
 from i18n_errors import err
 from i18n_errors import phan_hoi_loi as _fail
 from i18n_errors import phan_hoi_ok as _ok
@@ -262,6 +263,11 @@ class NhapDuLieuMixin:
             import openpyxl
         except ImportError:
             return None, err("xlsx_support_missing")
+        # Cấu hình quyết định tên sheet, tiêu đề và kiểu cột điểm: đọc NGHIÊM, trước mọi việc khác.
+        try:
+            cfg = self._cfg_ws(nghiem=True)
+        except CauHinhHong as e:
+            return None, err("ws_cau_hinh_hong", detail=str(e))
         try:
             du_lieu = _b64.b64decode(file_base64 or "", validate=False)
         except Exception as e:
@@ -277,7 +283,6 @@ class NhapDuLieuMixin:
         except Exception as e:
             return None, err("xlsx_read_failed", detail=str(e))
         try:
-            cfg = self._cfg_ws()
             if not so_nhap.la_so_nhap(wb.sheetnames, cfg):
                 return None, err("so_nhap_khong_phai_so")
             return so_nhap.doc_so_nhap(wb, self._clb_theo_ten(), self._ma_clb_da_co(),
@@ -1241,6 +1246,8 @@ class NhapDuLieuMixin:
                 "n_nguyen_vong_lech_buoi": len(canh_bao_buoi),
                 "warnings": row_errors,
             })
+        except CauHinhHong as e:
+            return _fail(err("ws_cau_hinh_hong", detail=str(e)))
         except Exception as e:
             return _fail(self._loi_co_ghi_vet(err("error_importing_preferences_csv", detail=str(e))))
 
@@ -1453,5 +1460,7 @@ class NhapDuLieuMixin:
                 "n_buoi_bo_qua": n_buoi_bo_qua,
                 "warnings": row_errors,
             })
+        except CauHinhHong as e:
+            return _fail(err("ws_cau_hinh_hong", detail=str(e)))
         except Exception as e:
             return _fail(self._loi_co_ghi_vet(err("error_importing_test_selection_csv", detail=str(e))))
