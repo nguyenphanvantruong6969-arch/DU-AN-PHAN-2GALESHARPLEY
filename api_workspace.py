@@ -26,6 +26,7 @@ from i18n_errors import err
 from i18n_errors import phan_hoi_loi as _fail
 from i18n_errors import phan_hoi_ok as _ok
 from rbda_priority_pipeline import init_db
+from recovery import RecoveryAPI
 
 
 class CauHinhHong(Exception):
@@ -105,10 +106,13 @@ class WorkspaceMixin:
         """Slug của workspace đang mở, None nếu db_path nằm ngoài workspaces/."""
         if not self._goc_ws:
             return None
+        # normcase: Windows không phân biệt hoa/thường ở tên ổ đĩa và thư mục; `realpath` giữ
+        # nguyên kiểu chữ, nên hai đường dẫn cùng một nơi có thể khác nhau ở chữ hoa.
         db = os.path.realpath(self.db_path)
         thu_muc = os.path.dirname(db)
         goc = os.path.realpath(os.path.join(self._goc_ws, workspace.THU_MUC_WS))
-        if os.path.basename(db) == workspace.TEN_DB and os.path.dirname(thu_muc) == goc:
+        if os.path.basename(db) == workspace.TEN_DB \
+                and os.path.normcase(os.path.dirname(thu_muc)) == os.path.normcase(goc):
             return os.path.basename(thu_muc)
         return None
 
@@ -170,12 +174,21 @@ class WorkspaceMixin:
 
     @_ws_phuong_thuc
     def list_workspaces(self):
+        """Danh sách cho bảng chọn. Mỗi dòng có `hong` (app.db không đọc được — bảng chọn gắn
+        nhãn và đưa nút khôi phục, xem `recover_workspace`) và `n_sao_luu` (số bản sao lưu cạnh nó).
+
+        Workspace đang dùng (`self.db_path`) khỏi kiểm: nó đang được đọc/ghi, hỏng thì mọi thẻ
+        đã báo lỗi rồi, và kiểm lại giữa lúc một lần chạy đang ghi chỉ tốn thời gian."""
         dang_mo = self._ws_slug_dang_mo() if self._ws_da_chon else None
+        dang_dung = os.path.normcase(os.path.realpath(self.db_path))
         ds = []
         for w in workspace.danh_sach(self._goc_ws):
+            la_cai_dang_dung = os.path.normcase(os.path.realpath(w["path"])) == dang_dung
             ds.append({
                 "slug": w["slug"], "name": w["name"], "industry": w["industry"],
                 "modified": w["modified"], "dang_mo": w["slug"] == dang_mo,
+                "hong": False if la_cai_dang_dung else workspace.kiem_hong(w["path"]),
+                "n_sao_luu": workspace.dem_sao_luu(w["path"]),
             })
         return _ok({"workspaces": ds, "dang_mo": dang_mo})
 
@@ -195,7 +208,14 @@ class WorkspaceMixin:
         """
         db = self._ws_db(slug)
         with self._khoa_ghi:
-            init_db(db)
+            try:
+                init_db(db)
+            except sqlite3.DatabaseError:
+                # Tệp hỏng thì nói đúng điều đó (kèm lối ra: khôi phục ở bảng chọn), thay vì
+                # nguyên văn "file is not a database". Tệp chỉ đang bị khoá thì không phải hỏng.
+                if workspace.kiem_hong(db):
+                    raise _LoiWs("ws_hong", slug=slug) from None
+                raise
             self.db_path = db
             self._bo_nho_xuat = None   # bộ nhớ đệm duy nhất gắn với CSDL
             self._ws_da_chon = True
@@ -250,6 +270,29 @@ class WorkspaceMixin:
                     self.db_path = max(con_lai, key=lambda w: w["modified"])["path"]
         return _ok({"slug": slug, "thung_rac": thung})
 
+    @_ws_phuong_thuc
+    def recover_workspace(self, slug, cach="sao_luu"):
+        """Cứu MỘT workspace hỏng từ bảng chọn, không đụng workspace nào khác.
+
+        Màn phục hồi (recovery.html) chỉ hiện lúc khởi động khi KHÔNG workspace nào mở được. Một
+        workspace hỏng giữa các workspace lành thì chương trình vẫn khởi động bình thường — và
+        nếu không có hàm này, nó không có đường cứu nào.
+
+        `cach`: "sao_luu" — bản sao lưu mới nhất còn đọc được (lùi dần nếu bản đó cũng hỏng);
+        "bat_dau_moi" — đổi tên tệp hỏng (KHÔNG xoá) và dựng app.db trống, mất cấu hình
+        (nhãn, luật) của workspace đó. Cùng logic với màn phục hồi (`RecoveryAPI`): workspace còn
+        đọc được thì từ chối, không dời một CSDL lành.
+        """
+        if cach not in ("sao_luu", "bat_dau_moi"):
+            raise ValueError("Cách khôi phục không hợp lệ: %r." % (cach,))
+        db = self._ws_db(slug)
+        phuc_hoi = RecoveryAPI(db, "")
+        with self._khoa_ghi:
+            kq = phuc_hoi.restore_from_backup() if cach == "sao_luu" else phuc_hoi.start_fresh()
+            if db == self.db_path:
+                self._bo_nho_xuat = None
+        return kq
+
     # ---------------------------------------------------------------- mẫu / zip
 
     @_ws_phuong_thuc
@@ -269,17 +312,27 @@ class WorkspaceMixin:
     @_ws_phuong_thuc
     def import_workspace(self, file_base64, ten_tep=""):
         """Nhập .zip (gửi lên dạng base64) thành workspace mới. `ten_tep` chỉ để đặt tên dự phòng."""
+        file_base64 = file_base64 or ""
+        # Trần cho CẢ tệp tải lên (đã nén): zip lớn hơn trần giải nén thì chắc chắn bị từ chối,
+        # và đỡ phải giải base64 cả trăm MB vào bộ nhớ chỉ để biết điều đó.
+        if not isinstance(file_base64, str) or \
+                len(file_base64) > workspace.TRAN_GIAI_NEN_BYTE // 3 * 4 + 8:
+            raise ValueError("Tệp zip tải lên quá lớn (tối đa %d MB)."
+                             % (workspace.TRAN_GIAI_NEN_BYTE // (1024 * 1024)))
         try:
-            du_lieu = base64.b64decode(file_base64 or "", validate=True)
+            du_lieu = base64.b64decode(file_base64, validate=True)
         except (binascii.Error, ValueError) as e:
             raise ValueError("Dữ liệu tải lên không phải base64: %s" % e)
+        # Tên tệp do giao diện gửi lên KHÔNG làm tên tệp tạm: trên Windows "NUL" hay "CON.zip" là
+        # thiết bị (ghi vào đó là mất dữ liệu), còn dấu `:` `*` `?` thì không tạo được tệp. Nó chỉ
+        # dùng làm TÊN DỰ PHÒNG của workspace, qua `ten_mac_dinh`.
         ten = os.path.basename((ten_tep or "").replace("\\", "/")) or "workspace.zip"
         with tempfile.TemporaryDirectory() as tam:
-            duong = os.path.join(tam, ten)
+            duong = os.path.join(tam, "nhap.zip")
             with open(duong, "wb") as f:
                 f.write(du_lieu)
             with self._khoa_ghi:
-                slug = workspace.nhap_zip(self._goc_ws, duong)
+                slug = workspace.nhap_zip(self._goc_ws, duong, os.path.splitext(ten)[0])
         cfg = cau_hinh_ws.doc_cau_hinh(workspace.duong_dan_db(self._goc_ws, slug))
         return _ok({"slug": slug, "name": cfg["name"]})
 
@@ -289,8 +342,18 @@ class WorkspaceMixin:
     def get_workspace_config(self, slug=""):
         """Cấu hình của workspace `slug` (rỗng = đang mở)."""
         slug = self._ws_hien_tai(slug)
-        return _ok({"slug": slug,
-                    "config": cau_hinh_ws.doc_cau_hinh(self._ws_db(slug))})
+        db = self._ws_db(slug)
+        # NGHIÊM: cấu hình đọc không được mà trả về mặc định trường học thì người xem tưởng đó là
+        # luật của workspace (và có thể "sửa" từ đó). Nói thẳng là hỏng.
+        try:
+            cfg = cau_hinh_ws.doc_cau_hinh(db, nghiem=True)
+        except sqlite3.DatabaseError as e:
+            if workspace.kiem_hong(db):
+                raise _LoiWs("ws_hong", slug=slug) from None
+            raise _LoiWs("ws_cau_hinh_hong", detail=str(e)) from None
+        except ValueError as e:
+            raise _LoiWs("ws_cau_hinh_hong", detail=str(e)) from None
+        return _ok({"slug": slug, "config": cfg})
 
     @_ws_phuong_thuc
     def update_workspace_config(self, cfg, slug=""):

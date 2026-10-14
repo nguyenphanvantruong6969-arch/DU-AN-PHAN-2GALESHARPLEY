@@ -191,27 +191,39 @@ def compute_club_priority(
     return tier1_sorted + tier2_sorted
 
 
+def khoa_ten_nhom(ten) -> str:
+    """Khoá so khớp tên nhóm: bỏ dấu, không phân biệt hoa/thường, MỌI dấu câu và khoảng trắng
+    (kể cả `_` `-` và dấu cách không ngắt U+00A0) là MỘT dấu tách. "" nếu chẳng còn chữ nào.
+
+    Nhóm đã nạp (Sổ nhập, CSV, màn quản lý) được ghi thành dạng gạch dưới —
+    `chuan_hoa_nhom_du_tru` biến "Quản lý" thành `quan_ly` — còn người vận hành gõ tên nhóm
+    trong luật có dấu và dấu cách. Hai dạng đó phải ra CÙNG một khoá, không thì mọi người rơi
+    xuống "không có nhóm" và luật xếp cứng không còn xếp gì. "Khối 1 2" vẫn khác "Khối 12".
+    """
+    import re
+
+    return " ".join(re.sub(r"[\W_]+", " ", chuan_hoa_tim_kiem(ten)).split())
+
+
 def xay_tier_rank(students: dict[str, dict], tiers) -> dict[str, int]:
     """{student_id: hạng nhóm} từ danh sách nhóm `tiers` (tốt nhất đứng đầu).
 
     Nhóm của em là `students[sid]["reserve_group"]` (cùng cột "nhóm ưu tiên" đã có). So
-    sánh KHÔNG phân biệt hoa/thường, dấu và khoảng trắng thừa (dấu cách kép, tab, dấu cách
-    không ngắt U+00A0 của Excel/Word/Forms — nhìn y hệt mà khác mã), nên "Khối 12" khớp
-    "khoi 12" và "Khối\u00a0\u00a012". Em không có
+    sánh theo `khoa_ten_nhom`: KHÔNG phân biệt hoa/thường, dấu, khoảng trắng thừa (dấu cách
+    kép, tab, dấu cách không ngắt U+00A0 của Excel/Word/Forms — nhìn y hệt mà khác mã) và
+    dấu `_` `-`, nên "Khối 12" khớp "khoi 12", "Khối\u00a0\u00a012" và `khoi_12`. Em không có
     nhóm, hay nhóm không có trong `tiers`, KHÔNG có mặt trong kết quả —
     `compute_club_priority` xếp họ sau cùng. `tiers` rỗng cho dict rỗng: không ai có
     nhóm, mọi người ngang nhau.
     """
-    def khoa(ten) -> str:
-        # str.split() không đối số tách theo MỌI khoảng trắng Unicode, kể cả U+00A0.
-        return " ".join(chuan_hoa_tim_kiem(ten).split())
-
     hang: dict[str, int] = {}
     for i, ten in enumerate(tiers or []):
-        hang.setdefault(khoa(ten), i)
+        khoa = khoa_ten_nhom(ten)
+        if khoa:
+            hang.setdefault(khoa, i)
     ra: dict[str, int] = {}
     for sid, info in students.items():
-        nhom = khoa((info or {}).get("reserve_group") or "")
+        nhom = khoa_ten_nhom((info or {}).get("reserve_group") or "")
         if nhom and nhom in hang:
             ra[sid] = hang[nhom]
     return ra

@@ -1,5 +1,45 @@
 # CHANGELOG
 
+## 2026-10-14 — Workspace: kiểm toán đầu-cuối (TASK 7)
+
+Đọc toàn bộ diff từ `0e4d774`, dựng ba workspace thật (bản sao `app_DEMO_da_cham_diem.db` đã di trú, một công ty
+điểm KPI theo người + nhóm cứng, một sự kiện chỉ-theo-nhóm 3 phiên), nạp sổ mẫu, chạy xếp, đổi qua lại. Lỗi tìm
+được, mỗi mục có test đỏ-trước trong `tests/test_ws_kiem_toan.py`:
+- **Luật nhóm cứng không khớp ai khi nhóm đến từ Sổ nhập.** Sổ nhập / CSV / màn quản lý ghi nhóm thành dạng gạch
+  dưới (`Quản lý` -> `quan_ly`), còn `rules.tiers` giữ tên người gõ ("Quản lý") và `xay_tier_rank` so "quan ly" với
+  "quan_ly": mọi nhân viên rơi xuống "không có nhóm", luật xếp cứng thành vô tác dụng mà lần chạy vẫn "xanh"
+  (chỉ báo cáo sức khoẻ dữ liệu kêu). Nay `rbda_priority_pipeline.khoa_ten_nhom` coi mọi dấu câu và khoảng trắng là
+  một dấu tách ("Khối 1 2" vẫn khác "Khối 12"), và `cau_hinh_ws` từ chối hai tên nhóm cùng khoá ("Quản lý" + "quan_ly").
+- **Workspace hỏng giữa các workspace lành không có đường cứu.** Màn phục hồi chỉ hiện khi KHÔNG workspace nào mở
+  được; còn lại bảng chọn liệt kê nó như bình thường và mở thì ra nguyên văn "file is not a database". Nay
+  `list_workspaces` trả thêm `hong` và `n_sao_luu`, `open_workspace` báo mã mới `ws_hong`, API mới
+  `recover_workspace(slug, cach)` (cùng logic `RecoveryAPI`: bản sao lưu mới nhất còn đọc được, hoặc "bắt đầu mới"
+  — tệp hỏng được đổi tên chứ không xoá), và dòng hỏng ở bảng chọn có nhãn "Dữ liệu hỏng" + nút "Khôi phục". Chỉ
+  đụng đúng thư mục của workspace đó. `get_workspace_config` đọc nghiêm (trước: trả mặc định trường học giả).
+- **Cấu hình độc hại.** JSON lồng hàng vạn tầng làm `RecursionError` (không phải `ValueError`) thoát khỏi
+  `doc_cau_hinh` -> sập `workspace.danh_sach`, bảng chọn và cả lúc khởi động; chuỗi/danh sách khổng lồ được chấp
+  nhận. Nay có trần (`TRAN_TEN` 300, `TRAN_NHAN` 60, `TRAN_SO_NHOM` 50, JSON đọc tối đa 64 KiB — đo trong SQL trước
+  khi nạp), cấm ký tự điều khiển; đọc hỏng rơi về mặc định, đọc nghiêm ném `ValueError`.
+- **Nhập zip.** Thêm: từ chối tên tệp Windows không tạo được hoặc nguy hiểm (tên thiết bị `CON`/`NUL`/`COM1`…, dấu `:`
+  luồng NTFS, ký tự cấm, kết thúc bằng dấu chấm/cách), quá 2000 mục, đường dẫn quá sâu/dài; dữ liệu nén hỏng thành
+  `ValueError` rõ ràng; `PRAGMA quick_check` app.db trước khi nhận; tệp tải lên cũng có trần; tên tệp do giao diện
+  gửi KHÔNG còn làm tên tệp tạm (trên Windows "NUL.zip" là thiết bị).
+- `_kiem_slug` từ chối tên thiết bị Windows; `danh_sach` bỏ thư mục chép tay có tên không phải slug (không hàm nào
+  mở được nó); `workspace.tao` từ chối `cfg` không phải dict; `_ws_slug_dang_mo` so đường dẫn không phân biệt hoa/thường
+  ở Windows (`normcase`).
+- `browser_host._tep_tinh` không bao giờ phục vụ tệp trong `workspaces/` hay `templates/` (chạy từ mã nguồn, thư mục
+  tài nguyên chứa chúng; zip nhập vào mang theo được `.svg`/`.js`/`.html`).
+- Không đổi (đã kiểm, có test): sao lưu, `match_results.csv`, bản xuất lùi nằm trong thư mục workspace ĐANG MỞ; chạy với
+  đường dẫn CSDL trong argv y như cũ và trùng khít từng dòng `match_results` với workspace "Trường học"; trình duyệt dự
+  phòng gọi được mọi phương thức workspace; mọi module Python được kéo vào bản đóng gói (đối chiếu cả với
+  `PyInstaller.lib.modulegraph`), mọi tên hàm giao diện gọi đều có ở backend, `js/*.js` = `_danh_sach.txt` = index.html.
+- **Cố ý không đổi:** tệp xuất do người dùng bấm (Excel, CSV, sổ mẫu, zip) vẫn rơi vào thư mục Tải xuống chung
+  (hành vi đã công bố trong HUONG_DAN_SU_DUNG.md), lùi về cạnh app.db của workspace đang mở khi không ghi được vào đó.
+  Tên tệp mặc định giống nhau giữa các workspace nên tự thêm "(2)", "(3)"; nội dung (tên trang, nhãn) phân biệt được.
+Test mới: `tests/test_ws_e2e.py` (kịch bản ba workspace, đối chiếu từng thẻ, vị trí tệp, ổn định trên kết quả đã lưu),
+`tests/test_ws_e2e_giao_dien.py` (Chromium: đổi workspace không sót dữ liệu/nhãn/luật ở thẻ nào; cứu workspace hỏng
+từ bảng chọn), `tests/test_ws_kiem_toan.py`.
+
 ## 2026-10-14 — Sửa lỗi CI Windows của PR #1 (24 test đỏ; Linux đạt)
 
 Bộ test Windows đỏ 24 ca trong khi Linux xanh. Hai nguyên nhân, một thật của sản phẩm và một của test:

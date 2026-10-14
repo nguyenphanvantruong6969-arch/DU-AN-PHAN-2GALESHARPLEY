@@ -29,6 +29,7 @@ from rbda_priority_pipeline import (
     TRAN_CLB_THI_MOI_BUOI,
     TRAN_NGUYEN_VONG_MOI_BUOI,
     connect_db,
+    khoa_ten_nhom,
 )
 
 KHOA_CAU_HINH = "config"
@@ -45,6 +46,14 @@ PHAM_VI_DIEM = ("per_slot", "per_person")
 # Trần hợp lệ của hai con số luật (khoảng đóng).
 _MAX_CHOICES_TOI_DA = 20
 _MAX_TESTS_TOI_DA = 20
+
+# Trần độ dài của các chuỗi trong cấu hình. Cấu hình đến từ NGOÀI (zip nhập vào, JSON giao diện
+# gửi lên, hay một app.db sửa tay) và đi khắp nơi: tiêu đề cửa sổ, tên sheet, cột Excel, thẻ
+# giao diện. Chuỗi khổng lồ chỉ có thể là lỗi hay tấn công; một cấu hình thật không bao giờ cần.
+TRAN_TEN = 300          # tên workspace (tiêu đề cửa sổ cắt ở 200; slug cắt ở 60)
+TRAN_NHAN = 60          # mỗi nhãn vi/en và mỗi tên nhóm
+TRAN_SO_NHOM = 50       # số nhóm trong `rules.tiers`
+TRAN_JSON_BYTE = 64 * 1024   # kích thước JSON cấu hình được phép ĐỌC từ CSDL
 
 # max_choices / max_tests lấy từ hai hằng của thuật toán — KHÔNG gõ lại con số
 # lần thứ hai ở đây, để đổi trần ở một nơi thì mặc định đổi theo.
@@ -94,6 +103,16 @@ def _nhan_thieu_en_lay_vi(goc: dict, da_tron: dict) -> None:
             da_tron["labels"][dt]["en"] = da_tron["labels"][dt]["vi"]
 
 
+def _kiem_chuoi(chu: str, ten_truong: str, toi_da: int) -> None:
+    """Chuỗi hiển thị trong cấu hình: không quá `toi_da` ký tự, không ký tự điều khiển.
+
+    NUL và các ký tự điều khiển phá tên tệp, tên sheet và dòng log; không nhãn thật nào cần."""
+    if len(chu) > toi_da:
+        raise ValueError("%s dài quá %d ký tự." % (ten_truong, toi_da))
+    if any(ord(c) < 32 or ord(c) == 127 for c in chu):
+        raise ValueError("%s chứa ký tự điều khiển." % ten_truong)
+
+
 def _la_so_nguyen(v) -> bool:
     # bool là lớp con của int: True không được lọt qua như "1".
     return isinstance(v, int) and not isinstance(v, bool)
@@ -104,6 +123,14 @@ def _chuan_hoa(cfg) -> dict:
 
     Ném ValueError với câu nói rõ trường nào sai. Không sửa `cfg` của người gọi.
     """
+    try:
+        return _chuan_hoa_that(cfg)
+    except RecursionError:
+        # Từ điển lồng hàng nghìn tầng: trộn/sao chép sâu đệ quy tới tràn ngăn xếp.
+        raise ValueError("Cấu hình lồng quá sâu.") from None
+
+
+def _chuan_hoa_that(cfg) -> dict:
     if not isinstance(cfg, dict):
         raise ValueError("Cấu hình phải là một từ điển (dict).")
 
@@ -122,6 +149,7 @@ def _chuan_hoa(cfg) -> dict:
     if not isinstance(kq["name"], str):
         raise ValueError("name phải là chuỗi.")
     kq["name"] = kq["name"].strip()
+    _kiem_chuoi(kq["name"], "name", TRAN_TEN)
     if kq["industry"] not in NGANH:
         raise ValueError("industry phải là một trong %s, nhận %r." % (list(NGANH), kq["industry"]))
 
@@ -141,6 +169,8 @@ def _chuan_hoa(cfg) -> dict:
             raise ValueError("labels.%s.en phải là chuỗi." % dt)
         vi = vi.strip()
         en = (en or "").strip()
+        _kiem_chuoi(vi, "labels.%s.vi" % dt, TRAN_NHAN)
+        _kiem_chuoi(en, "labels.%s.en" % dt, TRAN_NHAN)
         # Nhãn thành tiêu đề cột / tên sheet của Sổ nhập và tệp xuất. Chữ mở đầu bằng = + - @
         # bị Excel hiểu thành công thức (openpyxl ghi "=..." thành ô công thức thật), mà nhãn
         # có thể đến từ zip nhập vào. Không chấp nhận; đọc cấu hình hỏng thì rơi về mặc định.
@@ -174,9 +204,21 @@ def _chuan_hoa(cfg) -> dict:
     tiers = luat["tiers"]
     if not isinstance(tiers, list) or not all(isinstance(t, str) and t.strip() for t in tiers):
         raise ValueError("tiers phải là danh sách tên nhóm (chuỗi không rỗng).")
+    if len(tiers) > TRAN_SO_NHOM:
+        raise ValueError("tiers có quá nhiều nhóm (tối đa %d)." % TRAN_SO_NHOM)
     luat["tiers"] = [t.strip() for t in tiers]
-    if len(set(luat["tiers"])) != len(luat["tiers"]):
-        raise ValueError("tiers có tên nhóm trùng nhau.")
+    khoa_da_co = {}
+    for t in luat["tiers"]:
+        _kiem_chuoi(t, "tên nhóm trong tiers", TRAN_NHAN)
+        # Thuật toán so nhóm bằng `khoa_ten_nhom` (bỏ dấu, hoa/thường, `_` `-`, khoảng trắng):
+        # "Quản lý" và "quan_ly" là MỘT nhóm, nên hai tên đó trong cùng danh sách là nhập sai
+        # chứ không phải hai hạng — hạng thứ hai sẽ không bao giờ có người.
+        khoa = khoa_ten_nhom(t)
+        if not khoa:
+            raise ValueError("tên nhóm %r không có chữ nào." % t)
+        if khoa in khoa_da_co:
+            raise ValueError("tiers có tên nhóm trùng nhau: %r và %r." % (khoa_da_co[khoa], t))
+        khoa_da_co[khoa] = t
 
     return kq
 
@@ -235,18 +277,27 @@ def doc_cau_hinh(db_path: str, nghiem: bool = False) -> dict:
             ).fetchone()
             if not co_bang:
                 return mac_dinh
+            # Kích thước đo trong SQL, TRƯỚC khi nạp giá trị: một hàng khổng lồ trong app.db sửa
+            # tay không được kéo cả tiến trình tới hết bộ nhớ chỉ để rồi bị từ chối.
             dong = conn.execute(
-                "SELECT value FROM workspace_settings WHERE key = ?", (KHOA_CAU_HINH,)
+                "SELECT CASE WHEN length(CAST(value AS BLOB)) <= ? THEN value END, "
+                "length(CAST(value AS BLOB)) FROM workspace_settings WHERE key = ?",
+                (TRAN_JSON_BYTE, KHOA_CAU_HINH),
             ).fetchone()
         finally:
             conn.close()
-        if not dong or dong[0] is None:
+        if not dong or (dong[0] is None and dong[1] is None):
             return mac_dinh
+        if dong[0] is None:
+            raise ValueError("Cấu hình dài %d byte, quá trần %d." % (dong[1], TRAN_JSON_BYTE))
         return _chuan_hoa(json.loads(dong[0]))
-    except (sqlite3.Error, ValueError):
-        # json.JSONDecodeError là con của ValueError, nên một câu bắt đủ cả
-        # JSON hỏng lẫn giá trị sai.
+    except (sqlite3.Error, ValueError, RecursionError) as e:
+        # json.JSONDecodeError là con của ValueError, nên một câu bắt đủ cả JSON hỏng lẫn giá
+        # trị sai. JSON lồng hàng chục nghìn tầng làm `json.loads` tràn ngăn xếp: RecursionError
+        # KHÔNG phải ValueError, và để lọt thì chỉ một app.db xấu làm sập cả danh sách workspace.
         if nghiem:
+            if isinstance(e, RecursionError):
+                raise ValueError("Cấu hình lồng quá sâu.") from None
             raise
         return mac_dinh
 

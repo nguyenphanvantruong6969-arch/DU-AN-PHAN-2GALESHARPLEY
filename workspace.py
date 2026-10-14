@@ -35,9 +35,11 @@ import sqlite3
 import stat
 import tempfile
 import zipfile
+import zlib
 
 from cau_hinh_ws import (
     MAC_DINH_TRUONG_HOC,
+    TRAN_TEN,
     chuan_hoa,
     doc_cau_hinh,
     ghi_cau_hinh,
@@ -71,7 +73,18 @@ _TEN_THIET_BI = frozenset(
 # Trần dung lượng GIẢI NÉN của app.db trong zip nhập vào (chống zip bomb). Một app.db
 # thật của trường vài trăm học sinh chỉ cỡ vài MB; 500 MB là rộng rãi.
 TRAN_GIAI_NEN_BYTE = 500 * 1024 * 1024
+# Zip bom kiểu "triệu tệp nhỏ": tổng dung lượng vẫn dưới trần mà thư mục thì không mở nổi. Một
+# workspace thật chỉ có app.db và vài tệp xuất; 2000 mục là quá rộng.
+TRAN_SO_MUC_ZIP = 2000
+# Windows giới hạn cả đường dẫn ở 260 ký tự; mục zip sâu/dài hơn thế giải nén ra sẽ lỗi OSError
+# khó hiểu (hoặc tệ hơn, tuỳ cấu hình đường dẫn dài). Từ chối sớm bằng câu rõ ràng.
+_TRAN_DO_SAU_ZIP = 8
+_TRAN_DO_DAI_TEN_ZIP = 120
 _RE_ONG_DAN = re.compile(r"^[A-Za-z]:")
+# Ký tự không có trong tên tệp Windows (và dấu hai chấm: `app.db:luong` là luồng dữ liệu phụ NTFS,
+# ghi vào đó là giấu dữ liệu sau một tệp trông vô hại).
+_RE_KY_TU_CAM = re.compile(r'[<>:"|?*\x00-\x1f]')
+_TEN_THIET_BI_WIN = _TEN_THIET_BI | {"conin$", "conout$"}
 
 
 # ---------------------------------------------------------------------------
@@ -87,9 +100,18 @@ def duong_dan_db(root: str, slug: str) -> str:
     return os.path.join(_thu_muc_ws(root), _kiem_slug(slug), TEN_DB)
 
 
+def _slug_hop_le(slug) -> bool:
+    return (isinstance(slug, str) and bool(_RE_SLUG.match(slug))
+            and len(slug) <= _SLUG_TOI_DA + 8       # chừa chỗ cho hậu tố -2, -3… của `_slug_trong`
+            and slug not in _TEN_THIET_BI)
+
+
 def _kiem_slug(slug) -> str:
-    """Slug hợp lệ mới được ghép vào đường dẫn — chặn `..`, `/`, `_trash`…"""
-    if not isinstance(slug, str) or not _RE_SLUG.match(slug):
+    """Slug hợp lệ mới được ghép vào đường dẫn — chặn `..`, `/`, `_trash`…
+
+    Cả tên thiết bị của Windows (`con`, `nul`, `com1`…): `_tao_slug` không bao giờ sinh ra chúng
+    (thêm `ws-`), nhưng slug còn đến từ giao diện, và một thư mục tên đó không tạo được ở Windows."""
+    if not _slug_hop_le(slug):
         raise ValueError("Mã workspace không hợp lệ: %r." % (slug,))
     return slug
 
@@ -170,6 +192,40 @@ def _chep_db(nguon: str, dich: str, *, du_phong_chep_tep: bool = False) -> None:
             src.close()
 
 
+def kiem_hong(db: str) -> bool:
+    """True nếu app.db ở `db` HỎNG THẬT (không phải SQLite, hay `quick_check` không "ok").
+
+    Dùng để bảng chọn gắn nhãn "hỏng" và đưa nút khôi phục: màn phục hồi lúc khởi động chỉ hiện
+    khi KHÔNG workspace nào mở được, nên một workspace hỏng giữa các workspace lành không có đường
+    nào khác để cứu. Tệp đang bị khoá (một tiến trình khác đang ghi) KHÔNG tính là hỏng; tệp
+    không còn thì cũng không (không có gì để cứu).
+    """
+    if not os.path.isfile(db):
+        return False
+    conn = None
+    try:
+        conn = sqlite3.connect(db, timeout=1.0)
+        dong = conn.execute("PRAGMA quick_check").fetchone()
+        return not dong or dong[0] != "ok"
+    except sqlite3.OperationalError as e:
+        return not any(t in str(e).lower() for t in ("locked", "busy"))
+    except sqlite3.Error:
+        return True
+    finally:
+        if conn is not None:
+            conn.close()
+
+
+def dem_sao_luu(db: str) -> int:
+    """Số bản sao lưu `app.db.bak-*` nằm cạnh `db`."""
+    thu_muc = os.path.dirname(db) or "."
+    try:
+        return sum(1 for t in os.listdir(thu_muc)
+                   if t.startswith(os.path.basename(db) + ".bak-"))
+    except OSError:
+        return 0
+
+
 # ---------------------------------------------------------------------------
 # Liệt kê / tạo / đổi tên
 # ---------------------------------------------------------------------------
@@ -179,7 +235,8 @@ def danh_sach(root: str) -> list[dict]:
 
     `path` là đường dẫn app.db (thứ cần để mở). `modified` là giờ sửa app.db,
     dạng 'YYYY-MM-DD HH:MM:SS'. Bỏ qua `_trash` và mọi thư mục bắt đầu bằng
-    '_' (kể cả thư mục đang dựng dở), và thư mục không có app.db.
+    '_' (kể cả thư mục đang dựng dở), thư mục không có app.db, và thư mục mà tên không phải
+    slug hợp lệ.
     """
     goc = _thu_muc_ws(root)
     if not os.path.isdir(goc):
@@ -187,7 +244,9 @@ def danh_sach(root: str) -> list[dict]:
     ra = []
     for slug in sorted(os.listdir(goc)):
         db = os.path.join(goc, slug, TEN_DB)
-        if slug.startswith("_") or not os.path.isfile(db):
+        # Thư mục chép tay vào (tên có dấu cách, chữ hoa…) có app.db nhưng KHÔNG mở được bằng
+        # bất kỳ hàm nào — `_kiem_slug` từ chối nó. Liệt kê nó chỉ cho ra một dòng không bấm được.
+        if slug.startswith("_") or not _slug_hop_le(slug) or not os.path.isfile(db):
             continue
         cfg = doc_cau_hinh(db)
         ra.append({
@@ -208,6 +267,8 @@ def tao(root: str, name: str, cfg: dict | None = None) -> str:
     ValueError TRƯỚC khi đụng tới đĩa.
     """
     name = _kiem_ten(name)
+    if cfg is not None and not isinstance(cfg, dict):
+        raise ValueError("Cấu hình phải là một từ điển (dict).")
     cau_hinh = dict(cfg or {})
     cau_hinh["name"] = name
     chuan_hoa(cau_hinh)
@@ -390,12 +451,24 @@ def xuat_zip(root: str, slug: str, dest_path: str) -> str:
     return dest_path
 
 
+def _thanh_phan_zip_an_toan(p: str) -> bool:
+    """Một thành phần tên mục zip có tạo được ở Windows và không gây hại không?
+
+    Chặn: ký tự cấm của Windows và dấu hai chấm (luồng dữ liệu phụ NTFS), tên kết thúc bằng
+    dấu chấm/cách (Windows lặng lẽ cắt đi nên hai tên khác nhau thành một), và TÊN THIẾT BỊ
+    (`con`, `nul`, `aux`, `com1`…, kể cả khi có đuôi — `nul.txt` vẫn là thiết bị NUL). Mở
+    `CON` để ghi là in ra màn hình, mở `COM1` có thể treo cả tiến trình."""
+    if _RE_KY_TU_CAM.search(p) or p != p.rstrip(" ."):
+        return False
+    return p.split(".")[0].rstrip(" ").casefold() not in _TEN_THIET_BI_WIN
+
+
 def _kiem_ten_trong_zip(ten: str) -> list[str]:
     """Tách tên một mục zip thành các thành phần, hoặc ném ValueError (zip-slip).
 
-    Chặn: đường dẫn tuyệt đối (`/x`, `\\x`, `C:\\x`), mọi thành phần `..`, và
-    byte NUL. Coi CẢ `/` lẫn `\\` là dấu phân cách — zip tạo trên Windows có
-    thể mang `\\`, và Windows hiểu `..\\x` là thoát ra ngoài.
+    Chặn: đường dẫn tuyệt đối (`/x`, `\\x`, `C:\\x`), mọi thành phần `..`, byte NUL.
+    Coi CẢ `/` lẫn `\\` là dấu phân cách — zip tạo trên Windows có thể mang `\\`, và Windows
+    hiểu `..\\x` là thoát ra ngoài.
     """
     if "\x00" in ten:
         raise ValueError("Zip không an toàn: tên tệp chứa ký tự NUL.")
@@ -407,16 +480,35 @@ def _kiem_ten_trong_zip(ten: str) -> list[str]:
     return phan
 
 
-def nhap_zip(root: str, zip_path: str) -> str:
+def _kiem_ten_windows(ten: str, phan: list[str]) -> None:
+    """Tên mục zip phải tạo được ở Windows (xem `_thanh_phan_zip_an_toan`) và không quá sâu/dài."""
+    for p in phan:
+        if not _thanh_phan_zip_an_toan(p):
+            raise ValueError("Zip không an toàn: tên '%s' không dùng được trên Windows." % p)
+    if len(phan) > _TRAN_DO_SAU_ZIP:
+        raise ValueError("Zip không an toàn: đường dẫn quá sâu ('%s…')." % "/".join(phan[:3]))
+    if len("/".join(phan)) > _TRAN_DO_DAI_TEN_ZIP:
+        raise ValueError("Zip không an toàn: đường dẫn quá dài ('%s…')." % ten[:40])
+
+
+def _ten_du_phong(ten) -> str:
+    """Tên workspace lấy từ tên tệp zip khi cấu hình không có tên: bỏ ký tự điều khiển, cắt cho vừa."""
+    sach = "".join(" " if ord(c) < 32 or ord(c) == 127 else c for c in str(ten or "")).strip()
+    return sach[:TRAN_TEN].strip() or "workspace"
+
+
+def nhap_zip(root: str, zip_path: str, ten_mac_dinh: str | None = None) -> str:
     """Nhập zip do `xuat_zip` tạo ra thành workspace mới. Trả slug.
 
     Giải nén vào thư mục tạm (`_nhap-*`, nằm cạnh để đổi tên được trong một
     bước) rồi mới đặt vào chỗ — hỏng giữa chừng không để lại workspace dở.
-    Slug lấy từ tên trong cấu hình; đã có thì thêm -2, -3 như `tao`.
+    Slug lấy từ tên trong cấu hình; đã có thì thêm -2, -3 như `tao`. Cấu hình không có tên thì
+    dùng `ten_mac_dinh` (mặc định: tên tệp zip).
 
     Raises:
-        ValueError: không phải zip, có mục không an toàn (zip-slip), thiếu
-            app.db ở gốc, hoặc app.db không phải CSDL SQLite.
+        ValueError: không phải zip, zip hỏng, có mục không an toàn (zip-slip, tên thiết bị
+            Windows, quá nhiều mục, quá lớn), thiếu app.db ở gốc, hoặc app.db không phải
+            CSDL SQLite nguyên vẹn.
     """
     goc = _thu_muc_ws(root)
     os.makedirs(goc, exist_ok=True)
@@ -427,8 +519,12 @@ def nhap_zip(root: str, zip_path: str) -> str:
         except (zipfile.BadZipFile, OSError) as e:
             raise ValueError("Không đọc được tệp zip: %s" % e)
         with z:
+            danh_sach_muc = z.infolist()
+            if len(danh_sach_muc) > TRAN_SO_MUC_ZIP:
+                raise ValueError("Zip không an toàn: quá nhiều mục (%d, tối đa %d)."
+                                 % (len(danh_sach_muc), TRAN_SO_MUC_ZIP))
             muc = []
-            for info in z.infolist():
+            for info in danh_sach_muc:
                 phan = _kiem_ten_trong_zip(info.filename)     # zip-slip: kiểm MỌI mục
                 # Liên kết tượng trưng: giải ra sẽ trỏ tới nơi tuỳ ý.
                 if stat.S_ISLNK(info.external_attr >> 16):
@@ -439,38 +535,60 @@ def nhap_zip(root: str, zip_path: str) -> str:
                     muc.append((info, phan))
             if not any(phan == [TEN_DB] and not info.is_dir() for info, phan in muc):
                 raise ValueError("Zip không phải workspace: thiếu %s ở gốc." % TEN_DB)
+            for info, phan in muc:
+                _kiem_ten_windows(info.filename, phan)
 
             goc_tam = os.path.realpath(tam)
             # Trần dung lượng GIẢI NÉN cho cả zip, đếm BYTE THẬT khi chép: tiêu đề zip
             # (`file_size`) khai sao cũng được, nên không tin nó.
             con_lai = TRAN_GIAI_NEN_BYTE
-            for info, phan in muc:
-                dich = os.path.join(tam, *phan)
-                # Đã lọc ở trên; kiểm lại trên đường dẫn thật cho chắc.
-                if os.path.commonpath([goc_tam, os.path.realpath(dich)]) != goc_tam:
-                    raise ValueError("Zip không an toàn: '%s'." % info.filename)
-                if info.is_dir():
-                    os.makedirs(dich, exist_ok=True)
-                    continue
-                # Tệp phụ của SQLite (-journal / -wal / -shm) và bản sao lưu KHÔNG được vào:
-                # SQLite sẽ tự phát lại một nhật ký có sẵn khi mở app.db.
-                if _la_tep_phu(phan[-1]):
-                    continue
-                os.makedirs(os.path.dirname(dich), exist_ok=True)
-                with z.open(info) as nguon, open(dich, "wb") as ra:
-                    while True:
-                        khoi = nguon.read(1024 * 1024)
-                        if not khoi:
-                            break
-                        con_lai -= len(khoi)
-                        if con_lai < 0:
-                            raise ValueError("Zip quá lớn: giải nén ra hơn %d MB." % (
-                                TRAN_GIAI_NEN_BYTE // (1024 * 1024)))
-                        ra.write(khoi)
+            try:
+                for info, phan in muc:
+                    dich = os.path.join(tam, *phan)
+                    # Đã lọc ở trên; kiểm lại trên đường dẫn thật cho chắc.
+                    if os.path.commonpath([goc_tam, os.path.realpath(dich)]) != goc_tam:
+                        raise ValueError("Zip không an toàn: '%s'." % info.filename)
+                    if info.is_dir():
+                        os.makedirs(dich, exist_ok=True)
+                        continue
+                    # Tệp phụ của SQLite (-journal / -wal / -shm) và bản sao lưu KHÔNG được vào:
+                    # SQLite sẽ tự phát lại một nhật ký có sẵn khi mở app.db.
+                    if _la_tep_phu(phan[-1]):
+                        continue
+                    os.makedirs(os.path.dirname(dich), exist_ok=True)
+                    with z.open(info) as nguon, open(dich, "wb") as ra:
+                        while True:
+                            khoi = nguon.read(1024 * 1024)
+                            if not khoi:
+                                break
+                            con_lai -= len(khoi)
+                            if con_lai < 0:
+                                raise ValueError("Zip quá lớn: giải nén ra hơn %d MB." % (
+                                    TRAN_GIAI_NEN_BYTE // (1024 * 1024)))
+                            ra.write(khoi)
+            except (zipfile.BadZipFile, zlib.error, EOFError, NotImplementedError) as e:
+                # Dữ liệu nén cắt cụt, sai CRC, hay dùng kiểu nén Python không giải được: một
+                # tệp zip hỏng, không phải lỗi của phần mềm.
+                raise ValueError("Tệp zip bị hỏng khi giải nén (%s: %s)." % (type(e).__name__, e))
 
         db = os.path.join(tam, TEN_DB)
+        # KIỂM NGUYÊN VẸN TRƯỚC khi đụng vào: mở được tiêu đề thôi chưa đủ. app.db có tiêu đề
+        # SQLite mà trang hỏng sẽ lọt `init_db`, nhập "thành công" rồi thành một workspace
+        # không mở được (bảng chọn gắn nhãn hỏng) — thà từ chối ngay ở đây.
+        conn = None
         try:
-            init_db(db)  # từ chối tệp không phải SQLite; nâng zip bản cũ lên schema mới
+            conn = sqlite3.connect(db)
+            dong = conn.execute("PRAGMA quick_check").fetchone()
+            if not dong or dong[0] != "ok":
+                raise ValueError("app.db trong zip không phải CSDL hợp lệ: quick_check báo %r."
+                                 % (dong[0] if dong else None))
+        except sqlite3.DatabaseError as e:
+            raise ValueError("app.db trong zip không phải CSDL hợp lệ: %s" % e)
+        finally:
+            if conn is not None:
+                conn.close()
+        try:
+            init_db(db)  # nâng zip bản cũ lên schema mới
             # NGHIÊM: cấu hình có mà đọc không được (JSON hỏng, khoá/giá trị của bản phần mềm
             # khác...) thì từ chối cả zip. Đọc "dễ tính" sẽ ra mặc định trường học với tên rỗng,
             # rồi `ghi_cau_hinh` ở dưới ghi mặc định đó ĐÈ lên nhãn và luật thật trong zip.
@@ -481,7 +599,9 @@ def nhap_zip(root: str, zip_path: str) -> str:
             raise ValueError("Cấu hình workspace trong zip không đọc được (có thể do bản phần mềm "
                              "khác tạo ra): %s" % e)
         if not cfg["name"]:
-            cfg["name"] = os.path.splitext(os.path.basename(zip_path))[0] or "workspace"
+            cfg["name"] = _ten_du_phong(
+                ten_mac_dinh if ten_mac_dinh is not None
+                else os.path.splitext(os.path.basename(zip_path))[0])
             ghi_cau_hinh(db, cfg)
 
         slug = _slug_trong(root, cfg["name"])

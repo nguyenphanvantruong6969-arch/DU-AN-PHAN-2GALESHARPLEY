@@ -82,6 +82,8 @@ _PING_INTERVAL_MS = 3000
 # cả những tệp sau này mới xuất hiện cạnh app.db.
 _DUOI_DUOC_PHUC_VU = frozenset(
     {".html", ".js", ".css", ".woff2", ".png", ".ico", ".svg"})
+# Thư mục DỮ LIỆU của người dùng (workspace, mẫu cấu hình): không bao giờ phục vụ, bất kể đuôi tệp.
+_THU_MUC_DU_LIEU = frozenset({"workspaces", "templates"})
 
 _CSP = (
     "default-src 'self'; script-src 'self' 'nonce-%s'; "
@@ -229,6 +231,11 @@ class _Handler(http.server.SimpleHTTPRequestHandler):
             if os.path.commonpath([goc, that]) != goc:
                 return None
         except ValueError:          # Windows: khác ổ đĩa
+            return None
+        # Chạy từ mã nguồn, thư mục tài nguyên LÀ thư mục chứa `workspaces/` và `templates/`. Zip
+        # nhập vào mang theo được tệp tuỳ ý (.svg, .js, .html…) rơi vào đó; phục vụ chúng là đưa mã
+        # lạ chạy cùng nguồn gốc với giao diện. Giao diện không bao giờ nằm trong hai thư mục này.
+        if os.path.relpath(that, goc).split(os.sep)[0].casefold() in _THU_MUC_DU_LIEU:
             return None
         return that if os.path.isfile(that) else None
 

@@ -754,6 +754,10 @@ window.I18N_ERROR_MESSAGES = {
     "vi": "Không xoá được workspace \"{slug}\" vì đang mở nó. Hãy mở workspace khác trước rồi xoá.",
     "en": "Workspace \"{slug}\" can't be deleted because it is open. Open another workspace first, then delete it."
   },
+  "ws_hong": {
+    "vi": "Dữ liệu của workspace \"{slug}\" bị hỏng nên không mở được. Các workspace khác không bị ảnh hưởng. Bấm \"Khôi phục\" ở dòng của nó trong bảng chọn để lấy lại từ bản sao lưu gần nhất còn đọc được.",
+    "en": "The data of workspace \"{slug}\" is corrupt, so it can't be opened. Other workspaces are not affected. Click \"Restore\" on its row in the picker to bring it back from the latest backup that still reads."
+  },
   "ws_cau_hinh_hong": {
     "vi": "Không đọc được cấu hình của workspace này, nên chưa thể làm việc đó: chạy bằng luật trường học sẽ ra kết quả sai mà không báo. Hãy mở lại workspace, kiểm tra hoặc đặt lại cấu hình rồi thử lại.",
     "en": "This workspace's settings can't be read, so this can't be done: running with the school rules would give wrong results without any warning. Reopen the workspace, check or reset its settings, then try again."

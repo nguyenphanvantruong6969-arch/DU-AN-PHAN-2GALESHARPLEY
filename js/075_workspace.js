@@ -215,22 +215,32 @@ function wsDongWorkspace(w) {
     type: "button", class: "btn btn-ghost btn-nho " + (lop || ""),
     "data-slug": w.slug, "data-hanh-dong": khoa,
     text: t("ws_btn_" + khoa), onclick: ham });
-  return wsEl("tr", { "data-slug": w.slug, class: w.dang_mo ? "ws-dang-mo" : null },
+  return wsEl("tr", { "data-slug": w.slug,
+      class: w.dang_mo ? "ws-dang-mo" : (w.hong ? "ws-hong" : null) },
     wsEl("td", { class: "ws-ten" },
       wsEl("div", { class: "ws-ten-chinh", text: w.name }),
       wsEl("div", { class: "ws-slug", text: w.slug }),
-      w.dang_mo ? wsEl("span", { class: "ws-badge", text: t("ws_dang_mo_nhan") }) : null),
+      w.dang_mo ? wsEl("span", { class: "ws-badge", text: t("ws_dang_mo_nhan") }) : null,
+      w.hong ? wsEl("span", { class: "ws-badge ws-badge-hong", "data-i18n": "ws_badge_hong",
+        text: t("ws_badge_hong") }) : null),
     wsEl("td", { text: wsTenNganh(w.industry) }),
     wsEl("td", { class: "ws-sua", text: w.modified }),
-    wsEl("td", { class: "ws-hanh-dong" },
-      wsEl("button", { type: "button", class: "btn btn-secondary btn-nho",
-        "data-slug": w.slug, "data-hanh-dong": "mo", text: t("ws_btn_mo"),
-        disabled: w.dang_mo, onclick: () => wsMo(w) }),
-      hanhDong("doi_ten", () => wsBatSua(w, "doi_ten")),
-      hanhDong("nhan_ban", () => wsBatSua(w, "nhan_ban")),
-      hanhDong("luu_mau", () => wsBatSua(w, "luu_mau")),
-      hanhDong("xuat", () => wsXuat(w)),
-      nutXoa));
+    /* Workspace hỏng: mọi nút cần đọc app.db đều vô ích (mở/đổi tên/nhân bản/xuất đều hỏng),
+       nên chỉ còn "Khôi phục" (từ bản sao lưu cạnh nó) và "Xoá" (vào thùng rác). */
+    w.hong
+      ? wsEl("td", { class: "ws-hanh-dong" },
+          hanhDong("khoi_phuc", (ev) => khiBan(ev.currentTarget, () => wsKhoiPhuc(w)),
+            "ws-khoi-phuc"),
+          nutXoa)
+      : wsEl("td", { class: "ws-hanh-dong" },
+          wsEl("button", { type: "button", class: "btn btn-secondary btn-nho",
+            "data-slug": w.slug, "data-hanh-dong": "mo", text: t("ws_btn_mo"),
+            disabled: w.dang_mo, onclick: () => wsMo(w) }),
+          hanhDong("doi_ten", () => wsBatSua(w, "doi_ten")),
+          hanhDong("nhan_ban", () => wsBatSua(w, "nhan_ban")),
+          hanhDong("luu_mau", () => wsBatSua(w, "luu_mau")),
+          hanhDong("xuat", () => wsXuat(w)),
+          nutXoa));
 }
 
 function wsBatSua(w, kieu) {
@@ -303,6 +313,16 @@ function wsMo(w) {
   } else {
     di();
   }
+}
+
+/* Cứu một workspace hỏng từ bản sao lưu mới nhất còn đọc được. Máy chủ chỉ đụng đúng thư mục của
+   workspace đó (recover_workspace); các workspace khác và cái đang mở giữ nguyên. */
+function wsKhoiPhuc(w) {
+  return callApi("recover_workspace", w.slug).then((res) => {
+    if (!res.ok) { showErrorToast(res.errors); return; }
+    showToast(t("ws_da_khoi_phuc", { ten: w.name, ban: res.data.restored_from }), "success");
+    return wsLamMoiDanhSach();
+  });
 }
 
 function wsXoa(w) {
