@@ -5,8 +5,8 @@ main.py
 làm js_api để index.html và js/*.js gọi qua window.pywebview.api.*
 
 Cách chạy:
-    python3 main.py                    # dùng app.db cùng thư mục main.py
-    python3 main.py /duong/dan/khac.db # chỉ định DB khác
+    python3 main.py                    # mở một workspace trong workspaces/ cạnh main.py
+    python3 main.py /duong/dan/khac.db # chỉ định DB khác (một CSDL đơn, không workspace)
 """
 
 import os
@@ -15,6 +15,7 @@ import traceback
 
 import browser_host
 import chan_doan
+import workspace
 from api import PipelineAPI
 from recovery import RecoveryAPI
 
@@ -43,6 +44,12 @@ else:
 
 
 def resolve_db_path() -> str:
+    """Đường dẫn CSDL đơn: tham số dòng lệnh, hoặc app.db cạnh chương trình.
+
+    Chế độ workspace (không có tham số) chọn CSDL bằng `workspace.chon_de_mo`;
+    `app.db` cạnh chương trình ở đây chỉ còn là đường dẫn cho màn phục hồi khi
+    bước chọn đó hỏng.
+    """
     if len(sys.argv) > 1:
         return os.path.abspath(sys.argv[1])
     return os.path.join(BASE_DIR, "app.db")
@@ -146,6 +153,11 @@ def main() -> None:
     # động (xem PipelineAPI._backup_db trong api.py) hoặc bắt đầu lại
     # với DB trống.
     try:
+        if len(sys.argv) <= 1:
+            # Không có tham số: chế độ workspace. Chuyển app.db cũ (nếu có) rồi
+            # mở một workspace. Nằm TRONG try để lỗi ở đây (thư mục chỉ đọc,
+            # đĩa đầy...) cũng ra màn phục hồi chứ không chết ngầm.
+            db_path = workspace.chon_de_mo(BASE_DIR)
         api = PipelineAPI(db_path)
     except Exception as e:
         _show_ui(
