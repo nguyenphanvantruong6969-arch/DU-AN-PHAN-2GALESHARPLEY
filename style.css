@@ -2757,3 +2757,6 @@ html.tat-hieu-ung .status-strip:hover {
   .ws-hop { padding: 18px; }
   .ws-tu-vung-hang, .ws-xem-lai-dong { grid-template-columns: 1fr; }
 }
+
+/* Thẻ Nhập điểm có thể bị ẩn khỏi thanh bên (luật xếp chỉ theo nhóm). */
+.nav-item[hidden] { display: none; }

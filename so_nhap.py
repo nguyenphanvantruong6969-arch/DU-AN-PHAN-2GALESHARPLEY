@@ -628,8 +628,10 @@ def _doc_sheet_hs(ws, clubs, loi, ten=None) -> list:
             nv.append({"club_id": ma, "thi": thi, "diem": diem})
         diem_ca_nhan = None
         if per_person:
-            # MỘT điểm cho cả người: áp cho mọi nguyện vọng của người đó. Có điểm
-            # (hoặc chữ `thi`) là đã dự thi tất cả chỗ em xếp; ô trống là không thi.
+            # MỘT điểm cho cả người, giữ NGUYÊN là một ô (`diem_ca_nhan`): phần
+            # mềm trải nó ra từng chỗ lúc chạy, nên ở đây các nguyện vọng KHÔNG
+            # mang điểm riêng (`thi` False, `diem` ""). Chữ `thi` (đã thi, chưa
+            # có điểm) và ô trống đều là "chưa có điểm" -> "".
             diem_ca_nhan = lay(o, cot_diem_cn)
             if diem_ca_nhan:
                 thi_ca_nhan = diem_ca_nhan.lower() == TU_DANH_DAU_THI
@@ -639,10 +641,8 @@ def _doc_sheet_hs(ws, clubs, loi, ten=None) -> list:
                                    dong=so_dong, student_id=sid,
                                    cot=tieu_de[cot_diem_cn], gia_tri=diem_ca_nhan))
                     diem_ca_nhan = ""
-                else:
-                    for x in nv:
-                        x["thi"] = True
-                        x["diem"] = "" if thi_ca_nhan else diem_ca_nhan
+                elif thi_ca_nhan:
+                    diem_ca_nhan = ""
         # Trần MỖI BUỔI: soát ngay ở bước đọc thử. Để tới lúc nạp thì hàm nạp
         # chỉ bỏ cả buổi của em kèm cảnh báo, còn nguyện vọng cũ của em vẫn
         # nằm trong CSDL — sổ "sẵn sàng" mà kết quả lại khác.
@@ -725,7 +725,8 @@ def tom_tat(du_lieu: dict) -> dict:
         "n_buoi": len({c["buoi"] for c in du_lieu["clubs"]}),
         "n_nguyen_vong": sum(len(s["nv"]) for s in hs),
         "n_thi": sum(1 for s in hs for x in s["nv"] if x["thi"]),
-        "n_diem": sum(1 for s in hs for x in s["nv"] if x["diem"]),
+        "n_diem": sum(1 for s in hs for x in s["nv"] if x["diem"])
+        + sum(1 for s in hs if s.get("diem_ca_nhan")),
     }
 
 
@@ -974,9 +975,13 @@ def ghi_so_nhap(duong_dan_hoac_tep, clubs=(), students=(), so_nv=None, co_nhom=T
             hang.append(s.get("reserve_group") or None)
         nv_s = (s.get("nv") or [])[:so_nv]
         if per_person:
-            # Điểm của người: điểm của nguyện vọng ĐÃ THI đầu tiên (chữ `thi`
-            # nếu chưa có điểm); chưa thi chỗ nào thì để trống.
-            hang.append(next((chuan_diem(x) for x in nv_s if x.get("thi")), None))
+            # Điểm của người: `diem_ca_nhan` nếu có; không thì điểm của nguyện
+            # vọng ĐÃ THI đầu tiên (chữ `thi` nếu chưa có điểm); không có thì trống.
+            dcn = s.get("diem_ca_nhan")
+            if dcn not in (None, ""):
+                hang.append(chuan_diem({"diem": dcn, "thi": True}))
+            else:
+                hang.append(next((chuan_diem(x) for x in nv_s if x.get("thi")), None))
         for x in nv_s:
             ten_clb = next((c["name"] for c in clubs if c.get("club_id") == x["club_id"]),
                            x["club_id"])

@@ -117,6 +117,100 @@ def gom_theo_buoi(
 
 
 # ---------------------------------------------------------------------------
+# LUẬT XẾP CỦA KHÔNG GIAN LÀM VIỆC (nhóm cứng, chỉ theo nhóm)
+# ---------------------------------------------------------------------------
+#
+# Luật nằm trong cấu hình workspace (cau_hinh_ws.py, bảng workspace_settings);
+# ở đây chỉ đọc đúng bốn khoá quyết định cách xếp và biến chúng thành tham số
+# cho thuật toán. Giá trị mặc định = trường học hôm nay: không tham số nào đổi
+# gì, và đường chạy cũ giữ NGUYÊN từng byte (có test canh trên bộ du_lieu_test).
+
+LUAT_XEP_MAC_DINH = {
+    "priority": "score",        # "score" | "tier" | "score+tier"
+    "tier_mode": "reserve",     # "reserve" (suất dự trữ mềm) | "strict"
+    "score_scope": "per_slot",  # "per_slot" | "per_person"
+    "tiers": [],                # tên các nhóm, tốt nhất trước (chế độ cứng)
+}
+
+
+def chuan_hoa_nhom(raw) -> str:
+    """"Chinh sach", "CHÍNH SÁCH", "Chinh-Sach" -> "chinh_sach".
+
+    MỘT chỗ chuẩn hoá nhãn nhóm cho cả cửa nhập (nhóm lưu trong CSDL) lẫn so
+    khớp với danh sách nhóm của luật xếp — hai bên không lệch nhau.
+    """
+    import re
+    import unicodedata
+
+    chu = (raw or "").strip() if isinstance(raw, str) or raw is None else str(raw).strip()
+    if not chu:
+        return ""
+    chu = chu.replace("Đ", "D").replace("đ", "d")
+    chu = "".join(c for c in unicodedata.normalize("NFD", chu)
+                  if not unicodedata.combining(c))
+    return re.sub(r"[^0-9a-zA-Z]+", "_", chu.lower()).strip("_")
+
+
+def luat_xep_cua(rules) -> dict:
+    """`rules` của cấu hình (hoặc None) -> bốn khoá xếp, thiếu/sai = mặc định."""
+    ra = {k: (list(v) if isinstance(v, list) else v)
+          for k, v in LUAT_XEP_MAC_DINH.items()}
+    if isinstance(rules, dict):
+        for k in ra:
+            if k in rules and rules[k] is not None:
+                ra[k] = rules[k]
+    if not isinstance(ra["tiers"], list):
+        ra["tiers"] = []
+    return ra
+
+
+def xay_tier_rank(students: dict[str, dict], tiers) -> dict[str, int]:
+    """{student_id: hạng nhóm} — 0 = nhóm đầu danh sách, số nhỏ = ưu tiên cao.
+
+    Nhóm của em là `students[sid]["reserve_group"]`, so với tên nhóm trong
+    `tiers` sau khi chuẩn hoá (`chuan_hoa_nhom`). Em không có nhóm, hoặc nhóm
+    không nằm trong danh sách, KHÔNG có mặt trong kết quả: thuật toán xếp họ
+    sau mọi nhóm có tên.
+    """
+    hang: dict[str, int] = {}
+    for i, ten in enumerate(tiers or []):
+        hang.setdefault(chuan_hoa_nhom(ten), i)
+    hang.pop("", None)
+    ra: dict[str, int] = {}
+    for sid, info in students.items():
+        h = hang.get(chuan_hoa_nhom((info or {}).get("reserve_group")))
+        if h is not None:
+            ra[sid] = h
+    return ra
+
+
+def che_do_nhom_cung(luat: dict) -> bool:
+    """Nhóm xếp CỨNG (thay suất dự trữ mềm)? Khi `tier_mode = strict`, hoặc khi
+    `priority = tier` — chỉ theo nhóm mà nhóm lại chỉ là suất mềm thì danh sách
+    nhóm không có tác dụng gì."""
+    return luat["tier_mode"] == "strict" or luat["priority"] == "tier"
+
+
+def tham_so_luat(rules, students: dict[str, dict]) -> dict:
+    """Luật workspace -> tham số cho `run_rbda_nhieu_buoi` / `verify_stability_tuan`.
+
+    Trả {"tier_rank", "bo_qua_du_tru"}:
+      * mặc định (priority "score", tier_mode "reserve"): (None, False) — đúng
+        đường chạy cũ, từng byte;
+      * nhóm cứng (xem `che_do_nhom_cung`): `tier_rank` theo `rules.tiers` và
+        `bo_qua_du_tru` = True — nhóm đã được ưu tiên bằng thứ tự rồi, giữ thêm
+        suất dự trữ là cho cùng một nhóm ưu tiên hai lần.
+    Điểm (priority "tier" bỏ điểm; per_person trải điểm ra từng chỗ) xử lý lúc
+    ĐỌC dữ liệu — xem `_doc_du_lieu`; thuật toán không biết tới chuyện đó.
+    """
+    luat = luat_xep_cua(rules)
+    if not che_do_nhom_cung(luat):
+        return {"tier_rank": None, "bo_qua_du_tru": False}
+    return {"tier_rank": xay_tier_rank(students, luat["tiers"]),
+            "bo_qua_du_tru": True}
+
+
+# ---------------------------------------------------------------------------
 # BƯỚC A — HÀM ƯU TIÊN HAI TẦNG (compute_club_priority)
 # ---------------------------------------------------------------------------
 
@@ -125,6 +219,7 @@ def compute_club_priority(
     applicants_for_club: list[str],
     tested_scores_for_club: dict[str, float],
     stb_lottery: dict[str, int],
+    tier_rank: Optional[dict[str, int]] = None,
 ) -> list[str]:
     """
     Tính thứ tự ưu tiên hai tầng cho MỘT club.
@@ -155,6 +250,12 @@ def compute_club_priority(
         stb_lottery: {student_id: số bốc thăm} toàn hệ thống (một số
             duy nhất/học sinh, dùng chung mọi club — Single
             Tie-Breaking).
+        tier_rank: (tuỳ chọn) {student_id: hạng nhóm}, số NHỎ = ưu tiên CAO,
+            em không có trong dict xếp SAU mọi nhóm có tên. Có nó thì khoá
+            sắp thành (hạng nhóm, đã chấm trước, -điểm, STB, mã): nhóm đứng
+            TRƯỚC điểm. Đây là nhóm của em (luật xếp của workspace), KHÔNG
+            phải thứ hạng nguyện vọng — ràng buộc ở trên vẫn nguyên. None (mặc
+            định) = đúng hai tầng như trước.
 
     Returns:
         list[str]: student_id đã sắp theo thứ tự ưu tiên giảm dần
@@ -174,6 +275,17 @@ def compute_club_priority(
             f"[{club_id}] Có {len(missing_stb)} học sinh thiếu số bốc "
             f"thăm STB: {missing_stb[:5]}{'...' if len(missing_stb) > 5 else ''}"
         )
+
+    if tier_rank is not None:
+        cuoi = float("inf")     # không có nhóm: sau mọi nhóm có tên
+
+        def khoa_nhom(sid):
+            hang = tier_rank.get(sid, cuoi)
+            if sid in tested_scores_for_club:
+                return (hang, 0, -tested_scores_for_club[sid], stb_lottery[sid], sid)
+            return (hang, 1, 0, stb_lottery[sid], sid)
+
+        return sorted(applicants_for_club, key=khoa_nhom)
 
     tier1 = [sid for sid in applicants_for_club if sid in tested_scores_for_club]
     tier2 = [sid for sid in applicants_for_club if sid not in tested_scores_for_club]
@@ -321,6 +433,8 @@ def run_rbda(
     stb_lottery: dict[str, int],
     is_reserve_eligible_fn: Callable[[str, str], bool],
     max_rounds: int = 1000,
+    tier_rank: Optional[dict[str, int]] = None,
+    bo_qua_du_tru: bool = False,
 ) -> MatchResult:
     """
     Chạy thuật toán RB-DA đầy đủ (student-proposing deferred
@@ -333,6 +447,9 @@ def run_rbda(
         clubs: {club_id: {"capacity": int, "reserve_capacity": int}}
         tested_scores, applicants, preferences, stb_lottery: xem đầu file.
         is_reserve_eligible_fn: (student_id, club_id) -> bool.
+        tier_rank: xem `compute_club_priority`. None = như cũ.
+        bo_qua_du_tru: True = KHÔNG chạy lượt suất dự trữ mềm (mọi suất là suất
+            chung). Dùng cùng `tier_rank` ở chế độ nhóm cứng. False = như cũ.
         max_rounds: chặn vòng lặp vô hạn nếu có lỗi dữ liệu. ĐÃ ĐO cận
             trên thật: số vòng chạy đúng bằng ĐỘ DÀI DANH SÁCH NGUYỆN
             VỌNG dài nhất (10 nguyện vọng -> 10 vòng; 100 -> 100), vì
@@ -359,6 +476,7 @@ def run_rbda(
             applicants_for_club=applicants.get(club_id, []),
             tested_scores_for_club=tested_scores.get(club_id, {}),
             stb_lottery=stb_lottery,
+            tier_rank=tier_rank,
         )
         base_rank[club_id] = {sid: i for i, sid in enumerate(base_order)}
 
@@ -398,7 +516,7 @@ def run_rbda(
             pool = held[club_id] + new_applicants
             rank = base_rank[club_id]
             capacity = clubs[club_id]["capacity"]
-            reserve_capacity = clubs[club_id]["reserve_capacity"]
+            reserve_capacity = 0 if bo_qua_du_tru else clubs[club_id]["reserve_capacity"]
             eligible_fn = lambda sid, _cid=club_id: is_reserve_eligible_fn(sid, _cid)
 
             accepted, tier_of = club_choice_function(
@@ -458,6 +576,7 @@ def verify_stability(
     clubs: dict[str, dict],
     preferences: dict[str, list[str]],
     is_reserve_eligible_fn: Callable[[str, str], bool],
+    bo_qua_du_tru: bool = False,
 ) -> list[dict]:
     """
     Kiểm chứng KHÔNG TỒN TẠI blocking pair, dùng ĐÚNG hàm lựa chọn
@@ -474,6 +593,9 @@ def verify_stability(
         mà cid vẫn còn nguyện vọng), VÀ khi thêm sid vào
         held[cid] hiện tại rồi áp dụng lại club_choice_function,
         sid NẰM TRONG tập được chọn.
+
+    `bo_qua_du_tru` phải GIỐNG lần chạy đã tạo `result` (xem `run_rbda`): kiểm
+    bằng hàm lựa chọn khác với hàm đã dùng để xếp thì không còn là kiểm ổn định.
 
     Returns:
         list[dict]: {"code": "blocking_pair", "params": {...}} cho mỗi
@@ -503,7 +625,7 @@ def verify_stability(
                 continue  # sid không nằm trong applicant pool của club này -> không thể block
 
             capacity = clubs[candidate_cid]["capacity"]
-            reserve_capacity = clubs[candidate_cid]["reserve_capacity"]
+            reserve_capacity = 0 if bo_qua_du_tru else clubs[candidate_cid]["reserve_capacity"]
             holders = held_by_club[candidate_cid]
             eligible_fn = lambda s, _cid=candidate_cid: is_reserve_eligible_fn(s, _cid)
 
@@ -886,6 +1008,8 @@ def run_rbda_nhieu_buoi(
     seed: int = 0,
     max_rounds: int = 1000,
     chi_buoi: Optional[list[str]] = None,
+    tier_rank: Optional[dict[str, int]] = None,
+    bo_qua_du_tru: bool = False,
 ) -> KetQuaTuan:
     """Xếp CLB cho cả tuần: cắt theo buổi, gọi run_rbda từng buổi, ghép lại.
 
@@ -908,6 +1032,8 @@ def run_rbda_nhieu_buoi(
             bỏ qua nó hoàn toàn.
         chi_buoi: chạy CHỈ những buổi này (None = chạy hết). Dùng khi trường
             muốn xếp riêng một buổi, hoặc một dải buổi trong tuần.
+        tier_rank, bo_qua_du_tru: luật nhóm cứng, đưa nguyên xuống `run_rbda`
+            (xem `tham_so_luat`). Mặc định giữ đường chạy cũ.
 
     BẤT BIẾN QUAN TRỌNG NHẤT CỦA `chi_buoi`
     ---------------------------------------
@@ -973,6 +1099,7 @@ def run_rbda_nhieu_buoi(
         kq = run_rbda(
             students, clubs_b, scores_b, app_b, prefs_b, stb_b,
             is_reserve_eligible_fn, max_rounds=max_rounds,
+            tier_rank=tier_rank, bo_qua_du_tru=bo_qua_du_tru,
         )
 
         ket.per_buoi[buoi] = kq
@@ -990,6 +1117,7 @@ def verify_stability_tuan(
     clubs: dict[str, dict],
     preferences: dict[str, list[str]],
     is_reserve_eligible_fn: Callable[[str, str], bool],
+    bo_qua_du_tru: bool = False,
 ) -> dict[str, list[dict]]:
     """Kiểm cặp phá vỡ cho từng buổi. {buoi: [vấn đề]} — rỗng hết = ổn định.
 
@@ -1005,7 +1133,8 @@ def verify_stability_tuan(
             continue
         clubs_b, _sc, _ap, prefs_b = cat_du_lieu_theo_buoi(
             buoi, ds_club, clubs, {}, {}, preferences)
-        ra[buoi] = verify_stability(kq, clubs_b, prefs_b, is_reserve_eligible_fn)
+        ra[buoi] = verify_stability(kq, clubs_b, prefs_b, is_reserve_eligible_fn,
+                                    bo_qua_du_tru)
     return ra
 
 
@@ -1296,7 +1425,13 @@ CREATE TABLE IF NOT EXISTS students (
     student_id TEXT PRIMARY KEY,
     name TEXT,
     stb_number INTEGER,
-    reserve_group TEXT          -- vd: 'khoi10', 'chinh_sach', hoặc NULL
+    reserve_group TEXT,         -- vd: 'khoi10', 'chinh_sach', hoặc NULL
+    -- Điểm của cả NGƯỜI (workspace score_scope = 'per_person'); NULL = chưa có.
+    -- Một ô cho mỗi người, KHÔNG phải một dòng club_scores cho mỗi chỗ: sửa điểm
+    -- là một lần ghi, nạp lại sổ không để sót bản sao cũ, và điểm không thể lệch
+    -- khỏi danh sách nguyện vọng. Lúc chạy nó được trải ra từng chỗ em đã đăng
+    -- ký (xem `_doc_du_lieu`). Cột này không dùng ở chế độ mặc định.
+    diem_ca_nhan REAL
 );
 """ + "".join(
     "\nCREATE TABLE IF NOT EXISTS %s (%s);\n" % (ten, than)
@@ -1581,7 +1716,7 @@ def _co_cot(cur, bang: str, cot: str) -> bool:
 def di_tru_schema(db_path: str) -> list[str]:
     """Nâng CSDL cũ lên schema có buổi sinh hoạt. Chạy lại bao nhiêu lần cũng được.
 
-    Năm việc, đều có đường lùi:
+    Sáu việc (đánh số theo thứ tự thêm vào), đều có đường lùi:
 
       1. `clubs` thêm cột `buoi` — ALTER TABLE ADD COLUMN, giá trị cũ thành
          NULL, mà NULL nghĩa là BUOI_MAC_DINH. Không mất gì.
@@ -1593,6 +1728,7 @@ def di_tru_schema(db_path: str) -> list[str]:
       5. Năm bảng nhận FOREIGN KEY và CHECK (`_BANG_RANG_BUOC`) — dựng lại
          bảng, có sao lưu trước, và CHỈ khi dữ liệu sạch
          (`_dung_lai_bang_co_rang_buoc`).
+      6. `students` thêm cột `diem_ca_nhan` (điểm theo người) — ADD COLUMN, NULL.
 
     CHỖ PHẢI CẨN THẬN: `run_history` là dấu vết kiểm toán — `reset_data` cũng
     không xoá nó. Hàm này chỉ THÊM cột vào đó, tuyệt đối không dựng lại bảng.
@@ -1659,6 +1795,11 @@ def di_tru_schema(db_path: str) -> list[str]:
                     "(SELECT seed FROM run_meta WHERE id = 1) "
                     "WHERE is_locked = 1")
             da_lam.append("stb_lock.seed")
+
+        # 6. `students.diem_ca_nhan` — điểm theo NGƯỜI. Cột mới, NULL cho mọi em cũ.
+        if "students" in co_bang and not _co_cot(cur, "students", "diem_ca_nhan"):
+            cur.execute("ALTER TABLE students ADD COLUMN diem_ca_nhan REAL")
+            da_lam.append("students.diem_ca_nhan")
 
         conn.commit()
     finally:
@@ -1803,7 +1944,42 @@ def dau_van_tay_du_lieu(cur) -> str:
         h.update(("\x1e" + ten).encode("utf-8"))
         for row in cur.execute(sql):
             h.update(("\x1f".join(repr(v) for v in row) + "\n").encode("utf-8"))
+    # Luật xếp và điểm theo người cũng quyết định kết quả, nhưng CHỈ tính vào khi
+    # khác mặc định — luật mặc định giữ dấu vân tay y như trước, nên kết quả đã
+    # chạy trước khi có tính năng này không tự báo "dữ liệu đã đổi".
+    luat = doc_luat_xep(cur)
+    if luat != luat_xep_cua(None):
+        import json
+
+        h.update(b"\x1eluat")
+        h.update(json.dumps(luat, sort_keys=True, ensure_ascii=False).encode("utf-8"))
+        if luat["score_scope"] == "per_person":
+            h.update(b"\x1ediem_ca_nhan")
+            for row in cur.execute(
+                    "SELECT student_id, diem_ca_nhan FROM students "
+                    "WHERE diem_ca_nhan IS NOT NULL ORDER BY student_id"):
+                h.update(("\x1f".join(repr(v) for v in row) + "\n").encode("utf-8"))
     return h.hexdigest()
+
+
+def doc_luat_xep(cur) -> dict:
+    """Luật xếp (`luat_xep_cua`) của workspace, đọc trên con trỏ có sẵn.
+
+    Đọc dòng `config` của `workspace_settings` NGAY TRONG giao dịch đọc của lần
+    nạp dữ liệu, nên luật và dữ liệu luôn cùng một thời điểm. Thiếu bảng, thiếu
+    dòng, JSON hỏng = mặc định trường học: CSDL cũ chạy y như trước.
+    """
+    import json
+    import sqlite3
+
+    try:
+        dong = cur.execute(
+            "SELECT value FROM workspace_settings WHERE key = 'config'").fetchone()
+        cau_hinh = json.loads(dong[0]) if dong and dong[0] else None
+    except (sqlite3.Error, TypeError, ValueError):
+        cau_hinh = None
+    rules = cau_hinh.get("rules") if isinstance(cau_hinh, dict) else None
+    return luat_xep_cua(rules)
 
 
 def _doc_du_lieu(cur):
@@ -1863,6 +2039,30 @@ def _doc_du_lieu(cur):
     }
 
     applicants = hop_ung_vien(dang_ky_thi, preferences)
+
+    # LUẬT ĐIỂM CỦA WORKSPACE — làm ở đây, lúc nạp, để thuật toán không phải biết.
+    #   * priority "tier": mọi người coi như CHƯA chấm — bỏ hết điểm, thứ tự chỉ
+    #     còn nhóm rồi số bốc thăm.
+    #   * score_scope "per_person": điểm là MỘT ô của người (`diem_ca_nhan`), trải
+    #     ra từng chỗ người đó đã đăng ký (tick thi hoặc xếp nguyện vọng). Điểm
+    #     theo từng chỗ còn sót trong club_scores (từ lúc workspace chấm kiểu
+    #     khác) bị bỏ: một chế độ chỉ có một nguồn điểm.
+    # Mặc định (per_slot, priority score/score+tier) không đụng gì ở đây.
+    luat = doc_luat_xep(cur)
+    if luat["priority"] == "tier":
+        tested_scores = {cid: {} for cid in clubs}
+    elif luat["score_scope"] == "per_person":
+        tested_scores = {cid: {} for cid in clubs}
+        diem_nguoi = {
+            row["student_id"]: row["diem_ca_nhan"]
+            for row in cur.execute(
+                "SELECT student_id, diem_ca_nhan FROM students "
+                "WHERE diem_ca_nhan IS NOT NULL ORDER BY student_id")
+        }
+        for cid, ds in applicants.items():
+            for sid in ds:
+                if sid in diem_nguoi:
+                    tested_scores[cid][sid] = diem_nguoi[sid]
 
     stb_lottery = {sid: info["stb"] for sid, info in students.items()}
     return students, clubs, tested_scores, applicants, preferences, stb_lottery

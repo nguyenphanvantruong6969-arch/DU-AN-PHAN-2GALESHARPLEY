@@ -755,6 +755,18 @@ MESSAGES = {
         "vi": "Sheet \"{sheet}\" có một cột điểm chung (\"{cot}\"), nhưng không gian làm việc này chấm điểm riêng cho từng nguyện vọng. Dùng cột điểm đứng cạnh từng nguyện vọng (ví dụ \"{vd}\").",
         "en": "Sheet \"{sheet}\" has one shared score column (\"{cot}\"), but this workspace scores each choice separately. Use the score column next to each choice (for example \"{vd}\").",
     },
+    "health_strict_chua_co_nhom": {
+        "vi": "Có {n} người đã đăng ký mà nhóm của họ không nằm trong danh sách nhóm ưu tiên ({sample}). Họ sẽ được xếp sau mọi nhóm có tên. Kiểm tra nhóm của họ, hoặc bổ sung danh sách nhóm.",
+        "en": "{n} registered people have a group that is not in the priority group list ({sample}). They will be placed after every named group. Check their group, or complete the group list.",
+    },
+    "health_per_person_chua_co_diem": {
+        "vi": "Có {n} người đã đăng ký mà chưa có điểm ({sample}). Họ sẽ được xếp sau những người đã có điểm. Nhập điểm ở thẻ Nhập điểm trước khi sắp xếp.",
+        "en": "{n} registered people have no score yet ({sample}). They will be placed after everyone who has a score. Enter the scores on the scoring tab before allocating.",
+    },
+    "diem_khong_theo_nguoi": {
+        "vi": "Không gian làm việc này chấm điểm riêng cho từng chỗ, không chấm một điểm cho mỗi người.",
+        "en": "This workspace scores each place separately, not one score per person.",
+    },
     # --- không gian làm việc (workspace): api_workspace.py ---
     "ws_disabled": {
         "vi": "Chương trình đang chạy bằng một tệp dữ liệu chỉ định riêng nên chức năng nhiều không gian làm việc bị tắt. Mở chương trình bình thường (không kèm đường dẫn tệp dữ liệu) để dùng.",

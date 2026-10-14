@@ -276,13 +276,13 @@ def test_cong_ty_sinh_mau_roi_doc_lai_per_person(api_ws, tmp_path):
     kq = _nap(api_ws, _luu(wb, tmp_path / "dien.xlsx"))
     assert kq["ok"], kq
     with api_ws._ket_noi_doc() as cur:
-        diem = [tuple(r) for r in cur.execute(
-            "SELECT student_id, club_id, score FROM club_scores ORDER BY 1, 2")]
-        thi = [tuple(r) for r in cur.execute(
-            "SELECT student_id, club_id FROM club_test_selection ORDER BY 1, 2")]
-    # MỘT điểm của người áp cho cả ba nguyện vọng; N2 không điểm thì không thi
-    assert diem == [("N1", "d1", 8.5), ("N1", "d2", 8.5), ("N1", "d3", 8.5)]
-    assert thi == [("N1", "d1"), ("N1", "d2"), ("N1", "d3")]
+        theo_nguoi = [tuple(r) for r in cur.execute(
+            "SELECT student_id, diem_ca_nhan FROM students ORDER BY 1")]
+        theo_cho = cur.execute("SELECT COUNT(*) FROM club_scores").fetchone()[0]
+        thi = cur.execute("SELECT COUNT(*) FROM club_test_selection").fetchone()[0]
+    # MỘT ô điểm cho mỗi người (không sao chép ra từng chỗ); N2 không điểm = NULL
+    assert theo_nguoi == [("N1", 8.5), ("N2", None)]
+    assert theo_cho == 0 and thi == 0
 
 
 def test_per_person_diem_sai_va_diem_thi(tmp_path):
@@ -299,9 +299,11 @@ def test_per_person_diem_sai_va_diem_thi(tmp_path):
     ma = [(e["code"], e["params"]["student_id"]) for e in kq["loi"]]
     assert ma == [("so_nhap_diem_ca_nhan_sai", "N1"), ("so_nhap_diem_ca_nhan_sai", "N2")]
     hs = {s["student_id"]: s for s in kq["students"]}
-    assert hs["N3"]["nv"] == [{"club_id": "d1", "thi": True, "diem": ""}]
-    assert hs["N4"]["nv"] == [{"club_id": "d1", "thi": True, "diem": "7,5"}]
-    assert hs["N3"]["diem_ca_nhan"] == "thi"
+    # điểm theo người giữ nguyên MỘT ô; nguyện vọng không mang điểm riêng
+    assert hs["N3"]["nv"] == [{"club_id": "d1", "thi": False, "diem": ""}]
+    assert hs["N3"]["diem_ca_nhan"] == ""             # chữ `thi` = chưa có điểm
+    assert hs["N4"]["nv"] == [{"club_id": "d1", "thi": False, "diem": ""}]
+    assert hs["N4"]["diem_ca_nhan"] == "7,5"
 
 
 def test_kieu_diem_khac_kieu_workspace_bi_bao_thay_vi_bo_diem(tmp_path):

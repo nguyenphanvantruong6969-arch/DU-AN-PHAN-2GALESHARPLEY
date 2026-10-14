@@ -713,7 +713,28 @@
         <p class="view-desc" data-i18n="scoring_desc">Chọn CLB để chấm. Danh sách chỉ có mã và họ tên, không có số bốc thăm hay thứ hạng nguyện vọng, để việc chấm điểm được khách quan.</p>
       </header>
 
-      <div class="panel">
+      <!-- Điểm theo NGƯỜI (workspace per_person): thay cho bảng từng CLB bên dưới. -->
+      <div class="panel" id="scoringPersonArea" hidden>
+        <div class="panel-head">
+          <h2 data-i18n="scoring_person_title">Điểm của từng người</h2>
+          <div class="panel-actions">
+            <button class="btn btn-primary" id="btnSavePersonScores" data-i18n="btn_save_scores">Lưu điểm</button>
+          </div>
+        </div>
+        <p class="hint-text" data-i18n="scoring_person_hint">Mỗi người một điểm, dùng chung cho mọi chỗ họ đăng ký. Danh sách chỉ có mã và họ tên, không có số bốc thăm hay thứ hạng nguyện vọng.</p>
+        <table class="data-table">
+          <thead><tr>
+            <th data-i18n="th_student_id">Mã học sinh</th>
+            <th data-i18n="th_name">Họ tên</th>
+            <th data-i18n="th_score">Điểm</th>
+          </tr></thead>
+          <tbody id="scoringPersonBody"></tbody>
+        </table>
+        <div id="scoringPersonEmpty" class="empty-state" hidden data-i18n="scoring_person_empty">Chưa có ai đăng ký.</div>
+        <span class="save-feedback" role="status" aria-live="polite" id="scoringPersonFeedback"></span>
+      </div>
+
+      <div class="panel" id="scoringOverviewPanel">
         <div class="panel-head"><h2 data-i18n="scoring_overview_title">Tiến độ chấm của từng CLB</h2></div>
         <table class="data-table">
           <thead><tr>

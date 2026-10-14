@@ -243,6 +243,7 @@ function wsVeDanhSach() {
 
 /* Nap lai du lieu cua MOI the cho workspace vua mo (xem dau tep). */
 function wsTaiLaiDuLieu() {
+  napLuatDiem();                // luat diem cua workspace moi: an/hien the Nhap diem
   hsDaChon.clear();
   donSachSauKhiXoaDuLieu();
   donSachTheVanHanh();
@@ -703,6 +704,7 @@ function initWorkspaceHandlers() {
 function khoiDongTheoWorkspace() {
   callApi("list_workspaces").then((res) => {
     if (!res.ok || !res.data || !Array.isArray(res.data.items)) {
+      napLuatDiem();
       loadPipelineTab();
       return;
     }
@@ -712,7 +714,9 @@ function khoiDongTheoWorkspace() {
     const dangMo = WS.ds.find((w) => w.slug === WS.hienTai);
     WS.ten = dangMo ? dangMo.name : (WS.hienTai || "");
     wsCapNhatCongTac();
-    if (WS.hienTai) loadPipelineTab();
-    else wsMoManChon();
+    if (WS.hienTai) {
+      napLuatDiem();
+      loadPipelineTab();
+    } else wsMoManChon();
   });
 }

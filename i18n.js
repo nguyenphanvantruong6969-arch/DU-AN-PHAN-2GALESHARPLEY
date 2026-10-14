@@ -527,6 +527,10 @@
       ws_r_tier_mode: "Cách dùng nhóm ưu tiên",
       ws_r_score_scope: "Phạm vi của điểm",
       ws_r_tiers: "Thứ tự các nhóm",
+      scoring_person_title: "Điểm của từng người",
+      scoring_person_hint: "Mỗi người một điểm, dùng chung cho mọi chỗ họ đăng ký. Danh sách chỉ có mã và họ tên, không có số bốc thăm hay thứ hạng nguyện vọng.",
+      scoring_person_empty: "Chưa có ai đăng ký.",
+      feedback_person_scores_saved: "Đã lưu điểm của {n} người.",
     },
 
     en: {
@@ -1037,6 +1041,10 @@
       ws_r_tier_mode: "Use of priority groups",
       ws_r_score_scope: "Scope of the score",
       ws_r_tiers: "Order of the groups",
+      scoring_person_title: "Score of each person",
+      scoring_person_hint: "One score per person, shared by every place they registered for. The list shows only codes and names, with no lottery number or preference rank.",
+      scoring_person_empty: "No one has registered yet.",
+      feedback_person_scores_saved: "Saved the scores of {n} people.",
     },
   };
 

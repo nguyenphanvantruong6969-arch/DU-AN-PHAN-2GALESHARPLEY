@@ -13,10 +13,60 @@
 
 let currentScoringClub = null;
 
+/* Luat diem cua khong gian lam viec dang mo (get_luat_diem). Mac dinh = truong
+   hoc: moi CLB mot diem rieng, the nay hien. Nap lai moi lan mo workspace
+   (napLuatDiem, goi tu js/075_workspace.js). */
+let LUAT_DIEM = { priority: "score", score_scope: "per_slot", tier_mode: "reserve" };
+
+/* Nap luat roi ap len giao dien: chi xep theo nhom (priority "tier") thi KHONG
+   co diem nao quyet dinh gi -> an han the Nhap diem; dang o the do thi chuyen
+   ve the Van hanh. */
+function napLuatDiem() {
+  return callApi("get_luat_diem").then((res) => {
+    if (res.ok && res.data) LUAT_DIEM = res.data;
+    const chiNhom = LUAT_DIEM.priority === "tier";
+    const nut = document.querySelector('.nav-item[data-tab="scoring"]');
+    if (nut) nut.hidden = chiNhom;
+    if (chiNhom && currentTabName() === "scoring") doiThe("pipeline");
+  });
+}
+
 function loadScoringTab() {
   el("scoringWorkArea").hidden = true;
   currentScoringClub = null;
-  loadScoringOverview();
+  const theoNguoi = LUAT_DIEM.score_scope === "per_person";
+  el("scoringOverviewPanel").hidden = theoNguoi;
+  el("scoringPersonArea").hidden = !theoNguoi;
+  if (theoNguoi) loadScoringPersons();
+  else loadScoringOverview();
+}
+
+/* Diem theo NGUOI: mot o diem cho moi nguoi, thay cho mot o cho moi (nguoi, cho). */
+function loadScoringPersons() {
+  return callApi("get_person_scoring_list").then((res) => {
+    const body = el("scoringPersonBody");
+    clear(body);
+    if (!res.ok) {
+      showErrorToast(res.errors);
+      return;
+    }
+    el("scoringPersonEmpty").hidden = res.data.persons.length > 0;
+    res.data.persons.forEach((a) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${esc(a.student_id)}</td><td>${esc(a.name)}</td>`;
+      const td = document.createElement("td");
+      const input = document.createElement("input");
+      input.type = "text";           /* xem ghi chu o openScoringClub: khong dung type=number */
+      input.inputMode = "decimal";
+      input.className = "score-input";
+      input.dataset.studentId = a.student_id;
+      input.setAttribute("aria-label", a.student_id);
+      if (a.score !== null && a.score !== undefined) input.value = a.score;
+      td.appendChild(input);
+      tr.appendChild(td);
+      body.appendChild(tr);
+    });
+  });
 }
 
 function loadScoringOverview() {
@@ -89,6 +139,42 @@ function openScoringClub(clubId) {
 }
 
 function initScoringHandlers() {
+  el("btnSavePersonScores").addEventListener("click", () => {
+    const inputs = document.querySelectorAll("#scoringPersonBody .score-input");
+    inputs.forEach((input) => {
+      input.classList.remove("is-invalid");
+      input.removeAttribute("title");
+      input.removeAttribute("aria-invalid");
+    });
+    const scores = Array.from(inputs).map((input) => ({
+      student_id: input.dataset.studentId,
+      score: input.value === "" ? null : input.value,
+    }));
+    khiBan(el("btnSavePersonScores"), () => callApi("submit_person_scores", scores)).then((res) => {
+      if (!res.ok) {
+        feedbackErrors(el("scoringPersonFeedback"), res.errors);
+        return;
+      }
+      const boQua = res.data.warnings || [];
+      const oTheoHs = new Map(Array.from(inputs, (i) => [i.dataset.studentId, i]));
+      boQua.forEach((w) => {
+        const sid = w && w.params && w.params.student_id;
+        const input = sid === undefined || sid === null ? null : oTheoHs.get(String(sid));
+        if (!input) return;
+        input.classList.add("is-invalid");
+        input.setAttribute("aria-invalid", "true");
+        input.title = trErr(w);
+      });
+      if (boQua.length) {
+        const cau = t("feedback_scores_saved_mot_phan", { n: res.data.n_saved, k: boQua.length });
+        feedback(el("scoringPersonFeedback"), cau, true);
+        showToast(cau + "\n" + trErrs(boQua).join("\n"), "warn");
+      } else {
+        feedback(el("scoringPersonFeedback"), t("feedback_person_scores_saved", { n: res.data.n_saved }), false);
+      }
+    });
+  });
+
   el("btnSaveScores").addEventListener("click", () => {
     if (!currentScoringClub) return;
     const inputs = document.querySelectorAll("#scoringTableBody .score-input");

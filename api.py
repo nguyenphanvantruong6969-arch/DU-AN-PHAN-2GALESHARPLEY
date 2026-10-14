@@ -52,9 +52,13 @@ from rbda_priority_pipeline import (
     run_rbda_nhieu_buoi,
     sanity_check_result,
     sap_buoi,
+    che_do_nhom_cung,
+    doc_luat_xep,
     soat_vi_pham_rang_buoc,
+    tham_so_luat,
     validate_data_integrity,
     verify_stability,
+    xay_tier_rank,
 )
 
 from api_bao_cao import BaoCaoMixin
@@ -521,6 +525,42 @@ class PipelineAPI(NhapDuLieuMixin, ChamDiemMixin, BaoCaoMixin,
                              sample=", ".join(
                                  "%s (%g)" % (sid, s)
                                  for sid, s in la[:self._HEALTH_SAMPLE_LIMIT]))
+
+                # --- 7. Luật xếp của không gian làm việc ------------------------
+                luat = doc_luat_xep(cur)
+                theo_nguoi = luat["score_scope"] == "per_person"
+                chi_nhom = luat["priority"] == "tier"
+                if theo_nguoi or chi_nhom:
+                    # Điểm không còn nằm theo từng chỗ (hoặc không dùng nữa): các
+                    # cảnh báo "chỗ X chưa chấm đủ" / "điểm lạ của chỗ X" nói về
+                    # một thứ không quyết định kết quả — bỏ đi cho khỏi báo nhầm.
+                    bo = {"health_scoring_none", "health_scoring_partial",
+                          "health_diem_khong_dang_ky_thi", "health_score_outlier"}
+                    warnings[:] = [w for w in warnings if w["code"] not in bo]
+                if che_do_nhom_cung(luat):
+                    # Em có đăng ký mà nhóm không nằm trong danh sách: bị xếp SAU
+                    # mọi nhóm có tên, không một lời báo.
+                    tier_rank = xay_tier_rank(
+                        {r["student_id"]: {"reserve_group": r["reserve_group"]}
+                         for r in cur.execute(
+                             "SELECT student_id, reserve_group FROM students")},
+                        luat["tiers"])
+                    khong_nhom = [r["student_id"] for r in cur.execute("""
+                        SELECT DISTINCT s.student_id FROM students s
+                        JOIN preferences p ON p.student_id = s.student_id
+                        ORDER BY s.student_id""") if r["student_id"] not in tier_rank]
+                    if khong_nhom:
+                        warn("high", "health_strict_chua_co_nhom", n=len(khong_nhom),
+                             sample=", ".join(khong_nhom[:self._HEALTH_SAMPLE_LIMIT]))
+                if theo_nguoi and not chi_nhom:
+                    chua_diem = [r["student_id"] for r in cur.execute("""
+                        SELECT DISTINCT s.student_id FROM students s
+                        JOIN preferences p ON p.student_id = s.student_id
+                        WHERE s.diem_ca_nhan IS NULL
+                        ORDER BY s.student_id""")]
+                    if chua_diem:
+                        warn("high", "health_per_person_chua_co_diem", n=len(chua_diem),
+                             sample=", ".join(chua_diem[:self._HEALTH_SAMPLE_LIMIT]))
 
             return _ok({
                 "warnings": warnings,
@@ -1105,6 +1145,14 @@ class PipelineAPI(NhapDuLieuMixin, ChamDiemMixin, BaoCaoMixin,
             # ghi. Hỏng một trong hai là rollback toàn bộ giao dịch.
             steps_log.append({"step": "rbda_cascade", "status": "running"})
             reserve_fn = default_reserve_eligible_fn(students, clubs)
+            # Luật xếp của không gian làm việc (nhóm cứng / chỉ theo nhóm). Luật
+            # mặc định cho dict RỖNG: lời gọi dưới đây y hệt trước nay, từng đối
+            # số (có test thay `run_rbda_nhieu_buoi` bằng bản giả chỉ nhận đúng
+            # các đối số cũ). Điểm — bỏ hết (priority tier) hay trải điểm theo
+            # người ra từng chỗ (per_person) — đã xử lý lúc nạp dữ liệu.
+            _par = tham_so_luat(self._luat_ws(), students)
+            luat_cung = {"tier_rank": _par["tier_rank"], "bo_qua_du_tru": True} \
+                if _par["bo_qua_du_tru"] else {}
             # Mot buoi hay nhieu buoi deu di qua DUNG mot duong nay: voi du
             # lieu mot buoi, run_rbda_nhieu_buoi goi run_rbda dung mot lan
             # voi dung du lieu do. Co test canh su trung khit ay tren ba bo
@@ -1113,7 +1161,7 @@ class PipelineAPI(NhapDuLieuMixin, ChamDiemMixin, BaoCaoMixin,
                 students, clubs, tested_scores, applicants, preferences,
                 stb_lottery, is_reserve_eligible_fn=reserve_fn,
                 che_do_boc_tham=CHE_DO_BOC_THAM_MAC_DINH, seed=seed,
-                chi_buoi=chi_buoi_chuan,
+                chi_buoi=chi_buoi_chuan, **luat_cung,
             )
             sanity_problems = []
             stability_problems = []
@@ -1124,7 +1172,8 @@ class PipelineAPI(NhapDuLieuMixin, ChamDiemMixin, BaoCaoMixin,
                     tested_scores, applicants, preferences)
                 sanity_problems += sanity_check_result(_kq, _clubs_b, _prefs_b)
                 stability_problems += verify_stability(
-                    _kq, _clubs_b, _prefs_b, reserve_fn)
+                    _kq, _clubs_b, _prefs_b, reserve_fn,
+                    **({"bo_qua_du_tru": True} if luat_cung else {}))
             if sanity_problems or stability_problems:
                 steps_log.append({
                     "step": "rbda_cascade", "status": "error",

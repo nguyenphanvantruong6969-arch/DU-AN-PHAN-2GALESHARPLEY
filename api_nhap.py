@@ -16,6 +16,7 @@ from rbda_priority_pipeline import (
     khoa_sap_buoi,
     sap_buoi,
     BUOI_MAC_DINH,
+    chuan_hoa_nhom,
     gom_theo_buoi,
     loi_suc_chua,
 )
@@ -427,6 +428,15 @@ class NhapDuLieuMixin:
                             "UPDATE students SET name = ? WHERE student_id = ?",
                             [(s["name"], s["student_id"]) for s in du_lieu["students"]
                              if (s["name"] or "").strip()])
+                        # Điểm theo NGƯỜI (workspace per_person): một ô cho mỗi
+                        # em trong sổ, ô trống = chưa có điểm (NULL). Ghi đè cả
+                        # điểm cũ: sổ là bản đầy đủ.
+                        if "diem_ca_nhan" in du_lieu["students"][0]:
+                            cur.executemany(
+                                "UPDATE students SET diem_ca_nhan = ? WHERE student_id = ?",
+                                [(self._doc_diem(s["diem_ca_nhan"]) if s["diem_ca_nhan"]
+                                  else None, s["student_id"])
+                                 for s in du_lieu["students"]])
 
             kq["warnings"] = canh_bao
             return _ok(kq)
@@ -707,20 +717,9 @@ class NhapDuLieuMixin:
     @staticmethod
     def chuan_hoa_nhom_du_tru(raw) -> str:
         """"Chinh sach", "CHINH SACH", "Chinh-Sach" -> "chinh_sach"."""
-        import unicodedata
-
-        chu = (raw or "").strip()
-        if not chu:
-            return ""
-        # NFD tach dau ra khoi nguyen am roi loc bo — nhung KHONG tach
-        # duoc chu D gach ngang, phai thay tay truoc.
-        chu = chu.replace("Đ", "D").replace("đ", "d")
-        chu = "".join(
-            c for c in unicodedata.normalize("NFD", chu)
-            if not unicodedata.combining(c)
-        )
-        chu = re.sub(r"[^0-9a-zA-Z]+", "_", chu.lower())
-        return chu.strip("_")
+        # Chung MOT ham voi luat xep cua workspace (so khop ten nhom): hai ben
+        # khong the lech nhau.
+        return chuan_hoa_nhom(raw)
 
     # Cot reserve_group la TUY CHON trong ca hai file hoc sinh. Truoc day
     # hoc sinh tao bang CSV luon co nhom du tru rong, phai vao man hinh 04

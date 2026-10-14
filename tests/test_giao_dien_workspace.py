@@ -431,3 +431,50 @@ def test_tai_so_nhap_mau_dung_nhan_cua_workspace_dang_mo(mo_app, goc_ws):
     _cho_ten(page, "Trường")
     assert tai_mau() == ["1. CLB", "2. Học sinh"]       # trường học: như trước nay
     assert not loi, loi
+
+
+def test_the_nhap_diem_an_khi_chi_theo_nhom_va_mot_o_moi_nguoi_khi_theo_nguoi(mo_app, goc_ws):
+    chi_nhom = w.tao(goc_ws, "Chỉ nhóm", {"rules": {"priority": "tier", "tiers": ["vip"]}})
+    theo_nguoi = w.tao(goc_ws, "Theo người", {"rules": {"score_scope": "per_person"}})
+    mac_dinh = w.tao(goc_ws, "Mặc định")
+    api, mo = mo_app
+    page, loi = mo()
+    page.wait_for_selector("#wsOverlay:not([hidden])")
+    nut_diem = page.locator('.nav-item[data-tab="scoring"]')
+
+    _mo_tu_man_chon(page, chi_nhom)
+    _cho_ten(page, "Chỉ nhóm")
+    page.wait_for_function(
+        "document.querySelector('.nav-item[data-tab=\"scoring\"]').hidden === true")
+    assert nut_diem.is_hidden()
+
+    # sang workspace chấm theo người: thẻ hiện lại, và mỗi người MỘT ô điểm
+    page.locator("#btnWorkspace").click()
+    _mo_tu_man_chon(page, theo_nguoi)
+    _cho_ten(page, "Theo người")
+    page.wait_for_function(
+        "document.querySelector('.nav-item[data-tab=\"scoring\"]').hidden === false")
+    for cid in ("a", "b"):
+        assert api.create_or_update_club(cid, cid.upper(), 3, 0, "")["ok"]
+    for sid, prefs in (("s1", ["a", "b"]), ("s2", ["a"])):
+        assert api.create_student_if_missing(sid, "HS " + sid)["ok"]
+        assert api.submit_preferences(sid, prefs)["ok"]
+    nut_diem.click()
+    page.wait_for_selector("#scoringPersonArea:not([hidden])")
+    assert page.locator("#scoringOverviewPanel").is_hidden()
+    page.wait_for_selector("#scoringPersonBody .score-input")
+    assert page.locator("#scoringPersonBody .score-input").count() == 2   # 2 người, 3 cặp
+    page.locator('#scoringPersonBody .score-input[data-student-id="s1"]').fill("8,5")
+    page.locator("#btnSavePersonScores").click()
+    page.wait_for_function(
+        "document.getElementById('scoringPersonFeedback').textContent !== ''")
+    assert api.get_person_scoring_list()["data"]["persons"][0]["score"] == 8.5
+
+    # workspace mặc định: bảng từng CLB như cũ
+    page.locator("#btnWorkspace").click()
+    _mo_tu_man_chon(page, mac_dinh)
+    _cho_ten(page, "Mặc định")
+    nut_diem.click()
+    page.wait_for_selector("#scoringOverviewPanel:not([hidden])")
+    assert page.locator("#scoringPersonArea").is_hidden()
+    assert not loi, loi

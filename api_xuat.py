@@ -832,6 +832,13 @@ class XuatKetQuaMixin:
                 "SELECT student_id, club_id FROM preferences ORDER BY student_id, rank"):
             if sid in hs:
                 hs[sid]["nv"].append({"club_id": cid, "thi": False, "diem": ""})
+        # Điểm theo NGƯỜI (workspace per_person): sổ có MỘT cột điểm, nên đưa nó
+        # vào đúng dạng `ghi_so_nhap` đọc (`diem_ca_nhan`).
+        if self._luat_ws()["score_scope"] == "per_person":
+            for sid, diem in cur.execute(
+                    "SELECT student_id, diem_ca_nhan FROM students"):
+                if sid in hs:
+                    hs[sid]["diem_ca_nhan"] = "" if diem is None else diem
         n_ngoai = 0
         for sid, cid, diem in cur.execute("""
                 SELECT t.student_id, t.club_id, sc.score
