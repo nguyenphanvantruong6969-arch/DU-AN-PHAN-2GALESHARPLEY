@@ -16,8 +16,6 @@ from i18n_errors import phan_hoi_loi as _fail
 from i18n_errors import phan_hoi_ok as _ok
 from rbda_priority_pipeline import (
     BUOI_MAC_DINH,
-    TRAN_CLB_THI_MOI_BUOI,
-    TRAN_NGUYEN_VONG_MOI_BUOI,
     loi_suc_chua,
 )
 
@@ -412,12 +410,14 @@ class QuanLyMixin:
                 # Tran tinh THEO TUNG BUOI. Tu choi ca loi goi chu khong cat bot:
                 # nguoi dung dang ngoi truoc man hinh va sua duoc ngay, con cat
                 # bot la phan mem tu y doi dieu ho vua khai.
-                qua = self._buoi_qua_tran(cur, club_ids, TRAN_CLB_THI_MOI_BUOI)
+                # Trần lấy từ luật của không gian làm việc (None = không giới hạn).
+                tran_thi = self._tran_thi()
+                qua = self._buoi_qua_tran(cur, club_ids, tran_thi)
                 if qua:
                     b, n = qua
                     return _fail(err(
                         "max_thi_moi_buoi" if b != BUOI_MAC_DINH else "thi_too_many",
-                        buoi=b, count=n, tran=TRAN_CLB_THI_MOI_BUOI))
+                        buoi=b, count=n, tran=tran_thi))
 
                 cur.execute(
                     "DELETE FROM club_test_selection WHERE student_id = ?", (student_id,)
@@ -463,13 +463,13 @@ class QuanLyMixin:
                 if invalid:
                     return _fail(err("unknown_clubs", club_ids=invalid))
 
-                qua = self._buoi_qua_tran(cur, ordered_club_ids,
-                                          TRAN_NGUYEN_VONG_MOI_BUOI)
+                tran_nv = self._luat_ws()["max_choices"]
+                qua = self._buoi_qua_tran(cur, ordered_club_ids, tran_nv)
                 if qua:
                     b, n = qua
                     return _fail(err(
                         "max_pref_moi_buoi" if b != BUOI_MAC_DINH else "pref_too_many",
-                        buoi=b, count=n, tran=TRAN_NGUYEN_VONG_MOI_BUOI))
+                        buoi=b, count=n, tran=tran_nv))
 
                 cur.execute("DELETE FROM preferences WHERE student_id = ?", (student_id,))
                 cur.executemany(

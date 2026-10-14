@@ -1,0 +1,141 @@
+{
+ "mot_buoi": {
+  "clubs": [
+   {
+    "buoi": "",
+    "capacity": 5,
+    "club_id": "clb_a",
+    "dong": 2,
+    "name": "CLB Tin học",
+    "reserve_capacity": 0,
+    "reserve_group": ""
+   },
+   {
+    "buoi": "",
+    "capacity": 8,
+    "club_id": "clb_b",
+    "dong": 3,
+    "name": "CLB Bóng rổ",
+    "reserve_capacity": 2,
+    "reserve_group": "chinh_sach"
+   }
+  ],
+  "loi": [],
+  "students": [
+   {
+    "dong": 2,
+    "name": "An",
+    "nv": [
+     {
+      "club_id": "clb_a",
+      "diem": "9.5",
+      "thi": true
+     },
+     {
+      "club_id": "clb_b",
+      "diem": "",
+      "thi": false
+     }
+    ],
+    "reserve_group": "chinh_sach",
+    "student_id": "HS01"
+   },
+   {
+    "dong": 3,
+    "name": "Bình",
+    "nv": [
+     {
+      "club_id": "clb_b",
+      "diem": "",
+      "thi": true
+     },
+     {
+      "club_id": "clb_a",
+      "diem": "7",
+      "thi": true
+     }
+    ],
+    "reserve_group": "",
+    "student_id": "HS02"
+   }
+  ]
+ },
+ "nhieu_buoi": {
+  "clubs": [
+   {
+    "buoi": "thu_2",
+    "capacity": 6,
+    "club_id": "t2a",
+    "dong": 2,
+    "name": "Cờ vua",
+    "reserve_capacity": 0,
+    "reserve_group": ""
+   },
+   {
+    "buoi": "thu_2",
+    "capacity": 6,
+    "club_id": "t2b",
+    "dong": 3,
+    "name": "Vẽ",
+    "reserve_capacity": 0,
+    "reserve_group": ""
+   },
+   {
+    "buoi": "thu_5",
+    "capacity": 6,
+    "club_id": "t5a",
+    "dong": 4,
+    "name": "Cờ vua (Thứ 5)",
+    "reserve_capacity": 1,
+    "reserve_group": "khoi10"
+   },
+   {
+    "buoi": "thu_5",
+    "capacity": 6,
+    "club_id": "t5b",
+    "dong": 5,
+    "name": "Nhạc",
+    "reserve_capacity": 0,
+    "reserve_group": ""
+   }
+  ],
+  "loi": [],
+  "students": [
+   {
+    "dong": 2,
+    "name": "Chi",
+    "nv": [
+     {
+      "club_id": "t2a",
+      "diem": "8",
+      "thi": true
+     },
+     {
+      "club_id": "t5a",
+      "diem": "6.5",
+      "thi": true
+     },
+     {
+      "club_id": "t5b",
+      "diem": "",
+      "thi": false
+     }
+    ],
+    "reserve_group": "khoi10",
+    "student_id": "HS10"
+   }
+  ]
+ },
+ "trong": {
+  "clubs": [],
+  "loi": [
+   {
+    "code": "so_nhap_khong_co_clb",
+    "params": {
+     "sheet": "1. CLB"
+    }
+   }
+  ],
+  "students": []
+ }
+}

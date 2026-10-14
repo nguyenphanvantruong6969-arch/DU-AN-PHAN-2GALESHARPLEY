@@ -396,3 +396,38 @@ def test_che_do_csdl_don_khong_thay_gi_cua_workspace(api, tmp_path):
         assert page.locator("#wsOverlay").is_hidden()
         assert not loi, loi
         br.close()
+
+
+def test_tai_so_nhap_mau_dung_nhan_cua_workspace_dang_mo(mo_app, goc_ws):
+    """Nút "Tải sổ nhập mẫu" ở thẻ Vận hành dùng cấu hình của workspace đang mở."""
+    from openpyxl import load_workbook
+
+    ct = w.tao(goc_ws, "Công ty", {
+        "industry": "company",
+        "labels": {"person": {"vi": "Nhân viên", "en": "Employee"},
+                   "slot": {"vi": "Dự án", "en": "Project"}},
+        "rules": {"max_choices": 4}})
+    mac_dinh = w.tao(goc_ws, "Trường")
+    api, mo = mo_app
+    page, loi = mo()
+    page.wait_for_selector("#wsOverlay:not([hidden])")
+
+    def tai_mau():
+        page.evaluate("document.getElementById('feedbackImportAll').textContent = ''")
+        truoc = set(os.listdir(api.thu_muc_xuat))
+        page.locator("#btnTaiSoMau").click()
+        page.wait_for_function(
+            "document.getElementById('feedbackImportAll').textContent !== ''")
+        moi = sorted(set(os.listdir(api.thu_muc_xuat)) - truoc)
+        assert len(moi) == 1, moi
+        return load_workbook(os.path.join(api.thu_muc_xuat, moi[0])).sheetnames[:2]
+
+    _mo_tu_man_chon(page, ct)
+    _cho_ten(page, "Công ty")
+    assert tai_mau() == ["1. Dự án", "2. Nhân viên"]
+
+    page.locator("#btnWorkspace").click()
+    _mo_tu_man_chon(page, mac_dinh)
+    _cho_ten(page, "Trường")
+    assert tai_mau() == ["1. CLB", "2. Học sinh"]       # trường học: như trước nay
+    assert not loi, loi

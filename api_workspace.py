@@ -86,6 +86,39 @@ class WorkspaceMixin:
             raise _TenTrong()
         return ten.strip()
 
+    # ------------------------------------------------------------ luật đang áp dụng
+
+    def _luat_ws(self) -> dict:
+        """`rules` của workspace đang mở (thiếu khoá = mặc định trường học).
+
+        Đọc từ CSDL mỗi lần gọi: một lời gọi cần luật chỉ gọi vài lần, và đọc lại
+        thì sửa cấu hình có hiệu lực ngay, không cần cache nào để làm mới.
+        """
+        return cau_hinh_ws.doc_cau_hinh(self.db_path)["rules"]
+
+    def _tran_thi(self):
+        """Trần số chỗ được thi mỗi đợt (None = không giới hạn).
+
+        Điểm theo NGƯỜI (`score_scope = "per_person"`) thì không có việc "chọn chỗ
+        để thi": một điểm áp cho mọi nguyện vọng, nên mọi nguyện vọng đều là chỗ
+        được thi và trần thi không còn nghĩa — không giới hạn.
+        """
+        luat = self._luat_ws()
+        return None if luat.get("score_scope") == "per_person" else luat["max_tests"]
+
+    def _cau_hinh_so_nhap(self):
+        """`cfg` cho so_nhap.py: None nếu nhãn và luật là mặc định trường học.
+
+        Không gian làm việc chưa đổi gì thì sổ nhập phải là đúng tệp như trước
+        nay, từng ô một — nên đưa None chứ không đưa bản cấu hình mặc định (bản
+        đó cho số cột NV theo `max_choices`, không theo mức 15 của sổ cũ).
+        """
+        cfg = cau_hinh_ws.doc_cau_hinh(self.db_path)
+        mac_dinh = cau_hinh_ws.MAC_DINH_TRUONG_HOC
+        if (cfg["labels"] == mac_dinh["labels"] and cfg["rules"] == mac_dinh["rules"]):
+            return None
+        return {"labels": cfg["labels"], "rules": cfg["rules"]}
+
     # ------------------------------------------------------------ danh sách
 
     def list_workspaces(self):

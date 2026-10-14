@@ -702,6 +702,18 @@ window.I18N_ERROR_MESSAGES = {
     "vi": "Sheet \"{sheet}\", dòng {dong} ({ten}): mã tự tạo \"{ma}\" trùng mã của CLB \"{ten_cu}\" đã có trong phần mềm. Nếu đây chính là CLB đó (đổi tên), điền Mã CLB là {ma_cu}; nếu là CLB khác, điền một Mã CLB mới.",
     "en": "Sheet \"{sheet}\", row {dong} ({ten}): the generated code \"{ma}\" is already used by the club \"{ten_cu}\" in the app. If this is that club (renamed), fill in Mã CLB as {ma_cu}; if it is a different club, fill in a new Mã CLB."
   },
+  "so_nhap_diem_ca_nhan_sai": {
+    "vi": "Sheet \"{sheet}\", dòng {dong} ({student_id}), cột \"{cot}\": \"{gia_tri}\" không phải điểm. Ghi một số (vd 8,5), hoặc chữ thi nếu chưa có điểm.",
+    "en": "Sheet \"{sheet}\", row {dong} ({student_id}), column \"{cot}\": \"{gia_tri}\" isn't a score. Enter a number (e.g. 8.5), or the word thi if the score isn't known yet."
+  },
+  "so_nhap_diem_kieu_theo_cho": {
+    "vi": "Sheet \"{sheet}\" có cột điểm riêng cho từng nguyện vọng (\"{vd}\"), nhưng không gian làm việc này dùng một điểm cho mỗi người. Gộp thành một cột \"{cot}\" ngay sau cột nhóm.",
+    "en": "Sheet \"{sheet}\" has a separate score column for each choice (\"{vd}\"), but this workspace uses one score per person. Merge them into a single \"{cot}\" column right after the group column."
+  },
+  "so_nhap_diem_kieu_theo_nguoi": {
+    "vi": "Sheet \"{sheet}\" có một cột điểm chung (\"{cot}\"), nhưng không gian làm việc này chấm điểm riêng cho từng nguyện vọng. Dùng cột điểm đứng cạnh từng nguyện vọng (ví dụ \"{vd}\").",
+    "en": "Sheet \"{sheet}\" has one shared score column (\"{cot}\"), but this workspace scores each choice separately. Use the score column next to each choice (for example \"{vd}\")."
+  },
   "ws_disabled": {
     "vi": "Chương trình đang chạy bằng một tệp dữ liệu chỉ định riêng nên chức năng nhiều không gian làm việc bị tắt. Mở chương trình bình thường (không kèm đường dẫn tệp dữ liệu) để dùng.",
     "en": "The app was started with a specific data file, so workspaces are disabled. Start the app normally (without a data file path) to use them."

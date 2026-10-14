@@ -51,7 +51,6 @@ from rbda_priority_pipeline import (
     nhom_theo_buoi,
     run_rbda_nhieu_buoi,
     sanity_check_result,
-    TRAN_CLB_THI_MOI_BUOI,
     sap_buoi,
     soat_vi_pham_rang_buoc,
     validate_data_integrity,
@@ -205,7 +204,9 @@ class PipelineAPI(NhapDuLieuMixin, ChamDiemMixin, BaoCaoMixin,
             students, clubs, tested_scores, applicants, preferences, _ = (
                 load_from_sqlite(self.db_path)
             )
-            errors = validate_data_integrity(students, clubs, preferences, applicants)
+            errors = validate_data_integrity(
+                students, clubs, preferences, applicants,
+                self._luat_ws()["max_choices"])
             if errors:
                 return _fail(errors)
             return _ok({
@@ -388,7 +389,9 @@ class PipelineAPI(NhapDuLieuMixin, ChamDiemMixin, BaoCaoMixin,
                 # buổi. Thi thêm CLB là thêm chỗ được xét ở Tầng 1, nên đây là
                 # chuyện công bằng — nhưng thuật toán vẫn đúng, nên chỉ cảnh báo.
                 qua_tran: dict = {}
-                for row in cur.execute("""
+                # Trần theo luật của không gian làm việc; None = không giới hạn.
+                tran_thi = self._tran_thi()
+                for row in ([] if tran_thi is None else cur.execute("""
                     SELECT t.student_id AS sid,
                            COALESCE(NULLIF(c.buoi, ''), ?) AS buoi,
                            COUNT(*) AS n
@@ -397,7 +400,7 @@ class PipelineAPI(NhapDuLieuMixin, ChamDiemMixin, BaoCaoMixin,
                     GROUP BY t.student_id, COALESCE(NULLIF(c.buoi, ''), ?)
                     HAVING COUNT(*) > ?
                     ORDER BY t.student_id
-                """, (BUOI_MAC_DINH, BUOI_MAC_DINH, TRAN_CLB_THI_MOI_BUOI)).fetchall():
+                """, (BUOI_MAC_DINH, BUOI_MAC_DINH, tran_thi)).fetchall()):
                     qua_tran.setdefault(row["buoi"], []).append(
                         (row["sid"], row["n"]))
                 for buoi in sap_buoi(qua_tran):
@@ -407,10 +410,10 @@ class PipelineAPI(NhapDuLieuMixin, ChamDiemMixin, BaoCaoMixin,
                         for sid, n in ds[:self._HEALTH_SAMPLE_LIMIT])
                     if buoi == BUOI_MAC_DINH:
                         warn("high", "health_thi_qua_tran", n=len(ds),
-                             tran=TRAN_CLB_THI_MOI_BUOI, sample=sample)
+                             tran=tran_thi, sample=sample)
                     else:
                         warn("high", "health_thi_qua_tran_buoi", n=len(ds),
-                             buoi=buoi, tran=TRAN_CLB_THI_MOI_BUOI,
+                             buoi=buoi, tran=tran_thi,
                              sample=sample)
 
                 # --- 6c. Dữ liệu vi phạm ràng buộc của CSDL ------------------
@@ -895,7 +898,9 @@ class PipelineAPI(NhapDuLieuMixin, ChamDiemMixin, BaoCaoMixin,
             # vân tay ghi lên kết quả ở bước 5 phải là của đúng dữ liệu này.
             (students, clubs, tested_scores, applicants, preferences, _), \
                 dau_van_tay = load_from_sqlite_kem_dau_van_tay(self.db_path)
-            errors = validate_data_integrity(students, clubs, preferences, applicants)
+            errors = validate_data_integrity(
+                students, clubs, preferences, applicants,
+                self._luat_ws()["max_choices"])
             if errors:
                 steps_log.append({"step": "validate", "status": "error", "detail": errors})
                 return _fail_co_buoc(steps_log, errors)

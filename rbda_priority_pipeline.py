@@ -1018,8 +1018,12 @@ def validate_data_integrity(
     clubs: dict[str, dict],
     preferences: dict[str, list[str]],
     applicants: dict[str, list[str]],
+    tran_nguyen_vong: int = TRAN_NGUYEN_VONG_MOI_BUOI,
 ) -> list[dict]:
     """
+    `tran_nguyen_vong`: trần nguyện vọng MỖI BUỔI. Mặc định là hằng số của trường
+    học; không gian làm việc truyền `rules.max_choices` của nó vào.
+
     Trả về danh sách lỗi dạng {"code": ..., "params": {...}} (xem
     i18n_errors.py) — rỗng = dữ liệu hợp lệ. Không raise exception để
     pipeline có thể báo cáo TOÀN BỘ lỗi một lần thay vì dừng ở lỗi đầu.
@@ -1043,7 +1047,7 @@ def validate_data_integrity(
         # đọc một khái niệm trường họ không có. Hai mã lỗi vì thế, và trường
         # một buổi thấy đúng câu như bản cũ.
         for buoi, ds in gom_theo_buoi(prefs, clubs).items():
-            if len(ds) > TRAN_NGUYEN_VONG_MOI_BUOI:
+            if len(ds) > tran_nguyen_vong:
                 if buoi == BUOI_MAC_DINH:
                     errors.append(err("pref_too_many", student_id=sid,
                                       count=len(ds)))
