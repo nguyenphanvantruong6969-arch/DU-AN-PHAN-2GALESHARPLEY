@@ -8,6 +8,7 @@ dưới đây dựng lại từng chuỗi bằng mã THẬT và so với ảnh c
 
 import json
 import os
+import re
 import shutil
 import subprocess
 
@@ -32,11 +33,24 @@ node = shutil.which("node")
 can_node = pytest.mark.skipif(not node, reason="node is not available in this environment")
 
 
-def _truoc_da_doi_ten_tham_so(chuoi):
-    """Duy nhất MỘT thay đổi có chủ ý ngoài chỗ giữ danh từ: tham số `score` (giá trị ô
-    điểm người dùng gõ) đổi thành `diem_goc`, vì `{score}` nay là nhãn "Điểm" và một
-    tham số trùng tên sẽ che mất nó."""
-    return chuoi.replace("{score}", "{diem_goc}")
+# Hai thay đổi có chủ ý ngoài chỗ giữ danh từ (đều không đổi chữ hiện ra với mặc định):
+#   1. tham số `score` (giá trị ô điểm người dùng gõ) -> `diem_goc`, vì `{score}` nay là nhãn
+#      "Điểm" và một tham số trùng tên sẽ che mất nó;
+#   2. con số trần ghi cứng trong bốn thông báo -> tham số `{tran}` (trần nay do workspace đặt).
+TRAN_MAC_DINH = {"pref_too_many": 10, "pref_too_many_buoi": 10,
+                 "thi_too_many": 5, "thi_too_many_buoi": 5}
+
+
+# Mã thêm SAU ảnh chụp ngoài nhóm ws_*: điểm theo người ở Sổ nhập (TASK 5).
+MA_MOI_SAU_ANH_CHUP = {"so_nhap_diem_ca_nhan_sai"}
+
+
+def _truoc_da_doi_ten_tham_so(chuoi, ma=None):
+    chuoi = chuoi.replace("{score}", "{diem_goc}")
+    if ma in TRAN_MAC_DINH:
+        chuoi, n = re.subn(r"\b%d\b" % TRAN_MAC_DINH[ma], "{tran}", chuoi)
+        assert n == 1, (ma, chuoi)
+    return chuoi
 
 
 @pytest.fixture(scope="module")
@@ -141,19 +155,22 @@ def test_moi_ma_loi_mac_dinh_giong_het_anh_chup(anh_chup):
         assert ma in MESSAGES, ma
         for lang in ("vi", "en"):
             sau = nhan_ws.dien(MESSAGES[ma][lang], None, lang)
-            if sau != _truoc_da_doi_ten_tham_so(truoc[lang]):
+            if sau != _truoc_da_doi_ten_tham_so(truoc[lang], ma):
                 lech.append((ma, lang, truoc[lang][:80], sau[:80]))
     assert not lech, lech
     # và không thêm/bớt mã nào ngoài các mã workspace đã ghi sau ảnh chụp
     moi = set(MESSAGES) - set(anh_chup["loi"])
-    assert all(m.startswith("ws_") for m in moi), moi
+    assert all(m.startswith("ws_") or m in MA_MOI_SAU_ANH_CHUP for m in moi), moi
 
 
 def test_format_message_mac_dinh_khong_doi(anh_chup):
     for ma, truoc in anh_chup["loi"].items():
         for lang in ("vi", "en"):
-            mong_doi = _truoc_da_doi_ten_tham_so(truoc[lang])
-            tham_so = {k: "X" for k in __import__("re").findall(r"\{(\w+)\}", mong_doi)}
+            mong_doi = _truoc_da_doi_ten_tham_so(truoc[lang], ma)
+            tham_so = {k: "X" for k in re.findall(r"\{(\w+)\}", mong_doi)}
+            if ma in TRAN_MAC_DINH:   # hiện lại đúng con số cũ
+                tham_so["tran"] = TRAN_MAC_DINH[ma]
+                mong_doi = truoc[lang]
             try:
                 mong_doi = mong_doi.format(**tham_so)
             except Exception:

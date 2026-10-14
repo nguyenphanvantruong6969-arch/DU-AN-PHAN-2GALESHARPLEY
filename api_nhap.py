@@ -16,8 +16,6 @@ from rbda_priority_pipeline import (
     khoa_sap_buoi,
     sap_buoi,
     BUOI_MAC_DINH,
-    TRAN_CLB_THI_MOI_BUOI,
-    TRAN_NGUYEN_VONG_MOI_BUOI,
     gom_theo_buoi,
     loi_suc_chua,
 )
@@ -277,10 +275,11 @@ class NhapDuLieuMixin:
         except Exception as e:
             return None, err("xlsx_read_failed", detail=str(e))
         try:
-            if not so_nhap.la_so_nhap(wb.sheetnames):
+            cfg = self._cfg_ws()
+            if not so_nhap.la_so_nhap(wb.sheetnames, cfg):
                 return None, err("so_nhap_khong_phai_so")
             return so_nhap.doc_so_nhap(wb, self._clb_theo_ten(), self._ma_clb_da_co(),
-                                       self._clb_cu()), None
+                                       self._clb_cu(), cfg), None
         finally:
             wb.close()
 
@@ -949,7 +948,7 @@ class NhapDuLieuMixin:
         }
 
     @staticmethod
-    def _cat_buoi_qua_tran(ds_clb, buoi_cua_clb: dict, tran: int):
+    def _cat_buoi_qua_tran(ds_clb, buoi_cua_clb: dict, tran):
         """Bỏ những BUỔI vượt trần, giữ nguyên phần còn lại đúng thứ tự cũ.
 
         Trả `(giu, bo)` với `bo = {buoi: số lượng đã khai}` — rỗng nghĩa là
@@ -963,7 +962,11 @@ class NhapDuLieuMixin:
 
         LƯU Ý cho người gọi: `ds_clb` phải là mã CLB ĐÃ CHUẨN HOÁ. Mã lệch
         hoa/thường tra không ra buổi, rơi vào buổi mặc định, và gom nhầm nhóm.
+
+        `tran` None = không giới hạn (workspace đặt `max_tests` là None): không cắt gì.
         """
+        if tran is None:
+            return list(ds_clb), {}
         theo_buoi = gom_theo_buoi(
             ds_clb, {c: {"buoi": b} for c, b in buoi_cua_clb.items()})
         bo = {b: len(ds) for b, ds in theo_buoi.items() if len(ds) > tran}
@@ -1046,6 +1049,7 @@ class NhapDuLieuMixin:
         tới học sinh không có trong file.
         """
         try:
+            tran_nv = self._tran_nguyen_vong()   # trần của workspace; đọc TRƯỚC khi mở giao dịch
             fieldnames, rows = self._parse_csv_rows(csv_text)
             if not rows:
                 return _fail(err("csv_empty"))
@@ -1167,7 +1171,7 @@ class NhapDuLieuMixin:
                     # duoc: 31/180 em cua bo `bo_sau_buoi` va 4/160 em cua
                     # `bo_nhieu_buoi` bi gat lang le khoi dot xep.
                     giu, buoi_bo = self._cat_buoi_qua_tran(
-                        deduped, buoi_cua_clb, TRAN_NGUYEN_VONG_MOI_BUOI)
+                        deduped, buoi_cua_clb, tran_nv)
                     for b, n in sorted(buoi_bo.items(), key=lambda bn: khoa_sap_buoi(bn[0])):
                         # Truong MOT buoi co nhan buoi la BUOI_MAC_DINH — mot
                         # chuoi noi bo, khong phai thu doc len duoc. Neu no ra
@@ -1178,7 +1182,7 @@ class NhapDuLieuMixin:
                             "csv_pref_too_many_skipped"
                             if b == BUOI_MAC_DINH else "csv_pref_bo_buoi_qua_tran",
                             student_id=sid, buoi=b, count=n,
-                            tran=TRAN_NGUYEN_VONG_MOI_BUOI))
+                            tran=tran_nv))
                     n_buoi_bo_qua += len(buoi_bo)
                     if buoi_bo and not giu:
                         # Moi buoi deu vuot tran -> em nay that su trang tay.
@@ -1230,6 +1234,7 @@ class NhapDuLieuMixin:
         sinh xuất hiện trong file, giống hành vi submit_test_selection.
         """
         try:
+            tran_thi = self._tran_thi()          # None = không giới hạn
             fieldnames, rows = self._parse_csv_rows(csv_text)
             if not rows:
                 return _fail(err("csv_empty"))
@@ -1327,13 +1332,13 @@ class NhapDuLieuMixin:
                     # Kiem O DAY, sau khi chuan hoa ma: ma lech hoa/thuong tra
                     # khong ra buoi thi roi vao buoi mac dinh va gom nham nhom.
                     giu, buoi_bo = self._cat_buoi_qua_tran(
-                        deduped, buoi_cua_clb, TRAN_CLB_THI_MOI_BUOI)
+                        deduped, buoi_cua_clb, tran_thi)
                     for b, n in sorted(buoi_bo.items(), key=lambda bn: khoa_sap_buoi(bn[0])):
                         row_errors.append(err(
                             "csv_thi_too_many_skipped"
                             if b == BUOI_MAC_DINH else "csv_thi_bo_buoi_qua_tran",
                             student_id=sid, buoi=b, count=n,
-                            tran=TRAN_CLB_THI_MOI_BUOI))
+                            tran=tran_thi))
                     n_buoi_bo_qua += len(buoi_bo)
                     clb_bi_bo = set(deduped) - set(giu)
                     if buoi_bo and not giu:

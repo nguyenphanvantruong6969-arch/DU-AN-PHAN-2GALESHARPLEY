@@ -246,10 +246,11 @@
       btn_delete_student: "Xoá {person_l}",
       confirm_delete_student: "Bấm lần nữa để xoá {person_l}",
       fallback_step1_title: "Bước 1. Chọn {slot_sl} dự thi",
-      fallback_step1_hint: "Mỗi {session_l} chọn tối đa 5 {slot_sl}. Bỏ chọn một {slot_sl} đã chấm {score_l} thì {score_l} đó bị xoá khi bấm Lưu.",
+      fallback_step1_hint: "Mỗi {session_l} chọn tối đa {max_tests} {slot_sl}. Bỏ chọn một {slot_sl} đã chấm {score_l} thì {score_l} đó bị xoá khi bấm Lưu.",
+      fallback_step1_hint_khong_gioi_han: "Mỗi {session_l} chọn bao nhiêu {slot_sl} dự thi cũng được. Bỏ chọn một {slot_sl} đã chấm {score_l} thì {score_l} đó bị xoá khi bấm Lưu.",
       btn_save_test_selection: "Lưu {slot_sl} dự thi",
       fallback_step2_title: "Bước 2. Xếp hạng nguyện vọng",
-      fallback_step2_hint: "Bấm vào {slot_sl} theo thứ tự muốn vào nhất trước, mỗi {session_l} tối đa 10 {slot_sl}. Có thể chọn cả {slot_sl} không có ở Bước 1.",
+      fallback_step2_hint: "Bấm vào {slot_sl} theo thứ tự muốn vào nhất trước, mỗi {session_l} tối đa {max_choices} {slot_sl}. Có thể chọn cả {slot_sl} không có ở Bước 1.",
       ranking_current_label: "Thứ tự nguyện vọng",
       btn_clear_all: "Xoá hết",
       btn_save_preferences: "Lưu nguyện vọng",
@@ -744,10 +745,11 @@
       btn_delete_student: "Delete {person_l}",
       confirm_delete_student: "Click again to delete this {person_l}",
       fallback_step1_title: "Step 1. Choose test {slot_pl}",
-      fallback_step1_hint: "Up to 5 {slot_pl} per {session_l}. Unticking {slot_la} that has already been scored deletes that {score_l} on save.",
+      fallback_step1_hint: "Up to {max_tests} {slot_pl} per {session_l}. Unticking {slot_la} that has already been scored deletes that {score_l} on save.",
+      fallback_step1_hint_khong_gioi_han: "Any number of {slot_pl} per {session_l} can be tested. Unticking {slot_la} that has already been scored deletes that {score_l} on save.",
       btn_save_test_selection: "Save test {slot_pl}",
       fallback_step2_title: "Step 2. Rank preferences",
-      fallback_step2_hint: "Click {slot_pl} in order, most wanted first, up to 10 per {session_l}. {slot_p} not picked in Step 1 can be ranked too.",
+      fallback_step2_hint: "Click {slot_pl} in order, most wanted first, up to {max_choices} per {session_l}. {slot_p} not picked in Step 1 can be ranked too.",
       ranking_current_label: "Preference order",
       btn_clear_all: "Clear all",
       btn_save_preferences: "Save preferences",
@@ -1033,7 +1035,7 @@
    * chọn. Đối xứng với nhan_ws.py (Python) — tests/test_ws_nhan.py so từng ca.
    *
    * Cờ sau dấu gạch dưới: l chữ thường · p số nhiều (tiếng Anh) · s viết tắt
-   * ("Câu lạc bộ" -> "CLB") · a mạo từ a/an (tiếng Anh) · c viết hoa chữ đầu · u VIẾT HOA TOÀN BỘ;
+   * ("Câu lạc bộ" -> "CLB") · a mạo từ a/an (tiếng Anh) · c viết hoa chữ đầu · u VIẾT HOA TOÀN BỘ · v luôn lấy nhãn tiếng Việt;
    * áp theo thứ tự s l p a c u.
    * Ví dụ {slot_sl}, {person_pl}, {person_lac}. Mặc định trường học cho ra
    * ĐÚNG những chuỗi từng được ghi cứng.
@@ -1046,8 +1048,13 @@
     score: { vi: "Điểm", en: "Score" },
   };
   const VIET_TAT = { "slot|Câu lạc bộ": "CLB" };
-  const CHO_GIU_DANH_TU = /^(person|slot|session|group|score)(?:_([lpsacu]+))?$/;
+  const CHO_GIU_DANH_TU = /^(person|slot|session|group|score)(?:_([lpsacuv]+))?$/;
   let currentLabels = NHAN_MAC_DINH;
+  /* Hai con số luật của workspace hiện trong chữ: {max_choices}, {max_tests}. Mặc định
+     trường học (10 và 5) cho ra đúng chữ từng ghi cứng. max_tests null = không giới hạn:
+     chuỗi nào cần câu riêng cho trường hợp đó thì chọn khoá khác (xem 075_workspace.js). */
+  const LUAT_MAC_DINH = { max_choices: 10, max_tests: 5 };
+  let currentRules = LUAT_MAC_DINH;
 
   /* Nhãn của workspace; thiếu/rỗng thì lấy mặc định. Trả về true nếu có đổi. */
   function setLabels(labels) {
@@ -1071,6 +1078,23 @@
     return JSON.parse(JSON.stringify(currentLabels));
   }
 
+  /* Luật của workspace (rules.max_choices / rules.max_tests). Trả về true nếu có đổi. */
+  function setRules(rules) {
+    const r = rules || {};
+    const moi = {
+      max_choices: Number.isInteger(r.max_choices) ? r.max_choices : LUAT_MAC_DINH.max_choices,
+      max_tests: r.max_tests === null ? null
+        : (Number.isInteger(r.max_tests) ? r.max_tests : LUAT_MAC_DINH.max_tests),
+    };
+    const doi = JSON.stringify(moi) !== JSON.stringify(currentRules);
+    currentRules = moi;
+    return doi;
+  }
+
+  function getRules() {
+    return JSON.parse(JSON.stringify(currentRules));
+  }
+
   function soNhieuTiengAnh(chu) {
     if (!chu) return chu;
     const thuong = chu.toLowerCase();
@@ -1087,6 +1111,7 @@
   }
 
   function nounText(noun, flags, lang) {
+    if (flags.indexOf("v") !== -1) lang = "vi";   // chữ có thật trên tệp tiếng Việt
     const cap = currentLabels[noun];
     let chu = lang === "en" ? (cap.en || cap.vi) : cap.vi;
     if (flags.indexOf("s") !== -1 && lang === "vi") chu = VIET_TAT[noun + "|" + chu] || chu;
@@ -1113,7 +1138,11 @@
         return Array.isArray(v) ? v.join(", ") : String(v);
       }
       const dt = CHO_GIU_DANH_TU.exec(key);
-      return dt ? nounText(dt[1], dt[2] || "", currentLang) : match;
+      if (dt) return nounText(dt[1], dt[2] || "", currentLang);
+      if ((key === "max_choices" || key === "max_tests") && currentRules[key] !== null) {
+        return String(currentRules[key]);
+      }
+      return match;
     });
   }
 
@@ -1223,8 +1252,19 @@
     return true;
   }
 
+  /* Nhãn + luật của một workspace (đúng dạng get_workspace_state().config). */
+  function applyConfig(cfg) {
+    const a = setLabels(cfg && cfg.labels);
+    const b = setRules(cfg && cfg.rules);
+    if (!a && !b) return false;
+    applyStaticText();
+    global.dispatchEvent(new Event("langchange"));
+    return true;
+  }
+
   global.I18N = {
     t, translateError, translateErrors, errorDetails, getLang, setLang, applyStaticText,
-    setLabels, getLabels, applyLabels, fill: interpolate, nounText,
+    setLabels, getLabels, applyLabels, setRules, getRules, applyConfig,
+    fill: interpolate, nounText,
   };
 })(window);

@@ -439,20 +439,20 @@ MESSAGES = {
         "en": "{person} {student_id} has the same {slot_l} twice in the preference list.",
     },
     "pref_too_many": {
-        "vi": "{person} {student_id} có {count} nguyện vọng, nhiều hơn mức tối đa 10.",
-        "en": "{person} {student_id} has {count} preferences. The most allowed is 10.",
+        "vi": "{person} {student_id} có {count} nguyện vọng, nhiều hơn mức tối đa {tran}.",
+        "en": "{person} {student_id} has {count} preferences. The most allowed is {tran}.",
     },
     "pref_too_many_buoi": {
-        "vi": "{person} {student_id} có {count} nguyện vọng ở {session_l} {buoi}, nhiều hơn mức tối đa 10 mỗi {session_l}.",
-        "en": "{person} {student_id} has {count} preferences in {buoi}. The most allowed is 10 per {session_l}.",
+        "vi": "{person} {student_id} có {count} nguyện vọng ở {session_l} {buoi}, nhiều hơn mức tối đa {tran} mỗi {session_l}.",
+        "en": "{person} {student_id} has {count} preferences in {buoi}. The most allowed is {tran} per {session_l}.",
     },
     "thi_too_many": {
-        "vi": "{person} {student_id} đăng ký dự thi {count} {slot_sl}, nhiều hơn mức tối đa 5.",
-        "en": "{person} {student_id} signed up to test for {count} {slot_pl}. The most allowed is 5.",
+        "vi": "{person} {student_id} đăng ký dự thi {count} {slot_sl}, nhiều hơn mức tối đa {tran}.",
+        "en": "{person} {student_id} signed up to test for {count} {slot_pl}. The most allowed is {tran}.",
     },
     "thi_too_many_buoi": {
-        "vi": "{person} {student_id} đăng ký dự thi {count} {slot_sl} ở {session_l} {buoi}, nhiều hơn mức tối đa 5 mỗi {session_l}.",
-        "en": "{person} {student_id} signed up to test for {count} {slot_pl} in {buoi}. The most allowed is 5 per {session_l}.",
+        "vi": "{person} {student_id} đăng ký dự thi {count} {slot_sl} ở {session_l} {buoi}, nhiều hơn mức tối đa {tran} mỗi {session_l}.",
+        "en": "{person} {student_id} signed up to test for {count} {slot_pl} in {buoi}. The most allowed is {tran} per {session_l}.",
     },
     "pref_unknown_club": {
         "vi": "{person} {student_id} có nguyện vọng vào {slot_sl} {club_id}, nhưng không tìm thấy {slot_sl} này.",
@@ -651,7 +651,7 @@ MESSAGES = {
     # ---- Sổ nhập CLB (so_nhap.py) -------------------------------------
     "so_nhap_khong_phai_so": {
         "vi": "Đây không phải Sổ nhập CLB (cần có hai sheet \"1. {slot_s}\" và \"2. {person}\"). Hãy bấm \"Tải sổ nhập mẫu\", điền vào sổ đó rồi nạp lại.",
-        "en": "This isn't a Club Input Workbook (it needs the sheets \"1. CLB\" and \"2. Học sinh\"). Click \"Download the input workbook\", fill it in and import it again.",
+        "en": "This isn't a Club Input Workbook (it needs the sheets \"1. {slot_sv}\" and \"2. {person_v}\"). Click \"Download the input workbook\", fill it in and import it again.",
     },
     "so_nhap_chi_nhan_xlsx": {
         "vi": "Phần mềm chỉ nhận Sổ nhập CLB (tệp .xlsx). Hãy bấm \"Tải sổ nhập mẫu\", điền vào sổ đó rồi nạp lại.",
@@ -695,7 +695,7 @@ MESSAGES = {
     },
     "so_nhap_clb_khong_co": {
         "vi": "Sheet \"{sheet}\", dòng {dong} ({student_id}), NV{k}: không có {slot_sl} nào tên \"{gia_tri}\" ở sheet \"1. {slot_s}\". Hãy chọn tên trong danh sách thả xuống.",
-        "en": "Sheet \"{sheet}\", row {dong} ({student_id}), NV{k}: there is no {slot_l} called \"{gia_tri}\" on sheet \"1. CLB\". Pick a name from the drop-down list.",
+        "en": "Sheet \"{sheet}\", row {dong} ({student_id}), NV{k}: there is no {slot_l} called \"{gia_tri}\" on sheet \"1. {slot_sv}\". Pick a name from the drop-down list.",
     },
     "so_nhap_nv_trung": {
         "vi": "Sheet \"{sheet}\", dòng {dong} ({student_id}): \"{gia_tri}\" được chọn hai lần (NV{k_truoc} và NV{k}).",
@@ -703,11 +703,15 @@ MESSAGES = {
     },
     "so_nhap_diem_sai": {
         "vi": "Sheet \"{sheet}\", dòng {dong} ({student_id}), {score} {k}: \"{gia_tri}\" không phải {score_l}. Ghi một số (vd 8,5), hoặc chữ thi nếu chưa có {score_l}.",
-        "en": "Sheet \"{sheet}\", row {dong} ({student_id}), Điểm {k}: \"{gia_tri}\" isn't a {score_l}. Enter a number (e.g. 8.5), or the word thi if the {score_l} isn't known yet.",
+        "en": "Sheet \"{sheet}\", row {dong} ({student_id}), {score_v} {k}: \"{gia_tri}\" isn't a {score_l}. Enter a number (e.g. 8.5), or the word thi if the {score_l} isn't known yet.",
+    },
+    "so_nhap_diem_ca_nhan_sai": {
+        "vi": "Sheet \"{sheet}\", dòng {dong} ({student_id}), {score}: \"{gia_tri}\" không phải {score_l}. Ghi một số (vd 8,5), hoặc chữ thi nếu chưa có {score_l}.",
+        "en": "Sheet \"{sheet}\", row {dong} ({student_id}), {score}: \"{gia_tri}\" isn't a {score_l}. Enter a number (e.g. 8.5), or the word thi if the {score_l} isn't known yet.",
     },
     "so_nhap_diem_khong_nv": {
         "vi": "Sheet \"{sheet}\", dòng {dong} ({student_id}): có {score} {k} nhưng NV{k} trống. {score} phải nằm ngay cạnh {slot_sl} của nó.",
-        "en": "Sheet \"{sheet}\", row {dong} ({student_id}): Điểm {k} is filled but NV{k} is empty. A {score_l} must sit right next to its {slot_l}.",
+        "en": "Sheet \"{sheet}\", row {dong} ({student_id}): {score_v} {k} is filled but NV{k} is empty. A {score_l} must sit right next to its {slot_l}.",
     },
     "loi_nap_so_nhap": {
         "vi": "Không nạp được sổ nhập. Kiểm tra lại tệp rồi thử lần nữa.",
@@ -723,7 +727,7 @@ MESSAGES = {
     },
     "so_nhap_qua_tran_thi": {
         "vi": "Sheet \"{sheet}\", dòng {dong} ({student_id}): thi {n} {slot_sl} ở {session_l} {buoi}, tối đa {tran} mỗi {session_l}. Xoá bớt ô {score} của {session_l} này.",
-        "en": "Sheet \"{sheet}\", row {dong} ({student_id}): {n} tested {slot_pl} in {session_l} {buoi}, at most {tran} per {session_l}. Clear some Điểm cells for this {session_l}.",
+        "en": "Sheet \"{sheet}\", row {dong} ({student_id}): {n} tested {slot_pl} in {session_l} {buoi}, at most {tran} per {session_l}. Clear some {score_v} cells for this {session_l}.",
     },
     "so_nhap_ma_tu_sinh_trung": {
         "vi": "Sheet \"{sheet}\", dòng {dong} ({ten}): mã tự tạo \"{ma}\" trùng với {slot_sl} ở dòng {dong_truoc}. Điền Mã CLB cho một trong hai dòng.",
@@ -735,7 +739,7 @@ MESSAGES = {
     },
     "so_nhap_canh_bao_bo_nhom": {
         "vi": "{n} {person_l} đang có {group} sẽ bị bỏ nhóm, vì ô {group} của những {person_l} đó trong sổ để trống.",
-        "en": "{n} {person_l}(s) who currently have a priority group will lose it, because their Nhóm ưu tiên cell in the workbook is empty.",
+        "en": "{n} {person_l}(s) who currently have a priority group will lose it, because their {group_v} cell in the workbook is empty.",
     },
     "so_nhap_canh_bao_clb_ngoai_so": {
         "vi": "{n} {slot_sl} có trong phần mềm nhưng không có trong sổ ({ten}). Chúng vẫn được giữ. Nếu đó là {slot_sl} vừa đổi tên thì giữ nguyên Mã CLB khi đổi tên, rồi xoá {slot_sl} thừa ở thẻ 04.",

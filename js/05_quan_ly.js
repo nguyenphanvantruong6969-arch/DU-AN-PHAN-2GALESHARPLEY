@@ -29,9 +29,11 @@ let adminCoKetQua = false;
  * ------------------------------------------------------------------ */
 
 /* Giu dung con so phia Python (rbda_priority_pipeline.py). Hai noi cung
-   mot tran, va test canh chung khop nhau. */
-const TRAN_NGUYEN_VONG_MOI_BUOI = 10;
-const TRAN_CLB_THI_MOI_BUOI = 5;
+   mot tran, va test canh chung khop nhau. Day la tran MAC DINH cua truong hoc;
+   workspace dat tran khac thi js/075_workspace.js ghi de luc khoi dong
+   (rules.max_choices / rules.max_tests; max_tests null = khong gioi han = Infinity). */
+let TRAN_NGUYEN_VONG_MOI_BUOI = 10;
+let TRAN_CLB_THI_MOI_BUOI = 5;
 
 /* Buoi cua mot CLB, tra tu danh sach da nap san — khong goi them API. */
 /* Tra bang, khong quet mang: ham nay chay cho MOI o da tick o moi cu

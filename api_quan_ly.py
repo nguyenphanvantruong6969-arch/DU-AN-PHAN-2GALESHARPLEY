@@ -16,8 +16,6 @@ from i18n_errors import phan_hoi_loi as _fail
 from i18n_errors import phan_hoi_ok as _ok
 from rbda_priority_pipeline import (
     BUOI_MAC_DINH,
-    TRAN_CLB_THI_MOI_BUOI,
-    TRAN_NGUYEN_VONG_MOI_BUOI,
     loi_suc_chua,
 )
 
@@ -398,6 +396,7 @@ class QuanLyMixin:
             # truoc day vo khoa chinh (student_id, club_id) va CA lan luu
             # hong. Tick la tap hop -> bo trung, giu thu tu dau tien.
             club_ids = list(dict.fromkeys(club_ids))
+            tran_thi = self._tran_thi()   # trần của workspace (None = không giới hạn); đọc trước giao dịch
             with self._ket_noi_ghi() as cur:
                 exists = cur.execute(
                     "SELECT 1 FROM students WHERE student_id = ?", (student_id,)
@@ -412,12 +411,12 @@ class QuanLyMixin:
                 # Tran tinh THEO TUNG BUOI. Tu choi ca loi goi chu khong cat bot:
                 # nguoi dung dang ngoi truoc man hinh va sua duoc ngay, con cat
                 # bot la phan mem tu y doi dieu ho vua khai.
-                qua = self._buoi_qua_tran(cur, club_ids, TRAN_CLB_THI_MOI_BUOI)
+                qua = self._buoi_qua_tran(cur, club_ids, tran_thi)
                 if qua:
                     b, n = qua
                     return _fail(err(
                         "max_thi_moi_buoi" if b != BUOI_MAC_DINH else "thi_too_many",
-                        buoi=b, count=n, tran=TRAN_CLB_THI_MOI_BUOI))
+                        buoi=b, count=n, tran=tran_thi))
 
                 cur.execute(
                     "DELETE FROM club_test_selection WHERE student_id = ?", (student_id,)
@@ -435,8 +434,8 @@ class QuanLyMixin:
     def submit_preferences(self, student_id: str, ordered_club_ids: list):
         """
         BƯỚC 2 (độc lập với tick-box thi) — xếp hạng nguyện vọng,
-        tối đa 10 club (giới hạn Microsoft Forms Ranking, giữ đồng
-        bộ với luồng nhập chính).
+        tối đa `rules.max_choices` mỗi buổi (mặc định 10 — giới hạn Microsoft Forms
+        Ranking, giữ đồng bộ với luồng nhập chính).
         """
         try:
             if not isinstance(ordered_club_ids, list):
@@ -450,6 +449,7 @@ class QuanLyMixin:
             if len(ordered_club_ids) != len(set(ordered_club_ids)):
                 return _fail(err("duplicate_preference_in_list"))
 
+            tran_nv = self._tran_nguyen_vong()   # trần của workspace; đọc trước giao dịch
             with self._ket_noi_ghi() as cur:
                 exists = cur.execute(
                     "SELECT 1 FROM students WHERE student_id = ?", (student_id,)
@@ -463,13 +463,12 @@ class QuanLyMixin:
                 if invalid:
                     return _fail(err("unknown_clubs", club_ids=invalid))
 
-                qua = self._buoi_qua_tran(cur, ordered_club_ids,
-                                          TRAN_NGUYEN_VONG_MOI_BUOI)
+                qua = self._buoi_qua_tran(cur, ordered_club_ids, tran_nv)
                 if qua:
                     b, n = qua
                     return _fail(err(
                         "max_pref_moi_buoi" if b != BUOI_MAC_DINH else "pref_too_many",
-                        buoi=b, count=n, tran=TRAN_NGUYEN_VONG_MOI_BUOI))
+                        buoi=b, count=n, tran=tran_nv))
 
                 cur.execute("DELETE FROM preferences WHERE student_id = ?", (student_id,))
                 cur.executemany(

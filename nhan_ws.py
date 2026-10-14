@@ -10,7 +10,7 @@ xứng ở phía giao diện là `nounText` trong i18n.js; hai bản PHẢI cho 
 (tests/test_ws_nhan.py so từng ca).
 
 Cú pháp chỗ giữ:  {danh_tu}  hoặc  {danh_tu_<cờ>}  với danh_tu thuộc DANH_TU
-và <cờ> là một hay nhiều chữ trong "lpsacu", ví dụ {slot_sl}:
+và <cờ> là một hay nhiều chữ trong "lpsacuv", ví dụ {slot_sl}:
     l  chữ thường                   {person_l}  -> "học sinh"
     p  số nhiều (chỉ tiếng Anh)     {person_p}  -> "Students"
     s  dạng viết tắt                {slot_s}    -> "CLB" (chỉ khi nhãn đúng là
@@ -19,6 +19,9 @@ và <cờ> là một hay nhiều chữ trong "lpsacu", ví dụ {slot_sl}:
     a  kèm mạo từ a/an (chỉ tiếng Anh)  {slot_la} -> "a club", "an employee"
     c  viết hoa chữ đầu của kết quả     {person_lac} -> "A student"
     u  VIẾT HOA TOÀN BỘ                 {slot_u}    -> "CÂU LẠC BỘ" (tiêu đề in hoa)
+    v  luôn lấy nhãn TIẾNG VIỆT         {score_v}   -> "Điểm" (cả trong câu tiếng Anh)
+       — dùng khi câu nhắc đến chữ có thật trên một tệp tiếng Việt (tiêu đề cột, tên
+       sheet của Sổ nhập), vì tệp luôn viết bằng nhãn `vi`.
 Cờ ghép được ({slot_sl}), áp theo thứ tự s -> l -> p -> a -> c -> u. Chữ viết tắt (toàn
 chữ HOA, như "CLB", "HR") không bị hạ thường.
 
@@ -47,7 +50,7 @@ NHAN_MAC_DINH = {
 # Dạng viết tắt đã quen dùng (vi). Chỉ áp cho ĐÚNG nhãn này.
 _VIET_TAT = {("slot", "Câu lạc bộ"): "CLB"}
 
-_RE_CHO_GIU = re.compile(r"\{(person|slot|session|group|score)(?:_([lpsacu]+))?\}")
+_RE_CHO_GIU = re.compile(r"\{(person|slot|session|group|score)(?:_([lpsacuv]+))?\}")
 
 
 def nhan_ngon_ngu(nhan: dict | None, danh_tu: str, lang: str = "vi") -> str:
@@ -98,6 +101,8 @@ def _la_chu_anh(chu: str) -> bool:
 
 def dang_chu(nhan: dict | None, danh_tu: str, co: str = "", lang: str = "vi") -> str:
     """Một chỗ giữ đã giải: nhãn + cờ ("l", "p", "s", "a", "c" hoặc ghép, vd "sl")."""
+    if "v" in co:
+        lang = "vi"
     chu = nhan_ngon_ngu(nhan, danh_tu, lang)
     if "s" in co and lang == "vi":
         chu = _VIET_TAT.get((danh_tu, chu), chu)

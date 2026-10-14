@@ -63,6 +63,21 @@ class WorkspaceMixin:
 
     # ---------------------------------------------------------------- nội bộ
 
+    def _cfg_ws(self) -> dict:
+        """Cấu hình của workspace đang mở (mặc định trường học nếu CSDL chưa có).
+
+        Dùng được cả khi chạy với đường dẫn CSDL riêng. Đọc ở ĐẦU mỗi thao tác — trước khi
+        mở giao dịch ghi — chứ không giữa chừng."""
+        return cau_hinh_ws.doc_cau_hinh(self.db_path)
+
+    def _tran_nguyen_vong(self) -> int:
+        """Số nguyện vọng tối đa mỗi buổi (`rules.max_choices`)."""
+        return self._cfg_ws()["rules"]["max_choices"]
+
+    def _tran_thi(self):
+        """Số CLB thi tối đa mỗi buổi (`rules.max_tests`); None = không giới hạn."""
+        return self._cfg_ws()["rules"]["max_tests"]
+
     def _ws_slug_dang_mo(self):
         """Slug của workspace đang mở, None nếu db_path nằm ngoài workspaces/."""
         if not self._goc_ws:
@@ -100,16 +115,17 @@ class WorkspaceMixin:
         học) nên giao diện lấy nhãn từ đây ở cả hai chế độ.
         """
         try:
-            with self._khoa_ghi:
-                cfg = cau_hinh_ws.doc_cau_hinh(self.db_path)
-                bat = bool(self._goc_ws)
-                return _ok({
-                    "enabled": bat,
-                    "chon": (not bat) or bool(self._ws_da_chon),
-                    "slug": self._ws_slug_dang_mo(),
-                    "name": cfg["name"],
-                    "config": cfg,
-                })
+            # Không giữ _khoa_ghi: chỉ ĐỌC, và không đáng để màn hình khởi động chờ một
+            # lần chạy sắp xếp đang giữ khoá.
+            cfg = cau_hinh_ws.doc_cau_hinh(self.db_path)
+            bat = bool(self._goc_ws)
+            return _ok({
+                "enabled": bat,
+                "chon": (not bat) or bool(self._ws_da_chon),
+                "slug": self._ws_slug_dang_mo(),
+                "name": cfg["name"],
+                "config": cfg,
+            })
         except Exception as e:
             return _fail(self._loi_co_ghi_vet(err("ws_loi_khong_ro", detail=str(e))))
 

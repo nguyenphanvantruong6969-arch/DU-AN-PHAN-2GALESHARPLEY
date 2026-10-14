@@ -86,7 +86,7 @@ function initWorkspace() {
        khi KHÁC mặc định trường học, nên trường học thường không thấy gì đổi. Lấy từ
        get_workspace_state chứ không get_workspace_config vì hàm sau tắt khi chạy với
        đường dẫn CSDL riêng, mà nhãn của CSDL đó vẫn phải áp. */
-    window.I18N.applyLabels(wsTrangThai.config && wsTrangThai.config.labels);
+    wsApDungCauHinh(wsTrangThai.config);
     wsVeTenHienTai();
     wsCapNhatTieuDe();
     /* Chưa chọn (có nhiều workspace lúc khởi động) thì màn chọn hiện ngay,
@@ -104,6 +104,23 @@ function wsCapNhatTieuDe() {
     (wsTrangThai.name || wsTrangThai.slug || "");
   document.title = tieuDe;
   callApi("dat_tieu_de_cua_so", tieuDe);
+}
+
+/* Nhãn VÀ luật của workspace vào giao diện: chữ (I18N), hai trần nhập liệu ở thẻ 03, và
+   câu gợi ý "tối đa N" (không giới hạn thì dùng câu riêng). Lấy từ get_workspace_state
+   nên chạy được cả khi mở bằng đường dẫn CSDL riêng. */
+function wsApDungCauHinh(cfg) {
+  if (!cfg) return;
+  const luat = cfg.rules || {};
+  TRAN_NGUYEN_VONG_MOI_BUOI = Number.isInteger(luat.max_choices) ? luat.max_choices : 10;
+  TRAN_CLB_THI_MOI_BUOI = luat.max_tests === null ? Infinity
+    : (Number.isInteger(luat.max_tests) ? luat.max_tests : 5);
+  const goiY = el("fallbackStep1Hint");
+  if (goiY) {
+    goiY.setAttribute("data-i18n", luat.max_tests === null
+      ? "fallback_step1_hint_khong_gioi_han" : "fallback_step1_hint");
+  }
+  window.I18N.applyConfig(cfg);
 }
 
 function wsVeTenHienTai() {

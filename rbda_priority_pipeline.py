@@ -1018,10 +1018,15 @@ def validate_data_integrity(
     clubs: dict[str, dict],
     preferences: dict[str, list[str]],
     applicants: dict[str, list[str]],
+    tran_nguyen_vong: int = TRAN_NGUYEN_VONG_MOI_BUOI,
 ) -> list[dict]:
     """
     Trả về danh sách lỗi dạng {"code": ..., "params": {...}} (xem
-    i18n_errors.py) — rỗng = dữ liệu hợp lệ. Không raise exception để
+    i18n_errors.py) — rỗng = dữ liệu hợp lệ.
+
+    `tran_nguyen_vong`: số nguyện vọng tối đa MỖI BUỔI (mặc định hằng của thuật toán;
+    workspace có thể đặt trần khác qua `rules.max_choices`). Trần được truyền vào chứ không
+    đọc từ đâu khác, nên các lời gọi cũ không đổi gì. Không raise exception để
     pipeline có thể báo cáo TOÀN BỘ lỗi một lần thay vì dừng ở lỗi đầu.
     Dùng err()/format_message() từ i18n_errors.py nếu cần chuỗi văn bản
     (vd để in ra CLI) thay vì object có cấu trúc.
@@ -1043,13 +1048,13 @@ def validate_data_integrity(
         # đọc một khái niệm trường họ không có. Hai mã lỗi vì thế, và trường
         # một buổi thấy đúng câu như bản cũ.
         for buoi, ds in gom_theo_buoi(prefs, clubs).items():
-            if len(ds) > TRAN_NGUYEN_VONG_MOI_BUOI:
+            if len(ds) > tran_nguyen_vong:
                 if buoi == BUOI_MAC_DINH:
                     errors.append(err("pref_too_many", student_id=sid,
-                                      count=len(ds)))
+                                      count=len(ds), tran=tran_nguyen_vong))
                 else:
                     errors.append(err("pref_too_many_buoi", student_id=sid,
-                                      buoi=buoi, count=len(ds)))
+                                      buoi=buoi, count=len(ds), tran=tran_nguyen_vong))
         for cid in prefs:
             if cid not in clubs:
                 errors.append(err("pref_unknown_club", student_id=sid, club_id=cid))
