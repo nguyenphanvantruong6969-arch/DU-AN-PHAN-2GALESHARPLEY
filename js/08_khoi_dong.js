@@ -22,11 +22,8 @@ function init() {
   initFallbackHandlers();
   initAdminHandlers();
   initScoringHandlers();
-  initWorkspaceHandlers();
-  /* Thay cho loadPipelineTab() truc tiep: che do workspace chua mo workspace
-     nao thi hien man chon truoc, con lai nap the mac dinh nhu cu. Xem
-     js/075_workspace.js. */
-  khoiDongTheoWorkspace();
+  initWorkspace();   // nút đổi workspace ở thanh bên + màn chọn (js/075_workspace.js)
+  loadPipelineTab(); // tab mặc định đang mở khi khởi động
 }
 
 function baoVaoOSucKhoe(cau) {

@@ -311,10 +311,5 @@ def test_compute_club_priority_khong_nhan_them_tham_so():
     import inspect
 
     ts = list(inspect.signature(loi.compute_club_priority).parameters)
-    # `tier_rank` (hạng NHÓM của em, từ luật xếp của workspace) là tham số duy
-    # nhất được thêm — theo yêu cầu "nhóm cứng". Nó là thông tin về nhóm, không
-    # phải thứ hạng nguyện vọng hay kết cục buổi trước, nên ràng buộc chống nội
-    # sinh vẫn nguyên: mọi tham số KHÁC vẫn bị cấm thêm.
     assert ts == ["club_id", "applicants_for_club", "tested_scores_for_club",
-                  "stb_lottery", "tier_rank"], ts
-    assert inspect.signature(loi.compute_club_priority).parameters["tier_rank"].default is None
+                  "stb_lottery"], ts

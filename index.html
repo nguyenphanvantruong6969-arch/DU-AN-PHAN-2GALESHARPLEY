@@ -24,13 +24,10 @@
       <button type="button" class="lang-toggle" id="btnLangToggle" data-i18n="lang_toggle_label">EN</button>
     </div>
 
-    <!-- Chọn không gian làm việc (js/075_workspace.js). Ẩn khi chương trình chạy bằng một tệp dữ liệu chỉ định riêng. -->
-    <button type="button" class="ws-switcher" id="btnWorkspace" hidden aria-haspopup="dialog">
-      <span class="ws-switcher-nhan" data-i18n="ws_switcher_label">Không gian làm việc</span>
-      <span class="ws-switcher-hang">
-        <span class="ws-switcher-ten" id="wsTenHienTai">—</span>
-        <span class="ws-switcher-mui" aria-hidden="true">▾</span>
-      </span>
+    <button type="button" class="ws-switcher" id="btnWorkspace" hidden aria-haspopup="dialog"
+            data-i18n-aria-label="ws_switcher_aria">
+      <span class="ws-switcher-nhan" data-i18n="ws_switcher_nhan">Workspace</span>
+      <span class="ws-switcher-ten" id="wsTenHienTai"></span>
     </button>
 
     <div class="nav-group">
@@ -578,7 +575,7 @@
         <div class="fallback-steps">
           <div class="fallback-step">
             <h3 data-i18n="fallback_step1_title">Bước 1. Chọn CLB dự thi</h3>
-            <p class="hint-text" data-i18n="fallback_step1_hint">Mỗi buổi chọn tối đa 5 CLB. Bỏ chọn một CLB đã chấm điểm thì điểm đó bị xoá khi bấm Lưu.</p>
+            <p class="hint-text" id="fallbackStep1Hint" data-i18n="fallback_step1_hint">Mỗi buổi chọn tối đa 5 CLB. Bỏ chọn một CLB đã chấm điểm thì điểm đó bị xoá khi bấm Lưu.</p>
             <div id="testSelectionGrid" class="option-list"></div>
             <button class="btn btn-primary" id="btnSubmitTestSelection" data-i18n="btn_save_test_selection">Lưu CLB dự thi</button>
             <span class="chua-luu" id="chuaLuuThi" hidden data-i18n="fallback_chua_luu">• Chưa lưu</span>
@@ -710,31 +707,10 @@
     <section class="view" id="view-scoring">
       <header class="view-header">
         <h1 data-i18n="scoring_title">Nhập điểm</h1>
-        <p class="view-desc" data-i18n="scoring_desc">Chọn CLB để chấm. Danh sách chỉ có mã và họ tên, không có số bốc thăm hay thứ hạng nguyện vọng, để việc chấm điểm được khách quan.</p>
+        <p class="view-desc" id="scoringDesc" data-i18n="scoring_desc">Chọn CLB để chấm. Danh sách chỉ có mã và họ tên, không có số bốc thăm hay thứ hạng nguyện vọng, để việc chấm điểm được khách quan.</p>
       </header>
 
-      <!-- Điểm theo NGƯỜI (workspace per_person): thay cho bảng từng CLB bên dưới. -->
-      <div class="panel" id="scoringPersonArea" hidden>
-        <div class="panel-head">
-          <h2 data-i18n="scoring_person_title">Điểm của từng người</h2>
-          <div class="panel-actions">
-            <button class="btn btn-primary" id="btnSavePersonScores" data-i18n="btn_save_scores">Lưu điểm</button>
-          </div>
-        </div>
-        <p class="hint-text" data-i18n="scoring_person_hint">Mỗi người một điểm, dùng chung cho mọi chỗ họ đăng ký. Danh sách chỉ có mã và họ tên, không có số bốc thăm hay thứ hạng nguyện vọng.</p>
-        <table class="data-table">
-          <thead><tr>
-            <th data-i18n="th_student_id">Mã học sinh</th>
-            <th data-i18n="th_name">Họ tên</th>
-            <th data-i18n="th_score">Điểm</th>
-          </tr></thead>
-          <tbody id="scoringPersonBody"></tbody>
-        </table>
-        <div id="scoringPersonEmpty" class="empty-state" hidden data-i18n="scoring_person_empty">Chưa có ai đăng ký.</div>
-        <span class="save-feedback" role="status" aria-live="polite" id="scoringPersonFeedback"></span>
-      </div>
-
-      <div class="panel" id="scoringOverviewPanel">
+      <div class="panel" id="scoringClubPanel">
         <div class="panel-head"><h2 data-i18n="scoring_overview_title">Tiến độ chấm của từng CLB</h2></div>
         <table class="data-table">
           <thead><tr>
@@ -747,6 +723,27 @@
           <tbody id="scoringOverviewBody"></tbody>
         </table>
         <div id="scoringOverviewEmpty" class="empty-state" hidden data-i18n="scoring_overview_empty">Chưa CLB nào có học sinh đăng ký dự thi.</div>
+      </div>
+
+      <!-- Workspace chấm điểm theo NGƯỜI: một điểm cho cả người, không qua từng CLB. -->
+      <div class="panel" id="scoringPersonArea" hidden>
+        <div class="panel-head">
+          <h2 data-i18n="scoring_person_title">Điểm của từng học sinh</h2>
+          <div class="panel-actions">
+            <span class="save-feedback" id="scoringPersonProgress"></span>
+            <button class="btn btn-primary" id="btnSavePersonScores" data-i18n="btn_save_scores">Lưu điểm</button>
+          </div>
+        </div>
+        <table class="data-table">
+          <thead><tr>
+            <th data-i18n="th_student_id">Mã học sinh</th>
+            <th data-i18n="th_name">Họ tên</th>
+            <th data-i18n="th_score">Điểm</th>
+          </tr></thead>
+          <tbody id="scoringPersonBody"></tbody>
+        </table>
+        <div id="scoringPersonEmpty" class="empty-state" hidden data-i18n="scoring_person_empty">Chưa có học sinh nào để chấm. Hãy nạp danh sách trước.</div>
+        <span class="save-feedback" role="status" aria-live="polite" id="scoringPersonFeedback"></span>
       </div>
 
       <div class="panel" id="scoringWorkArea" hidden>
@@ -771,153 +768,12 @@
   </main>
 </div>
 
-<!-- ===================== KHÔNG GIAN LÀM VIỆC: CHỌN / ĐẶT TÊN / TRÌNH TẠO ===================== -->
-<div class="ws-overlay" id="wsOverlay" hidden>
-  <div class="ws-hop" id="wsHop" role="dialog" aria-modal="true" aria-labelledby="wsTieuDeChon">
-
-    <!-- Màn chọn -->
-    <section class="ws-view" id="wsViewChon">
-      <header class="ws-dau">
-        <h2 id="wsTieuDeChon" data-i18n="ws_picker_title">Chọn không gian làm việc</h2>
-        <!-- Thanh bên bị hộp thoại che: cần một nút đổi ngôn ngữ ngay trong hộp, nhất là lúc mới mở chương trình. -->
-        <button type="button" class="lang-toggle-light ws-ngon-ngu" id="btnWsNgonNgu" data-i18n="lang_toggle_label">EN</button>
-        <button type="button" class="ws-dong" id="btnWsDong" data-i18n-aria-label="ws_btn_close" aria-label="Đóng">×</button>
-      </header>
-      <p class="hint-text" data-i18n="ws_picker_hint">Mỗi không gian làm việc có dữ liệu và luật xếp riêng, tách biệt hẳn với các không gian khác.</p>
-      <div class="ws-hanh-dong">
-        <button type="button" class="btn btn-primary" id="btnWsMoi" data-i18n="ws_btn_new">Tạo mới</button>
-        <button type="button" class="btn btn-secondary" id="btnWsNhap" data-i18n="ws_btn_import">Nhập từ tệp .zip</button>
-        <input type="file" id="wsFileZip" accept=".zip,application/zip" hidden data-i18n-aria-label="ws_btn_import" aria-label="Nhập từ tệp .zip">
-      </div>
-      <div class="ws-danh-sach" id="wsDanhSach" role="list"></div>
-      <div class="empty-state" id="wsRong" hidden data-i18n="ws_empty">Chưa có không gian làm việc nào. Bấm "Tạo mới" để bắt đầu, hoặc nhập từ một tệp .zip.</div>
-      <div class="save-feedback is-error" id="wsLoiDanhSach" role="alert"></div>
-    </section>
-
-    <!-- Hộp đặt tên: đổi tên / nhân bản / lưu làm mẫu -->
-    <section class="ws-view" id="wsViewTen" hidden>
-      <header class="ws-dau"><h2 id="wsTieuDeTen"></h2></header>
-      <form id="wsFormTen" novalidate>
-        <label class="ws-truong">
-          <span data-i18n="ws_name_label">Tên</span>
-          <input type="text" id="wsTenMoi" class="text-input" maxlength="80" autocomplete="off">
-        </label>
-        <label class="ws-tick" id="wsNhanKemDuLieu">
-          <input type="checkbox" id="wsKemDuLieu" checked>
-          <span data-i18n="ws_duplicate_with_data">Kèm cả dữ liệu</span>
-        </label>
-        <p class="hint-text" id="wsGoiYTen"></p>
-        <div class="save-feedback is-error" id="wsLoiTen" role="alert"></div>
-        <div class="ws-chan">
-          <button type="button" class="btn btn-ghost" id="btnWsTenHuy" data-i18n="ws_btn_cancel">Huỷ</button>
-          <button type="submit" class="btn btn-primary" id="btnWsTenLuu" data-i18n="ws_btn_save">Lưu</button>
-        </div>
-      </form>
-    </section>
-
-    <!-- Trình tạo 4 bước -->
-    <section class="ws-view" id="wsViewTao" hidden>
-      <header class="ws-dau">
-        <h2 id="wsTieuDeTao" data-i18n="ws_wizard_title">Tạo không gian làm việc mới</h2>
-        <span class="ws-buoc-noi" id="wsBuocNoi" aria-live="polite"></span>
-        <button type="button" class="lang-toggle-light ws-ngon-ngu" id="btnWsNgonNguTao" data-i18n="lang_toggle_label">EN</button>
-      </header>
-      <ol class="ws-buoc" id="wsBuoc">
-        <li data-buoc="1"><span class="ws-buoc-so">1</span><span data-i18n="ws_step_1">Thông tin</span></li>
-        <li data-buoc="2"><span class="ws-buoc-so">2</span><span data-i18n="ws_step_2">Từ vựng</span></li>
-        <li data-buoc="3"><span class="ws-buoc-so">3</span><span data-i18n="ws_step_3">Luật</span></li>
-        <li data-buoc="4"><span class="ws-buoc-so">4</span><span data-i18n="ws_step_4">Xem lại</span></li>
-      </ol>
-
-      <div class="ws-buoc-thanh" id="wsB1">
-        <label class="ws-truong">
-          <span data-i18n="ws_f_name">Tên không gian làm việc</span>
-          <input type="text" id="wsTen" class="text-input" maxlength="80" autocomplete="off" data-i18n-placeholder="ws_name_placeholder" placeholder="Ví dụ: Trường Trung học A, năm học 2026">
-        </label>
-        <label class="ws-truong">
-          <span data-i18n="ws_f_industry">Lĩnh vực</span>
-          <select id="wsNganh" class="text-input">
-            <option value="school" data-i18n="ws_industry_school">Trường học</option>
-            <option value="company" data-i18n="ws_industry_company">Doanh nghiệp</option>
-            <option value="event" data-i18n="ws_industry_event">Sự kiện</option>
-            <option value="custom" data-i18n="ws_industry_custom">Tuỳ chọn</option>
-          </select>
-        </label>
-        <label class="ws-truong">
-          <span data-i18n="ws_f_template">Bắt đầu từ mẫu</span>
-          <select id="wsMau" class="text-input"></select>
-        </label>
-        <p class="hint-text" data-i18n="ws_f_template_hint">Chọn mẫu để điền sẵn mọi bước. Các bước sau vẫn sửa được.</p>
-      </div>
-
-      <div class="ws-buoc-thanh" id="wsB2" hidden>
-        <p class="hint-text" data-i18n="ws_vocab_hint">Đặt tên cho năm khái niệm theo cách đơn vị vẫn gọi. Ô tiếng Anh có thể để trống: khi đó dùng chữ tiếng Việt.</p>
-        <div class="ws-tu-vung" id="wsTuVung"></div>
-      </div>
-
-      <div class="ws-buoc-thanh" id="wsB3" hidden>
-        <p class="hint-text" data-i18n="ws_rules_hint">Các luật này được lưu cùng không gian làm việc và sửa lại được sau.</p>
-        <label class="ws-truong">
-          <span data-i18n="ws_f_max_choices">Số lựa chọn tối đa của mỗi người trong một đợt (1 đến 20)</span>
-          <input type="number" id="wsMaxChoices" class="text-input ws-so" min="1" max="20" step="1">
-        </label>
-        <div class="ws-truong">
-          <label for="wsMaxTests" data-i18n="ws_f_max_tests">Số chỗ tối đa mỗi người được dự thi trong một đợt (0 đến 20)</label>
-          <div class="ws-dong-ngang">
-            <input type="number" id="wsMaxTests" class="text-input ws-so" min="0" max="20" step="1">
-            <label class="ws-tick">
-              <input type="checkbox" id="wsKhongGioiHan">
-              <span data-i18n="ws_f_no_limit">Không giới hạn</span>
-            </label>
-          </div>
-        </div>
-        <label class="ws-truong">
-          <span data-i18n="ws_f_priority">Thứ tự ưu tiên</span>
-          <select id="wsUuTien" class="text-input">
-            <option value="score" data-i18n="ws_opt_priority_score">Theo điểm</option>
-            <option value="tier" data-i18n="ws_opt_priority_tier">Theo nhóm ưu tiên</option>
-            <option value="score+tier" data-i18n="ws_opt_priority_score_tier">Theo điểm, rồi theo nhóm ưu tiên</option>
-          </select>
-        </label>
-        <label class="ws-truong">
-          <span data-i18n="ws_f_tier_mode">Cách dùng nhóm ưu tiên</span>
-          <select id="wsCheDoNhom" class="text-input">
-            <option value="reserve" data-i18n="ws_opt_tier_reserve">Suất dự trữ mềm (như hiện nay)</option>
-            <option value="strict" data-i18n="ws_opt_tier_strict">Nghiêm ngặt: nhóm đứng trên được xếp trước</option>
-          </select>
-        </label>
-        <label class="ws-truong">
-          <span data-i18n="ws_f_score_scope">Phạm vi của điểm</span>
-          <select id="wsPhamViDiem" class="text-input">
-            <option value="per_slot" data-i18n="ws_opt_scope_per_slot">Mỗi chỗ một điểm riêng (như hiện nay)</option>
-            <option value="per_person" data-i18n="ws_opt_scope_per_person">Mỗi người một điểm chung cho mọi chỗ</option>
-          </select>
-        </label>
-        <label class="ws-truong">
-          <span data-i18n="ws_f_tiers">Thứ tự các nhóm: mỗi dòng một nhóm, nhóm tốt nhất ở trên cùng</span>
-          <textarea id="wsNhom" class="text-input ws-nhom" rows="4"></textarea>
-        </label>
-        <p class="hint-text" data-i18n="ws_f_tiers_hint">Chỉ dùng khi chọn cách nghiêm ngặt ở trên.</p>
-      </div>
-
-      <div class="ws-buoc-thanh" id="wsB4" hidden>
-        <p class="hint-text" data-i18n="ws_review_hint">Xem lại rồi bấm Tạo. Mọi thứ đều sửa được sau.</p>
-        <div class="ws-xem-lai" id="wsXemLai"></div>
-      </div>
-
-      <div class="save-feedback is-error" id="wsLoiBuoc" role="alert"></div>
-      <div class="ws-chan">
-        <button type="button" class="btn btn-ghost" id="btnWsHuy" data-i18n="ws_btn_cancel">Huỷ</button>
-        <button type="button" class="btn btn-secondary" id="btnWsLui" data-i18n="ws_btn_back">Quay lại</button>
-        <button type="button" class="btn btn-primary" id="btnWsTiep" data-i18n="ws_btn_next">Tiếp</button>
-        <button type="button" class="btn btn-primary" id="btnWsTao" data-i18n="ws_btn_create">Tạo</button>
-      </div>
-    </section>
-
-  </div>
+<div class="bd-tooltip" id="bieuDoTooltip" role="tooltip" hidden></div>
+<!-- ===================== WORKSPACE: MÀN CHỌN + TRÌNH HƯỚNG DẪN (js/075_workspace.js) ===================== -->
+<div class="ws-overlay" id="wsOverlay" hidden role="dialog" aria-modal="true" aria-labelledby="wsTieuDe">
+  <div class="ws-hop" id="wsHop"></div>
 </div>
 
-<div class="bd-tooltip" id="bieuDoTooltip" role="tooltip" hidden></div>
 <script src="i18n_loi.js"></script>
 <script src="i18n.js"></script>
 <script src="chung.js"></script>

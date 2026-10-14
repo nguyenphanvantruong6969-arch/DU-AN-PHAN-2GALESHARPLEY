@@ -13,57 +13,60 @@
 
 let currentScoringClub = null;
 
-/* Luat diem cua khong gian lam viec dang mo (get_luat_diem). Mac dinh = truong
-   hoc: moi CLB mot diem rieng, the nay hien. Nap lai moi lan mo workspace
-   (napLuatDiem, goi tu js/075_workspace.js). */
-let LUAT_DIEM = { priority: "score", score_scope: "per_slot", tier_mode: "reserve" };
+/* Luật chấm điểm của workspace đang mở (đặt bởi wsApDungCauHinh):
+   theoNguoi = MỘT điểm cho cả người (không chấm từng CLB);
+   an        = luật chỉ xếp theo nhóm, không dùng điểm, nên ẩn cả thẻ Nhập điểm. */
+let LUAT_CHAM_DIEM = { theoNguoi: false, an: false };
 
-/* Nap luat roi ap len giao dien: chi xep theo nhom (priority "tier") thi KHONG
-   co diem nao quyet dinh gi -> an han the Nhap diem; dang o the do thi chuyen
-   ve the Van hanh. */
-function napLuatDiem() {
-  return callApi("get_luat_diem").then((res) => {
-    if (res.ok && res.data) LUAT_DIEM = res.data;
-    const chiNhom = LUAT_DIEM.priority === "tier";
-    const nut = document.querySelector('.nav-item[data-tab="scoring"]');
-    if (nut) nut.hidden = chiNhom;
-    if (chiNhom && currentTabName() === "scoring") doiThe("pipeline");
-  });
+function apDungLuatChamDiem(luat) {
+  LUAT_CHAM_DIEM = {
+    an: luat.priority === "tier",
+    theoNguoi: luat.score_scope === "per_person" && luat.priority !== "tier",
+  };
+  const nut = document.querySelector('.nav-item[data-tab="scoring"]');
+  if (nut) nut.hidden = LUAT_CHAM_DIEM.an;
+  const moTa = el("scoringDesc");
+  if (moTa) moTa.setAttribute("data-i18n", LUAT_CHAM_DIEM.theoNguoi ? "scoring_desc_person" : "scoring_desc");
 }
 
 function loadScoringTab() {
   el("scoringWorkArea").hidden = true;
   currentScoringClub = null;
-  const theoNguoi = LUAT_DIEM.score_scope === "per_person";
-  el("scoringOverviewPanel").hidden = theoNguoi;
-  el("scoringPersonArea").hidden = !theoNguoi;
-  if (theoNguoi) loadScoringPersons();
-  else loadScoringOverview();
+  el("scoringClubPanel").hidden = LUAT_CHAM_DIEM.theoNguoi;
+  el("scoringPersonArea").hidden = !LUAT_CHAM_DIEM.theoNguoi;
+  if (LUAT_CHAM_DIEM.theoNguoi) {
+    loadScoringPersons();
+    return;
+  }
+  loadScoringOverview();
 }
 
-/* Diem theo NGUOI: mot o diem cho moi nguoi, thay cho mot o cho moi (nguoi, cho). */
+/* Chấm theo NGƯỜI: một ô điểm cho mỗi người. Vẫn chấm mù: chỉ mã và họ tên. */
 function loadScoringPersons() {
   return callApi("get_person_scoring_list").then((res) => {
     const body = el("scoringPersonBody");
     clear(body);
+    const rong = !res.ok || !res.data.persons.length;
+    el("scoringPersonEmpty").hidden = !rong;
+    el("btnSavePersonScores").hidden = rong;
+    el("scoringPersonProgress").textContent = rong ? "" : t("scoring_person_progress", {
+      n_scored: res.data.n_scored, n: res.data.persons.length });
     if (!res.ok) {
       showErrorToast(res.errors);
       return;
     }
-    el("scoringPersonEmpty").hidden = res.data.persons.length > 0;
-    res.data.persons.forEach((a) => {
+    res.data.persons.forEach((p) => {
       const tr = document.createElement("tr");
-      tr.innerHTML = `<td>${esc(a.student_id)}</td><td>${esc(a.name)}</td>`;
-      const td = document.createElement("td");
+      const tdInput = document.createElement("td");
       const input = document.createElement("input");
-      input.type = "text";           /* xem ghi chu o openScoringClub: khong dung type=number */
+      input.type = "text";           /* không dùng type="number": xem openScoringClub */
       input.inputMode = "decimal";
       input.className = "score-input";
-      input.dataset.studentId = a.student_id;
-      input.setAttribute("aria-label", a.student_id);
-      if (a.score !== null && a.score !== undefined) input.value = a.score;
-      td.appendChild(input);
-      tr.appendChild(td);
+      input.dataset.studentId = p.student_id;
+      if (p.score !== null && p.score !== undefined) input.value = p.score;
+      tdInput.appendChild(input);
+      tr.innerHTML = `<td>${esc(p.student_id)}</td><td>${esc(p.name)}</td>`;
+      tr.appendChild(tdInput);
       body.appendChild(tr);
     });
   });
@@ -156,10 +159,10 @@ function initScoringHandlers() {
         return;
       }
       const boQua = res.data.warnings || [];
-      const oTheoHs = new Map(Array.from(inputs, (i) => [i.dataset.studentId, i]));
+      const oTheoMa = new Map(Array.from(inputs, (i) => [i.dataset.studentId, i]));
       boQua.forEach((w) => {
         const sid = w && w.params && w.params.student_id;
-        const input = sid === undefined || sid === null ? null : oTheoHs.get(String(sid));
+        const input = sid === undefined || sid === null ? null : oTheoMa.get(String(sid));
         if (!input) return;
         input.classList.add("is-invalid");
         input.setAttribute("aria-invalid", "true");
@@ -170,8 +173,13 @@ function initScoringHandlers() {
         feedback(el("scoringPersonFeedback"), cau, true);
         showToast(cau + "\n" + trErrs(boQua).join("\n"), "warn");
       } else {
-        feedback(el("scoringPersonFeedback"), t("feedback_person_scores_saved", { n: res.data.n_saved }), false);
+        feedback(el("scoringPersonFeedback"), t("feedback_scores_saved", { n: res.data.n_saved }), false);
       }
+      /* Chỉ làm mới dòng tiến độ: dựng lại bảng sẽ xoá dấu ô lỗi vừa đánh. */
+      callApi("get_person_scoring_list").then((r) => {
+        if (r.ok) el("scoringPersonProgress").textContent = t("scoring_person_progress", {
+          n_scored: r.data.n_scored, n: r.data.persons.length });
+      });
     });
   });
 

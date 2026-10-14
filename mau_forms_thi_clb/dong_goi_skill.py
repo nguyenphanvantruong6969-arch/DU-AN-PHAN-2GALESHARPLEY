@@ -23,9 +23,11 @@ SKILLS = os.path.join(GOC, ".claude", "skills")
 MFT = os.path.join(GOC, "mau_forms_thi_clb")
 SDL = os.path.join(SKILLS, "sinh-du-lieu-clb", "scripts", "sinh_du_lieu.py")
 # sinh_du_lieu.py ghi Sổ nhập CLB bằng so_nhap.py (gốc kho), so_nhap.py báo
-# lỗi bằng i18n_errors.py — hai tệp này phải đi kèm mọi bản có sinh_du_lieu.
+# lỗi bằng i18n_errors.py, và i18n_errors.py điền nhãn từ vựng của workspace bằng
+# nhan_ws.py (không phụ thuộc gì) — ba tệp này phải đi kèm mọi bản có sinh_du_lieu.
 SO_NHAP = [(os.path.join(GOC, "so_nhap.py"), "scripts/so_nhap.py"),
-           (os.path.join(GOC, "i18n_errors.py"), "scripts/i18n_errors.py")]
+           (os.path.join(GOC, "i18n_errors.py"), "scripts/i18n_errors.py"),
+           (os.path.join(GOC, "nhan_ws.py"), "scripts/nhan_ws.py")]
 
 # skill -> [(đường dẫn nguồn, đường dẫn trong .zip)]
 GOI = {

@@ -1,15 +1,16 @@
-"""Cấu hình của một KHÔNG GIAN LÀM VIỆC (workspace): từ vựng và luật chạy.
+"""
+cau_hinh_ws.py
+==============
+Cấu hình của một không gian làm việc (workspace): TỪ VỰNG (5 danh từ, mỗi
+danh từ có nhãn vi/en) và LUẬT XẾP. Lưu TRONG app.db của chính workspace đó,
+bảng `workspace_settings(key, value)`, một hàng khoá 'config' chứa JSON.
 
-Mỗi workspace là một thư mục có app.db riêng; cấu hình nằm TRONG app.db đó,
-bảng `workspace_settings(key, value)`, dạng JSON dưới khoá `config`. Nhờ vậy
-sao lưu / chép app.db là mang theo cả cấu hình — không có tệp cấu hình thứ hai
-để lệch nhau.
+Giá trị mặc định là của TRƯỜNG HỌC (`MAC_DINH_TRUONG_HOC`). Thiếu hàng, hỏng
+JSON, hay thiếu một khoá đều cho ra mặc định — nên CSDL cũ và mọi test cũ chạy
+y như trước khi có module này.
 
-THIẾU DÒNG, THIẾU KHOÁ = MẶC ĐỊNH CỦA TRƯỜNG HỌC (`MAC_DINH_TRUONG_HOC`). Vì
-thế app.db dựng bằng bản cũ, và mọi test cũ, chạy y hệt trước đây.
-
-Module này chỉ LƯU và ĐỌC cấu hình. Nó không đổi hành vi thuật toán: việc cho
-thuật toán/giao diện đọc cấu hình là việc của các bước sau.
+Module này CHỈ đọc/ghi/kiểm cấu hình. Nó không nối vào thuật toán: chưa có
+chỗ nào trong rbda_priority_pipeline.py đọc các luật này.
 """
 
 from __future__ import annotations
@@ -19,38 +20,34 @@ import json
 import os
 import sqlite3
 
+from nhan_ws import DANH_TU, NHAN_MAC_DINH
 from rbda_priority_pipeline import (
     TRAN_CLB_THI_MOI_BUOI,
     TRAN_NGUYEN_VONG_MOI_BUOI,
     connect_db,
-    init_db,
 )
 
 KHOA_CAU_HINH = "config"
 
-# Các giá trị hợp lệ — nguồn duy nhất, cho cả bước kiểm lẫn (sau này) giao diện chọn.
-CAC_NGANH = ("school", "company", "event", "custom")
-CAC_UU_TIEN = ("score", "tier", "score+tier")
-CAC_CHE_DO_NHOM = ("reserve", "strict")
-CAC_PHAM_VI_DIEM = ("per_slot", "per_person")
+# Năm danh từ (DANH_TU, nguồn duy nhất ở nhan_ws.py): mọi nhãn hiển thị đều đi qua
+# chúng, nên tập này là cố định — gõ sai tên danh từ phải báo lỗi chứ không được
+# lặng lẽ thành một nhãn mồ côi.
 
-# Trần cứng của hai giới hạn. Không phải chính sách trường: chỉ chặn số vô lý.
-TRAN_TOI_DA_NGUYEN_VONG = 20
-TRAN_TOI_DA_THI = 20
+NGANH = ("school", "company", "event", "custom")
+UU_TIEN = ("score", "tier", "score+tier")
+CHE_DO_NHOM = ("reserve", "strict")
+PHAM_VI_DIEM = ("per_slot", "per_person")
 
-# Năm danh từ của giao diện. Thứ tự giữ nguyên để đọc/ghi ổn định.
-CAC_DANH_TU = ("person", "slot", "session", "group", "score")
+# Trần hợp lệ của hai con số luật (khoảng đóng).
+_MAX_CHOICES_TOI_DA = 20
+_MAX_TESTS_TOI_DA = 20
 
+# max_choices / max_tests lấy từ hai hằng của thuật toán — KHÔNG gõ lại con số
+# lần thứ hai ở đây, để đổi trần ở một nơi thì mặc định đổi theo.
 MAC_DINH_TRUONG_HOC = {
     "name": "",
     "industry": "school",
-    "labels": {
-        "person": {"vi": "Học sinh", "en": "Student"},
-        "slot": {"vi": "Câu lạc bộ", "en": "Club"},
-        "session": {"vi": "Buổi", "en": "Session"},
-        "group": {"vi": "Nhóm ưu tiên", "en": "Priority group"},
-        "score": {"vi": "Điểm", "en": "Score"},
-    },
+    "labels": copy.deepcopy(NHAN_MAC_DINH),
     "rules": {
         "max_choices": TRAN_NGUYEN_VONG_MOI_BUOI,
         "max_tests": TRAN_CLB_THI_MOI_BUOI,
@@ -62,162 +59,195 @@ MAC_DINH_TRUONG_HOC = {
 }
 
 
-def _tron_sau(mac_dinh, ghi_de):
-    """Trộn `ghi_de` lên bản sao của `mac_dinh`; trả bản mới, không sửa đầu vào.
+def _tron_sau(mac_dinh: dict, ghi_de: dict) -> dict:
+    """Trộn `ghi_de` lên bản sao của `mac_dinh`; dict trộn đệ quy, còn lại thay hẳn.
 
-    Dict trộn từng khoá. Mọi giá trị khác (số, chuỗi, list `tiers`, `None` của
-    `max_tests` = không giới hạn) THAY HẲN. Chỗ mặc định là dict mà giá trị lưu
-    không phải dict (vd `"labels": {"person": "x"}`) thì bỏ giá trị lưu: một
-    cấu hình hỏng không được làm hỏng cấu trúc mà code phía sau tin là có.
+    Danh sách (`tiers`) và `None` (`max_tests` = không giới hạn) THAY chứ không
+    trộn: `None` là một giá trị có nghĩa, không phải "thiếu".
     """
     kq = copy.deepcopy(mac_dinh)
-    if not isinstance(ghi_de, dict):
-        return kq
-    for k, v in ghi_de.items():
-        if k in kq and isinstance(kq[k], dict):
-            if isinstance(v, dict):
-                kq[k] = _tron_sau(kq[k], v)
+    for khoa, gia_tri in ghi_de.items():
+        if isinstance(gia_tri, dict) and isinstance(kq.get(khoa), dict):
+            kq[khoa] = _tron_sau(kq[khoa], gia_tri)
         else:
-            kq[k] = copy.deepcopy(v)
+            kq[khoa] = copy.deepcopy(gia_tri)
     return kq
 
 
-def doc_cau_hinh(db_path: str) -> dict:
-    """Cấu hình của workspace = dòng `config` trộn lên mặc định trường học.
+def _nhan_thieu_en_lay_vi(goc: dict, da_tron: dict) -> None:
+    """Danh từ mà `goc` có `vi` nhưng không có `en` thì `en` = `vi`.
 
-    KHÔNG BAO GIỜ ném lỗi và không tạo gì: tệp chưa có, chưa có bảng, chưa có
-    dòng, JSON hỏng hay không phải dict đều trả về mặc định.
+    Trộn đệ quy sẽ lấp chỗ trống đó bằng `en` MẶC ĐỊNH ("Student" cạnh
+    "Nhân viên") — sai. Nhãn là một cặp đi cùng nhau; đã đặt `vi` mới thì
+    `en` không đặt phải rơi về chính `vi` đó, đúng như quy tắc ghi.
     """
-    if not os.path.isfile(db_path):
-        return copy.deepcopy(MAC_DINH_TRUONG_HOC)
-    try:
-        conn = connect_db(db_path)
-        try:
-            dong = conn.execute(
-                "SELECT value FROM workspace_settings WHERE key = ?",
-                (KHOA_CAU_HINH,),
-            ).fetchone()
-        finally:
-            conn.close()
-    except sqlite3.Error:
-        return copy.deepcopy(MAC_DINH_TRUONG_HOC)
-    if not dong or dong[0] is None:
-        return copy.deepcopy(MAC_DINH_TRUONG_HOC)
-    try:
-        da_luu = json.loads(dong[0])
-    except (TypeError, ValueError):
-        return copy.deepcopy(MAC_DINH_TRUONG_HOC)
-    return _tron_sau(MAC_DINH_TRUONG_HOC, da_luu)
+    nhan_goc = goc.get("labels")
+    if not isinstance(nhan_goc, dict):
+        return
+    for dt, cap in nhan_goc.items():
+        if (isinstance(cap, dict) and dt in da_tron["labels"]
+                and "vi" in cap and not cap.get("en")):
+            da_tron["labels"][dt]["en"] = da_tron["labels"][dt]["vi"]
 
 
 def _la_so_nguyen(v) -> bool:
-    # bool là con của int: `True` không được tính là "1 lựa chọn".
+    # bool là lớp con của int: True không được lọt qua như "1".
     return isinstance(v, int) and not isinstance(v, bool)
 
 
-def _kiem_chon(ten, v, hop_le):
-    if v not in hop_le:
-        raise ValueError(
-            "%s phải là một trong %s, nhận được %r"
-            % (ten, ", ".join(hop_le), v)
-        )
+def _chuan_hoa(cfg) -> dict:
+    """Trộn `cfg` lên mặc định, kiểm, và trả bản ĐẦY ĐỦ đã chuẩn hoá.
 
-
-def chuan_hoa_cau_hinh(cfg) -> dict:
-    """Trộn `cfg` lên mặc định, kiểm, rồi trả bản đầy đủ đã chuẩn hoá.
-
-    Sai thì ném `ValueError` với câu nói rõ trường nào sai. Nhãn `en` trống
-    được thay bằng `vi`. Khoá lạ được giữ nguyên (cấu hình của bản mới hơn
-    không bị bản cũ làm rơi).
+    Ném ValueError với câu nói rõ trường nào sai. Không sửa `cfg` của người gọi.
     """
     if not isinstance(cfg, dict):
-        raise ValueError("Cấu hình phải là một dict")
-    # `_tron_sau` lặng lẽ bỏ phần sai cấu trúc (đúng cho đọc cấu hình hỏng);
-    # khi GHI thì phải báo, không thì người dùng tưởng đã lưu.
-    for khoa in ("labels", "rules"):
-        if khoa in cfg and not isinstance(cfg[khoa], dict):
-            raise ValueError("%s phải là một dict" % khoa)
-    for danh_tu, cap in (cfg.get("labels") or {}).items():
-        if not isinstance(cap, dict):
-            raise ValueError("Nhãn %s phải là dict có khoá vi/en" % danh_tu)
+        raise ValueError("Cấu hình phải là một từ điển (dict).")
+
+    la_khoa_la = set(cfg) - set(MAC_DINH_TRUONG_HOC)
+    if la_khoa_la:
+        raise ValueError("Khoá cấu hình không hợp lệ: %s." % ", ".join(sorted(map(str, la_khoa_la))))
+
+    for muc in ("labels", "rules"):
+        if muc in cfg and not isinstance(cfg[muc], dict):
+            raise ValueError("'%s' phải là một từ điển (dict)." % muc)
+
     kq = _tron_sau(MAC_DINH_TRUONG_HOC, cfg)
+    _nhan_thieu_en_lay_vi(cfg, kq)
 
+    # --- tên, ngành ---
     if not isinstance(kq["name"], str):
-        raise ValueError("name phải là chuỗi")
+        raise ValueError("name phải là chuỗi.")
     kq["name"] = kq["name"].strip()
-    _kiem_chon("industry", kq["industry"], CAC_NGANH)
+    if kq["industry"] not in NGANH:
+        raise ValueError("industry phải là một trong %s, nhận %r." % (list(NGANH), kq["industry"]))
 
+    # --- nhãn ---
+    la_dt = set(kq["labels"]) - set(DANH_TU)
+    if la_dt:
+        raise ValueError("Danh từ không hợp lệ trong labels: %s (chỉ có %s)."
+                         % (", ".join(sorted(map(str, la_dt))), list(DANH_TU)))
+    for dt in DANH_TU:
+        cap = kq["labels"][dt]
+        if not isinstance(cap, dict):
+            raise ValueError("labels.%s phải là {'vi': ..., 'en': ...}." % dt)
+        vi, en = cap.get("vi"), cap.get("en")
+        if not isinstance(vi, str) or not vi.strip():
+            raise ValueError("labels.%s.vi không được để trống." % dt)
+        if en is not None and not isinstance(en, str):
+            raise ValueError("labels.%s.en phải là chuỗi." % dt)
+        vi = vi.strip()
+        en = (en or "").strip()
+        kq["labels"][dt] = {"vi": vi, "en": en or vi}
+
+    # --- luật ---
     luat = kq["rules"]
+    la_luat = set(luat) - set(MAC_DINH_TRUONG_HOC["rules"])
+    if la_luat:
+        raise ValueError("Luật không hợp lệ: %s." % ", ".join(sorted(map(str, la_luat))))
+
     mc = luat["max_choices"]
-    if not _la_so_nguyen(mc) or not 1 <= mc <= TRAN_TOI_DA_NGUYEN_VONG:
-        raise ValueError(
-            "max_choices phải là số nguyên từ 1 đến %d, nhận được %r"
-            % (TRAN_TOI_DA_NGUYEN_VONG, mc)
-        )
+    if not _la_so_nguyen(mc) or not 1 <= mc <= _MAX_CHOICES_TOI_DA:
+        raise ValueError("max_choices phải là số nguyên từ 1 đến %d, nhận %r."
+                         % (_MAX_CHOICES_TOI_DA, mc))
+
     mt = luat["max_tests"]
-    if mt is not None and (
-        not _la_so_nguyen(mt) or not 0 <= mt <= TRAN_TOI_DA_THI
-    ):
-        raise ValueError(
-            "max_tests phải là số nguyên từ 0 đến %d hoặc None (không giới hạn), "
-            "nhận được %r" % (TRAN_TOI_DA_THI, mt)
-        )
-    _kiem_chon("priority", luat["priority"], CAC_UU_TIEN)
-    _kiem_chon("tier_mode", luat["tier_mode"], CAC_CHE_DO_NHOM)
-    _kiem_chon("score_scope", luat["score_scope"], CAC_PHAM_VI_DIEM)
+    if mt is not None and (not _la_so_nguyen(mt) or not 0 <= mt <= _MAX_TESTS_TOI_DA):
+        raise ValueError("max_tests phải là số nguyên từ 0 đến %d hoặc None (không giới hạn), nhận %r."
+                         % (_MAX_TESTS_TOI_DA, mt))
+
+    for khoa, cho_phep in (("priority", UU_TIEN), ("tier_mode", CHE_DO_NHOM),
+                           ("score_scope", PHAM_VI_DIEM)):
+        if luat[khoa] not in cho_phep:
+            raise ValueError("%s phải là một trong %s, nhận %r." % (khoa, list(cho_phep), luat[khoa]))
 
     tiers = luat["tiers"]
-    if not isinstance(tiers, list) or not all(
-        isinstance(t, str) and t.strip() for t in tiers
-    ):
-        raise ValueError("tiers phải là danh sách tên nhóm (chuỗi không rỗng)")
+    if not isinstance(tiers, list) or not all(isinstance(t, str) and t.strip() for t in tiers):
+        raise ValueError("tiers phải là danh sách tên nhóm (chuỗi không rỗng).")
     luat["tiers"] = [t.strip() for t in tiers]
     if len(set(luat["tiers"])) != len(luat["tiers"]):
-        raise ValueError("tiers có tên nhóm trùng nhau")
+        raise ValueError("tiers có tên nhóm trùng nhau.")
 
-    for danh_tu in CAC_DANH_TU:
-        nhan_ = kq["labels"][danh_tu]
-        vi, en = nhan_.get("vi"), nhan_.get("en")
-        if not isinstance(vi, str) or not vi.strip():
-            raise ValueError("Nhãn %s.vi không được để trống" % danh_tu)
-        if en is not None and not isinstance(en, str):
-            raise ValueError("Nhãn %s.en phải là chuỗi" % danh_tu)
-        vi = vi.strip()
-        nhan_["vi"] = vi
-        nhan_["en"] = (en or "").strip() or vi
     return kq
 
 
-def ghi_cau_hinh(db_path: str, cfg: dict) -> dict:
-    """Kiểm rồi ghi cấu hình vào `workspace_settings`; trả bản đã chuẩn hoá.
+def chuan_hoa(cfg: dict) -> dict:
+    """Kiểm `cfg` (có thể thiếu khoá) và trả bản đầy đủ đã chuẩn hoá — không ghi gì.
 
-    `cfg` có thể chỉ có một phần: phần thiếu lấy từ mặc định. Bản GHI là bản
-    đầy đủ đã chuẩn hoá. Kiểm xong mới mở CSDL, nên đầu vào sai không để lại gì.
+    Cho nơi khác cần biết một cấu hình có hợp lệ không TRƯỚC khi làm việc tốn
+    kém (vd dựng thư mục workspace). Ném ValueError như `ghi_cau_hinh`.
     """
-    kq = chuan_hoa_cau_hinh(cfg)
-    init_db(db_path)
+    return _chuan_hoa(cfg)
+
+
+def doc_cau_hinh(db_path: str, nghiem: bool = False) -> dict:
+    """Cấu hình của workspace ở `db_path`, trộn lên mặc định trường học.
+
+    Mặc định không bao giờ ném: tệp chưa có, bảng chưa có (CSDL cũ), hàng chưa có, JSON
+    hỏng, hay giá trị không qua được kiểm đều cho ra mặc định. Đọc KHÔNG tạo
+    tệp hay bảng — chỉ ghi mới làm vậy. Luôn trả bản sao mới.
+
+    `nghiem=True` dành cho nơi ĐỌC RỒI GHI LẠI cấu hình (đổi tên, nhân bản, lưu mẫu):
+    "mặc định" thay cho một cấu hình hiện có mà đọc không được (JSON hỏng, khoá lạ do bản
+    phần mềm mới hơn ghi, CSDL đang bị khoá…) rồi được ghi đè lên chính nó là xoá lặng lẽ
+    nhãn và luật của workspace. Ở chế độ này, CHỈ ba trường hợp "chưa có cấu hình" (tệp,
+    bảng, hàng chưa có) cho ra mặc định; còn lại ném ValueError / sqlite3.Error.
+    """
+    mac_dinh = copy.deepcopy(MAC_DINH_TRUONG_HOC)
+    if not os.path.isfile(db_path):
+        return mac_dinh
+    try:
+        conn = connect_db(db_path)
+        try:
+            co_bang = conn.execute(
+                "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'workspace_settings'"
+            ).fetchone()
+            if not co_bang:
+                return mac_dinh
+            dong = conn.execute(
+                "SELECT value FROM workspace_settings WHERE key = ?", (KHOA_CAU_HINH,)
+            ).fetchone()
+        finally:
+            conn.close()
+        if not dong or dong[0] is None:
+            return mac_dinh
+        return _chuan_hoa(json.loads(dong[0]))
+    except (sqlite3.Error, ValueError):
+        # json.JSONDecodeError là con của ValueError, nên một câu bắt đủ cả
+        # JSON hỏng lẫn giá trị sai.
+        if nghiem:
+            raise
+        return mac_dinh
+
+
+def ghi_cau_hinh(db_path: str, cfg: dict) -> dict:
+    """Kiểm rồi ghi cấu hình. Trả về bản đầy đủ đã chuẩn hoá và đã ghi.
+
+    `cfg` có thể thiếu khoá (trộn lên mặc định). Ghi BẢN ĐẦY ĐỦ chứ không ghi
+    phần thiếu: luật là thứ làm ra kết quả đã công bố, nên đổi mặc định trong
+    mã sau này không được lặng lẽ đổi luật của một workspace đã tạo.
+
+    Raises:
+        ValueError: `cfg` sai — chưa ghi gì.
+    """
+    day_du = _chuan_hoa(cfg)
     conn = connect_db(db_path)
     try:
+        # Tự dựng bảng: workspace dựng từ CSDL cũ chưa qua init_db vẫn ghi được.
         conn.execute(
-            "INSERT INTO workspace_settings (key, value) VALUES (?, ?) "
-            "ON CONFLICT(key) DO UPDATE SET value = excluded.value",
-            (KHOA_CAU_HINH, json.dumps(kq, ensure_ascii=False)),
+            "CREATE TABLE IF NOT EXISTS workspace_settings (key TEXT PRIMARY KEY, value TEXT)")
+        conn.execute(
+            "INSERT OR REPLACE INTO workspace_settings (key, value) VALUES (?, ?)",
+            (KHOA_CAU_HINH, json.dumps(day_du, ensure_ascii=False)),
         )
         conn.commit()
     finally:
         conn.close()
-    return kq
+    return day_du
 
 
-def nhan(cfg: dict, noun: str, lang: str = "vi") -> str:
-    """Nhãn của danh từ `noun` bằng `lang`; thiếu/trống thì lùi về `vi`.
-
-    `cfg` là kết quả `doc_cau_hinh`. Danh từ lạ → `KeyError` (lỗi lập trình,
-    không phải lỗi người dùng nên không nuốt).
-    """
-    cap = cfg["labels"][noun]
-    if lang != "vi":
-        v = cap.get(lang)
-        if isinstance(v, str) and v.strip():
-            return v
-    return cap["vi"]
+def nhan(cfg: dict, noun: str, lang: str) -> str:
+    """Nhãn của danh từ `noun` theo ngôn ngữ `lang`; thiếu hay rỗng thì rơi về vi."""
+    if noun not in DANH_TU:
+        raise ValueError("Danh từ không hợp lệ: %r (chỉ có %s)." % (noun, list(DANH_TU)))
+    cap = (cfg.get("labels") or {}).get(noun) or MAC_DINH_TRUONG_HOC["labels"][noun]
+    return cap.get(lang) or cap.get("vi") or MAC_DINH_TRUONG_HOC["labels"][noun]["vi"]

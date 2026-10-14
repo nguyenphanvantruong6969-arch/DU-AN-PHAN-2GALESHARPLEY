@@ -1,456 +1,343 @@
-"""API workspace của PipelineAPI (api_workspace.py)."""
+"""Hàm API workspace (api_workspace.py): hợp đồng {ok, data, errors}, chuyển workspace, an toàn."""
 
 import base64
-import io
+import copy
 import os
 import sqlite3
-import threading
-import zipfile
 
 import pytest
 
-import cau_hinh_ws as cfgws
-import workspace as w
+import cau_hinh_ws as ch
+import workspace as ws
 from api import PipelineAPI
 from i18n_errors import MESSAGES
 
+# Mọi hàm API workspace "quản lý" (không tính get_workspace_state — phép thử chế độ).
+HAM_QUAN_LY = {
+    "list_workspaces": (),
+    "list_templates": (),
+    "open_workspace": ("truong-hoc",),
+    "create_workspace": ("X", None),
+    "rename_workspace": ("truong-hoc", "Y"),
+    "delete_workspace": ("truong-hoc", "XOA"),
+    "duplicate_workspace": ("truong-hoc", "Z", True),
+    "save_as_template": ("truong-hoc", "M"),
+    "export_workspace": ("truong-hoc",),
+    "import_workspace": ("", "x.zip"),
+    "get_workspace_config": (),
+    "update_workspace_config": ({},),
+}
+
 
 @pytest.fixture
-def root(tmp_path):
-    return str(tmp_path / "goc")
+def goc(tmp_path):
+    g = tmp_path / "goc"
+    g.mkdir()
+    return str(g)
 
 
 @pytest.fixture
-def xuat(tmp_path):
-    p = tmp_path / "xuat"
-    p.mkdir()
-    return str(p)
+def api(goc, tmp_path):
+    slug = ws.tao(goc, "Trường học", None)
+    xuat = tmp_path / "xuat"
+    xuat.mkdir()
+    return PipelineAPI(ws.duong_dan_db(goc, slug), thu_muc_xuat=str(xuat),
+                       thu_muc_goc_ws=goc)
 
 
-@pytest.fixture
-def api_ws(root, xuat):
-    """PipelineAPI ở chế độ workspace, chưa mở workspace nào."""
-    os.makedirs(root)
-    return PipelineAPI(None, thu_muc_xuat=xuat, thu_muc_goc=root)
-
-
-def ma_loi(res):
+def _ma_loi(res):
     assert res["ok"] is False and res["data"] is None
-    return res["errors"][0]["code"]
+    assert len(res["errors"]) == 1 and set(res["errors"][0]) == {"code", "params"}
+    ma = res["errors"][0]["code"]
+    # mã nào cũng phải dịch được cả hai ngôn ngữ
+    assert MESSAGES[ma]["vi"] and MESSAGES[ma]["en"]
+    return ma
 
 
-def _tao(api, ten, cfg=None):
+def _n_clb(api):
+    return api.get_dashboard_status()["data"]["n_clubs"]
+
+
+# ------------------------------------------------------------ chế độ tắt (argv)
+
+def test_che_do_dung_duong_dan_csdl_tat_moi_ham_workspace(tmp_path):
+    api = PipelineAPI(str(tmp_path / "rieng.db"))
+    for ten, tham_so in HAM_QUAN_LY.items():
+        res = getattr(api, ten)(*tham_so)
+        assert _ma_loi(res) == "ws_tat_che_do", ten
+    # không hàm nào kịp làm gì: không thư mục workspaces, không đổi db_path
+    assert not os.path.exists(os.path.join(str(tmp_path), "workspaces"))
+    assert api.db_path == str(tmp_path / "rieng.db")
+
+
+def test_trang_thai_che_do_tat_van_tra_nhan_mac_dinh(tmp_path):
+    api = PipelineAPI(str(tmp_path / "rieng.db"))
+    d = api.get_workspace_state()["data"]
+    assert d["enabled"] is False and d["chon"] is True and d["slug"] is None
+    assert d["config"] == ch.MAC_DINH_TRUONG_HOC
+
+
+# ------------------------------------------------------------ trạng thái / danh sách
+
+def test_trang_thai_khi_dang_mo_mot_workspace(api):
+    d = api.get_workspace_state()["data"]
+    assert (d["enabled"], d["chon"], d["slug"], d["name"]) == (True, True, "truong-hoc", "Trường học")
+    assert d["config"]["rules"] == ch.MAC_DINH_TRUONG_HOC["rules"]
+
+
+def test_chua_chon_thi_trang_thai_va_danh_sach_noi_dung(goc):
+    a = ws.tao(goc, "A", None)
+    ws.tao(goc, "B", None)
+    api = PipelineAPI(ws.duong_dan_db(goc, a), thu_muc_goc_ws=goc, ws_da_chon=False)
+    assert api.get_workspace_state()["data"]["chon"] is False
+    d = api.list_workspaces()["data"]
+    assert d["dang_mo"] is None and not any(w["dang_mo"] for w in d["workspaces"])
+    assert api.open_workspace("b")["ok"]
+    assert api.get_workspace_state()["data"]["chon"] is True
+    assert api.list_workspaces()["data"]["dang_mo"] == "b"
+
+
+def test_list_workspaces(api, goc):
+    ws.tao(goc, "Công ty ABC", {"industry": "company"})
+    d = api.list_workspaces()["data"]
+    assert d["dang_mo"] == "truong-hoc"
+    ds = {w["slug"]: w for w in d["workspaces"]}
+    assert set(ds) == {"truong-hoc", "cong-ty-abc"}
+    assert ds["truong-hoc"]["dang_mo"] is True and ds["cong-ty-abc"]["dang_mo"] is False
+    assert (ds["cong-ty-abc"]["name"], ds["cong-ty-abc"]["industry"]) == ("Công ty ABC", "company")
+    assert "path" not in ds["cong-ty-abc"]  # giao diện không cần đường dẫn máy
+
+
+def test_list_templates_co_mau_truong_hoc_dung_san(api):
+    mau = api.list_templates()["data"]["templates"]
+    assert mau[0]["builtin"] is True and mau[0]["name"] == "Trường học"
+
+
+# ------------------------------------------------------------ mở / chuyển
+
+def test_open_workspace_doi_csdl_va_tra_cau_hinh(api, goc):
+    api.create_or_update_club("A", "CLB A", 3, 0, None)
+    assert _n_clb(api) == 1
+    cfg = {"industry": "company", "labels": {"person": {"vi": "Nhân viên", "en": "Employee"}}}
+    slug = api.create_workspace("Công ty", cfg)["data"]["slug"]
+
+    res = api.open_workspace(slug)
+
+    assert res["ok"] and res["data"]["name"] == "Công ty"
+    assert res["data"]["config"]["labels"]["person"] == {"vi": "Nhân viên", "en": "Employee"}
+    assert api.db_path == ws.duong_dan_db(goc, "cong-ty")
+    assert _n_clb(api) == 0                      # dữ liệu của workspace CŨ không lọt sang
+    api.create_or_update_club("B", "CLB B", 2, 0, None)
+    assert api.open_workspace("truong-hoc")["ok"]
+    assert _n_clb(api) == 1                      # và ghi ở workspace mới không lọt về
+    with sqlite3.connect(ws.duong_dan_db(goc, "truong-hoc")) as c:
+        assert [r[0] for r in c.execute("SELECT club_id FROM clubs")] == ["A"]
+
+
+def test_open_workspace_xoa_bo_nho_dem_xuat(api, goc):
+    api._bo_nho_xuat = {"x": 1}
+    slug = api.create_workspace("B")["data"]["slug"]
+    api.open_workspace(slug)
+    assert api._bo_nho_xuat is None
+
+
+def test_open_workspace_chay_init_db_cho_csdl_cu(api, goc):
+    cu = os.path.join(goc, "workspaces", "cu")
+    os.makedirs(cu)
+    sqlite3.connect(os.path.join(cu, "app.db")).close()   # tệp rỗng, chưa có bảng nào
+    assert api.open_workspace("cu")["ok"]
+    assert api.get_dashboard_status()["ok"]
+
+
+@pytest.mark.parametrize("slug", ["khong-co", "../x", "", "_trash", None])
+def test_slug_khong_ton_tai_hoac_xau(api, slug):
+    for goi in (lambda: api.open_workspace(slug), lambda: api.rename_workspace(slug, "N"),
+                lambda: api.duplicate_workspace(slug, "N"), lambda: api.save_as_template(slug, "N"),
+                lambda: api.export_workspace(slug), lambda: api.delete_workspace(slug, "XOA")):
+        assert _ma_loi(goi()) == "ws_khong_co"
+    assert api.db_path.endswith(os.path.join("truong-hoc", "app.db"))
+
+
+# ------------------------------------------------------------ tạo / đổi tên / nhân bản
+
+def test_create_workspace(api, goc):
+    cfg = copy.deepcopy(ch.MAC_DINH_TRUONG_HOC)
+    cfg["rules"].update(max_choices=4, max_tests=None, priority="tier", tier_mode="strict",
+                        tiers=["Cao", "Thấp"])
+    res = api.create_workspace("Sự kiện 2026", cfg)
+    assert res["ok"] and res["data"] == {"slug": "su-kien-2026"}
+    doc = ch.doc_cau_hinh(ws.duong_dan_db(goc, "su-kien-2026"))
+    assert doc["name"] == "Sự kiện 2026" and doc["rules"] == cfg["rules"]
+    assert api.db_path.endswith(os.path.join("truong-hoc", "app.db"))   # tạo chưa phải mở
+
+
+def test_create_workspace_trung_ten_them_hau_to(api):
+    assert api.create_workspace("Trường học")["data"]["slug"] == "truong-hoc-2"
+
+
+@pytest.mark.parametrize("ten, cfg", [
+    ("", None), ("  ", None),
+    ("X", {"rules": {"max_choices": 0}}),
+    ("X", {"labels": {"person": {"vi": ""}}}),
+    ("X", {"rules": {"priority": "bậy"}}),
+    ("X", "khong phai dict"),
+])
+def test_create_workspace_du_lieu_sai(api, goc, ten, cfg):
     res = api.create_workspace(ten, cfg)
-    assert res["ok"], res
-    return res["data"]["slug"]
-
-
-def _b64(duong):
-    with open(duong, "rb") as f:
-        return base64.b64encode(f.read()).decode()
-
-
-# ---------- chế độ tắt ----------
-
-def test_che_do_csdl_don_moi_ham_workspace_bao_tat(api, xuat):
-    cuoc_goi = [
-        lambda: api.list_workspaces(),
-        lambda: api.list_templates(),
-        lambda: api.open_workspace("a"),
-        lambda: api.create_workspace("A", {}),
-        lambda: api.rename_workspace("a", "B"),
-        lambda: api.delete_workspace("a", "XOA"),
-        lambda: api.duplicate_workspace("a", "B", True),
-        lambda: api.save_as_template("a", "M"),
-        lambda: api.export_workspace("a"),
-        lambda: api.import_workspace("eA=="),
-        lambda: api.get_workspace_config(),
-        lambda: api.update_workspace_config({}),
-    ]
-    db_truoc = api.db_path
-    for goi in cuoc_goi:
-        assert ma_loi(goi()) == "ws_disabled"
-    assert api.db_path == db_truoc
-    assert not os.path.exists(os.path.join(os.path.dirname(db_truoc), "workspaces"))
-
-
-def test_ma_loi_workspace_co_ban_dich_vi_va_en():
-    for ma in ("ws_disabled", "ws_not_found", "ws_none_open", "ws_name_required",
-               "ws_delete_confirmation_mismatch", "ws_invalid", "ws_zip_invalid",
-               "error_workspace"):
-        assert MESSAGES[ma]["vi"] and MESSAGES[ma]["en"], ma
-
-
-def test_none_chi_hop_le_o_che_do_workspace(tmp_path):
-    with pytest.raises(ValueError):
-        PipelineAPI(None)
-
-
-def test_ham_workspace_la_ham_cong_khai_nhung_trang_thai_thi_khong():
-    cong_khai = {n for n in dir(PipelineAPI) if not n.startswith("_")}
-    for ten in ("list_workspaces", "open_workspace", "create_workspace",
-                "rename_workspace", "delete_workspace", "duplicate_workspace",
-                "save_as_template", "export_workspace", "import_workspace",
-                "get_workspace_config", "update_workspace_config",
-                "list_templates"):
-        assert ten in cong_khai
-    # pywebview đưa mọi tên không có '_' đầu lên giao diện
-    assert not {n for n in cong_khai if n.startswith("ws")}
-
-
-# ---------- danh sách / tạo ----------
-
-def test_chua_mo_workspace_nao(api_ws):
-    res = api_ws.list_workspaces()
-    assert res == {"ok": True, "data": {"current": None, "items": []}, "errors": []}
-    assert api_ws.db_path is None
-
-
-def test_tao_roi_liet_ke_khong_tu_mo(api_ws):
-    slug = _tao(api_ws, "Trường A", {"industry": "custom"})
-    assert slug == "truong-a"
-    d = api_ws.list_workspaces()["data"]
-    assert d["current"] is None
-    (it,) = d["items"]
-    assert (it["slug"], it["name"], it["industry"]) == (
-        "truong-a", "Trường A", "custom")
-    assert api_ws.db_path is None
-
-
-def test_tao_trung_ten_them_hau_to(api_ws):
-    assert _tao(api_ws, "A") == "a"
-    assert _tao(api_ws, "A") == "a-2"
-
-
-def test_tao_cau_hinh_sai_hoac_ten_trong(api_ws):
-    res = api_ws.create_workspace("X", {"rules": {"max_choices": 99}})
-    assert ma_loi(res) == "ws_invalid"
-    assert "max_choices" in res["errors"][0]["params"]["detail"]
-    for ten in ("", "  ", None):
-        assert ma_loi(api_ws.create_workspace(ten, {})) == "ws_name_required"
-    assert api_ws.list_workspaces()["data"]["items"] == []
-
-
-# ---------- mở ----------
-
-def test_mo_workspace_doi_db_path_va_tra_cau_hinh(api_ws, root):
-    slug = _tao(api_ws, "Công ty", {"rules": {"max_choices": 4}})
-    res = api_ws.open_workspace(slug)
-    assert res["ok"]
-    assert res["data"]["slug"] == slug and res["data"]["name"] == "Công ty"
-    assert res["data"]["config"]["rules"]["max_choices"] == 4
-    assert api_ws.db_path == os.path.join(root, "workspaces", slug, "app.db")
-    assert api_ws.list_workspaces()["data"]["current"] == slug
-
+    assert _ma_loi(res) == "ws_du_lieu_sai"
+    assert res["errors"][0]["params"]["detail"]          # lý do nằm ở chi tiết kỹ thuật
+    assert [w["slug"] for w in ws.danh_sach(goc)] == ["truong-hoc"]
 
-def test_mo_nang_luoc_do_csdl_cu(api_ws, root):
-    slug = _tao(api_ws, "Cũ")
-    db = os.path.join(root, "workspaces", slug, "app.db")
-    conn = sqlite3.connect(db)
-    conn.execute("DROP TABLE workspace_settings")
-    conn.execute("DROP TABLE dau_van_tay_chay")
-    conn.commit()
-    conn.close()
-    res = api_ws.open_workspace(slug)
-    assert res["ok"]
-    assert res["data"]["config"] == dict(cfgws.MAC_DINH_TRUONG_HOC)
-    conn = sqlite3.connect(db)
-    ten = {r[0] for r in conn.execute(
-        "SELECT name FROM sqlite_master WHERE type='table'")}
-    conn.close()
-    assert {"workspace_settings", "dau_van_tay_chay"} <= ten
-
-
-def test_du_lieu_hai_workspace_tach_biet(api_ws):
-    a, b = _tao(api_ws, "A"), _tao(api_ws, "B")
-    api_ws.open_workspace(a)
-    assert api_ws.create_or_update_club("clb_a", "CLB A", 3, 0, "")["ok"]
-    api_ws.open_workspace(b)
-    assert api_ws.list_clubs_admin()["data"] == []
-    assert api_ws.create_or_update_club("clb_b", "CLB B", 5, 0, "")["ok"]
-    api_ws.open_workspace(a)
-    assert [c["club_id"] for c in api_ws.list_clubs_admin()["data"]] == ["clb_a"]
-    api_ws.open_workspace(b)
-    assert [c["club_id"] for c in api_ws.list_clubs_admin()["data"]] == ["clb_b"]
-
-
-def test_mo_xoa_bo_nho_dem_xuat(api_ws):
-    slug = _tao(api_ws, "A")
-    api_ws._bo_nho_xuat = {("x",): 1}
-    api_ws.open_workspace(slug)
-    assert api_ws._bo_nho_xuat is None
-
-
-@pytest.mark.parametrize("slug", ["khong-co", "../x", "", None, "_trash"])
-def test_mo_sai_ma_giu_nguyen_workspace_dang_mo(api_ws, slug):
-    dang_mo = _tao(api_ws, "Đang mở")
-    api_ws.open_workspace(dang_mo)
-    db = api_ws.db_path
-    assert ma_loi(api_ws.open_workspace(slug)) == "ws_not_found"
-    assert api_ws.db_path == db
-    assert api_ws.list_workspaces()["data"]["current"] == dang_mo
-
-
-def test_mo_csdl_hong_bao_loi_va_giu_nguyen(api_ws, root):
-    tot, xau = _tao(api_ws, "Tốt"), _tao(api_ws, "Xấu")
-    with open(os.path.join(root, "workspaces", xau, "app.db"), "wb") as f:
-        f.write(b"khong phai sqlite")
-    api_ws.open_workspace(tot)
-    db = api_ws.db_path
-    assert ma_loi(api_ws.open_workspace(xau)) == "error_workspace"
-    assert api_ws.db_path == db
-
-
-def test_mo_cho_khoa_ghi_nen_khong_doi_giua_luc_dang_ghi(api_ws):
-    a, b = _tao(api_ws, "A"), _tao(api_ws, "B")
-    api_ws.open_workspace(a)
-    db_a = api_ws.db_path
-    da_vao, cho_xong = threading.Event(), threading.Event()
-    thay = {}
-
-    def giu_khoa():
-        with api_ws._khoa_ghi:         # như run_pipeline đang chạy
-            da_vao.set()
-            cho_xong.wait(5)
-            thay["db_trong_luc_giu"] = api_ws.db_path
-
-    t1 = threading.Thread(target=giu_khoa)
-    t1.start()
-    assert da_vao.wait(5)
-    t2 = threading.Thread(target=lambda: api_ws.open_workspace(b))
-    t2.start()
-    t2.join(0.4)
-    assert t2.is_alive(), "open_workspace phải chờ khoá ghi"
-    cho_xong.set()
-    t1.join(5)
-    t2.join(5)
-    assert thay["db_trong_luc_giu"] == db_a
-    assert api_ws.db_path != db_a
-
-
-# ---------- đổi tên / nhân bản ----------
-
-def test_doi_ten_giu_slug_va_cap_nhat_tieu_de(api_ws):
-    slug = _tao(api_ws, "Cũ")
-    api_ws.open_workspace(slug)
-    assert api_ws.rename_workspace(slug, "  Mới  ")["data"] == {
-        "slug": slug, "name": "Mới"}
-    (it,) = api_ws.list_workspaces()["data"]["items"]
-    assert it["slug"] == slug and it["name"] == "Mới"
-    assert api_ws.get_workspace_config()["data"]["name"] == "Mới"
-
-
-def test_doi_ten_sai(api_ws):
-    slug = _tao(api_ws, "A")
-    assert ma_loi(api_ws.rename_workspace(slug, " ")) == "ws_name_required"
-    assert ma_loi(api_ws.rename_workspace("khong-co", "B")) == "ws_not_found"
-
-
-def test_nhan_ban_co_va_khong_du_lieu(api_ws):
-    goc = _tao(api_ws, "Gốc", {"rules": {"max_choices": 3}})
-    api_ws.open_workspace(goc)
-    api_ws.create_or_update_club("clb_a", "CLB A", 3, 0, "")
-    co = api_ws.duplicate_workspace(goc, "Có dữ liệu", True)["data"]["slug"]
-    khong = api_ws.duplicate_workspace(goc, "Không dữ liệu", False)["data"]["slug"]
-    assert api_ws.db_path.endswith(os.path.join(goc, "app.db"))  # không tự mở
-    api_ws.open_workspace(co)
-    assert [c["club_id"] for c in api_ws.list_clubs_admin()["data"]] == ["clb_a"]
-    assert api_ws.get_workspace_config()["data"]["rules"]["max_choices"] == 3
-    api_ws.open_workspace(khong)
-    assert api_ws.list_clubs_admin()["data"] == []
-    cfg = api_ws.get_workspace_config()["data"]
-    assert cfg["rules"]["max_choices"] == 3 and cfg["name"] == "Không dữ liệu"
-
-
-def test_nhan_ban_mac_dinh_la_kem_du_lieu(api_ws):
-    goc = _tao(api_ws, "Gốc")
-    api_ws.open_workspace(goc)
-    api_ws.create_or_update_club("clb_a", "CLB A", 3, 0, "")
-    moi = api_ws.duplicate_workspace(goc, "Bản sao")["data"]["slug"]
-    api_ws.open_workspace(moi)
-    assert len(api_ws.list_clubs_admin()["data"]) == 1
-
-
-def test_nhan_ban_sai(api_ws):
-    goc = _tao(api_ws, "Gốc")
-    assert ma_loi(api_ws.duplicate_workspace(goc, "", True)) == "ws_name_required"
-    assert ma_loi(api_ws.duplicate_workspace("khong-co", "B", True)) == "ws_not_found"
-
-
-# ---------- xoá ----------
-
-@pytest.mark.parametrize("xac_nhan", ["", "xoa", "XOA ", None, "DELETE"])
-def test_xoa_thieu_xac_nhan_khong_lam_gi(api_ws, root, xac_nhan):
-    slug = _tao(api_ws, "A")
-    assert ma_loi(api_ws.delete_workspace(slug, xac_nhan)) == \
-        "ws_delete_confirmation_mismatch"
-    assert os.path.isfile(os.path.join(root, "workspaces", slug, "app.db"))
-    assert not os.path.exists(os.path.join(root, "workspaces", "_trash"))
-    assert [f for f in os.listdir(os.path.join(root, "workspaces", slug))
-            if f.startswith("app.db.bak-")] == []  # kiểm trước, sao lưu sau
-
-
-def test_xoa_mac_dinh_la_chua_xac_nhan(api_ws):
-    slug = _tao(api_ws, "A")
-    assert ma_loi(api_ws.delete_workspace(slug)) == "ws_delete_confirmation_mismatch"
-
-
-def test_xoa_dom_vao_thung_rac_kem_ban_sao_luu(api_ws, root):
-    slug = _tao(api_ws, "A")
-    res = api_ws.delete_workspace(slug, "XOA")
-    assert res["ok"] and res["data"]["was_open"] is False
-    rac = res["data"]["trash"]
-    assert os.path.dirname(rac) == os.path.join(root, "workspaces", "_trash")
-    assert any(f.startswith("app.db.bak-") for f in os.listdir(rac))
-    assert api_ws.list_workspaces()["data"]["items"] == []
-
-
-def test_xoa_workspace_dang_mo_thi_dong_no(api_ws):
-    a, b = _tao(api_ws, "A"), _tao(api_ws, "B")
-    api_ws.open_workspace(a)
-    res = api_ws.delete_workspace(a, "XOA")
-    assert res["ok"] and res["data"]["was_open"] is True
-    assert api_ws.db_path is None
-    d = api_ws.list_workspaces()["data"]
-    assert d["current"] is None and [x["slug"] for x in d["items"]] == [b]
-
-
-def test_xoa_workspace_khac_khong_dong_cai_dang_mo(api_ws):
-    a, b = _tao(api_ws, "A"), _tao(api_ws, "B")
-    api_ws.open_workspace(a)
-    assert api_ws.delete_workspace(b, "XOA")["data"]["was_open"] is False
-    assert api_ws.list_workspaces()["data"]["current"] == a
-
-
-def test_xoa_that_bai_thi_workspace_dang_mo_van_mo(api_ws, monkeypatch):
-    a = _tao(api_ws, "A")
-    api_ws.open_workspace(a)
-    db = api_ws.db_path
-
-    def hong(*args, **kw):
-        raise OSError("tep dang bi khoa")
-
-    monkeypatch.setattr(w, "xoa", hong)
-    assert ma_loi(api_ws.delete_workspace(a, "XOA")) == "error_workspace"
-    assert api_ws.db_path == db
-    assert api_ws.list_workspaces()["data"]["current"] == a
-
-
-def test_xoa_sai_ma(api_ws):
-    assert ma_loi(api_ws.delete_workspace("khong-co", "XOA")) == "ws_not_found"
-
-
-# ---------- mẫu ----------
-
-def test_luu_mau_roi_liet_ke(api_ws):
-    slug = _tao(api_ws, "Công ty", {
-        "industry": "company",
-        "labels": {"person": {"vi": "Nhân viên", "en": "Employee"}}})
-    api_ws.open_workspace(slug)
-    api_ws.create_or_update_club("clb_a", "CLB A", 3, 0, "")
-    assert api_ws.save_as_template(slug, "Mẫu công ty")["data"] == {
-        "slug": "mau-cong-ty"}
-    mau = api_ws.list_templates()["data"]
-    assert [m["slug"] for m in mau] == ["truong-hoc", "mau-cong-ty"]
-    assert mau[0]["builtin"] is True and mau[1]["industry"] == "company"
-    moi = _tao(api_ws, "Công ty khác", mau[1]["config"])
-    api_ws.open_workspace(moi)
-    assert api_ws.list_clubs_admin()["data"] == []        # mẫu không mang dữ liệu
-    assert api_ws.get_workspace_config()["data"]["labels"]["person"]["en"] == "Employee"
-
-
-def test_luu_mau_sai(api_ws):
-    slug = _tao(api_ws, "A")
-    assert ma_loi(api_ws.save_as_template(slug, " ")) == "ws_name_required"
-    assert ma_loi(api_ws.save_as_template("khong-co", "M")) == "ws_not_found"
-
-
-# ---------- zip ----------
-
-def test_xuat_vao_thu_muc_xuat_khong_de_len_nhau(api_ws, xuat):
-    slug = _tao(api_ws, "Xuất")
-    r1 = api_ws.export_workspace(slug)
-    r2 = api_ws.export_workspace(slug)
-    assert r1["ok"] and r2["ok"]
-    assert os.path.dirname(r1["data"]["path"]) == xuat
-    assert r1["data"]["name"] == os.path.basename(r1["data"]["path"])
-    assert r1["data"]["path"] != r2["data"]["path"]
-    assert zipfile.ZipFile(r1["data"]["path"]).namelist() == ["app.db"]
-    assert ma_loi(api_ws.export_workspace("khong-co")) == "ws_not_found"
-
-
-def test_xuat_roi_nhap_khu_hoi(api_ws, root):
-    slug = _tao(api_ws, "Khứ hồi", {"rules": {"max_choices": 6}})
-    api_ws.open_workspace(slug)
-    api_ws.create_or_update_club("clb_a", "CLB A", 3, 0, "")
-    duong = api_ws.export_workspace(slug)["data"]["path"]
-    res = api_ws.import_workspace(_b64(duong))
-    assert res["ok"] and res["data"]["slug"] == "khu-hoi-2"   # trùng -> đổi slug
-    assert api_ws.list_workspaces()["data"]["current"] == slug  # nhập không tự mở
-    api_ws.open_workspace("khu-hoi-2")
-    assert [c["club_id"] for c in api_ws.list_clubs_admin()["data"]] == ["clb_a"]
-    assert api_ws.get_workspace_config()["data"]["rules"]["max_choices"] == 6
-
-
-def test_nhap_zip_xau_bi_tu_choi(api_ws):
-    nhi_phan = io.BytesIO()
-    with zipfile.ZipFile(nhi_phan, "w") as z:
-        z.writestr("../evil.db", b"x")
-        z.writestr("app.db", b"x")
-    for payload in (base64.b64encode(nhi_phan.getvalue()).decode(),
-                    base64.b64encode(b"khong phai zip").decode(),
-                    "", None):
-        assert ma_loi(api_ws.import_workspace(payload)) == "ws_zip_invalid"
-    assert api_ws.list_workspaces()["data"]["items"] == []
-
-
-def test_nhap_khong_de_lai_tep_tam(api_ws, root):
-    api_ws.import_workspace(base64.b64encode(b"khong phai zip").decode())
-    ws = os.path.join(root, "workspaces")
-    assert not os.path.isdir(ws) or os.listdir(ws) == []
-
-
-# ---------- cấu hình ----------
-
-def test_cau_hinh_cua_workspace_dang_mo(api_ws):
-    slug = _tao(api_ws, "A")
-    api_ws.open_workspace(slug)
-    cfg = api_ws.get_workspace_config()["data"]
-    cfg["rules"]["max_choices"] = 8
+
+def test_rename_workspace(api, goc):
+    res = api.rename_workspace("truong-hoc", "  Tên mới ")
+    assert res["ok"] and res["data"] == {"slug": "truong-hoc", "name": "Tên mới"}
+    assert api.get_workspace_state()["data"]["name"] == "Tên mới"
+    assert os.path.isdir(os.path.join(goc, "workspaces", "truong-hoc"))   # thư mục giữ slug
+    assert _ma_loi(api.rename_workspace("truong-hoc", " ")) == "ws_du_lieu_sai"
+
+
+def test_duplicate_workspace_kem_va_khong_kem_du_lieu(api, goc):
+    api.create_or_update_club("A", "CLB A", 3, 0, None)
+    kem = api.duplicate_workspace("truong-hoc", "Bản có dữ liệu", True)
+    khong = api.duplicate_workspace("truong-hoc", "Bản trống", False)
+    assert kem["data"]["slug"] == "ban-co-du-lieu" and khong["data"]["slug"] == "ban-trong"
+    api.open_workspace("ban-co-du-lieu")
+    assert _n_clb(api) == 1
+    api.open_workspace("ban-trong")
+    assert _n_clb(api) == 0
+    assert api.get_workspace_state()["data"]["name"] == "Bản trống"
+
+
+# ------------------------------------------------------------ xoá
+
+def test_delete_can_chuoi_xac_nhan_xoa(api, goc):
+    slug = api.create_workspace("B")["data"]["slug"]
+    for sai in ("", "xoa", "XOA ", None, "DELETE"):
+        assert _ma_loi(api.delete_workspace(slug, sai)) == "reset_confirmation_mismatch"
+    assert os.path.isdir(os.path.join(goc, "workspaces", slug))      # chưa mất gì
+    assert not os.path.exists(os.path.join(goc, "workspaces", "_trash"))
+
+
+def test_delete_dua_vao_thung_rac_kem_ban_sao_luu(api, goc):
+    slug = api.create_workspace("B")["data"]["slug"]
+    res = api.delete_workspace(slug, "XOA")
+    assert res["ok"] and res["data"]["slug"] == slug
+    thung = res["data"]["thung_rac"]
+    assert os.path.dirname(thung) == os.path.join(goc, "workspaces", "_trash")
+    assert any(t.startswith("app.db.bak-") for t in os.listdir(thung))
+    assert slug not in {w["slug"] for w in api.list_workspaces()["data"]["workspaces"]}
+
+
+def test_delete_khong_xoa_duoc_workspace_dang_mo(api, goc):
+    assert _ma_loi(api.delete_workspace("truong-hoc", "XOA")) == "ws_khong_xoa_dang_mo"
+    assert os.path.isfile(ws.duong_dan_db(goc, "truong-hoc"))
+
+
+def test_delete_workspace_vua_roi_di_thi_xoa_duoc(api):
+    slug = api.create_workspace("B")["data"]["slug"]
+    api.open_workspace(slug)
+    api.open_workspace("truong-hoc")
+    assert api.delete_workspace(slug, "XOA")["ok"]
+
+
+# ------------------------------------------------------------ mẫu, zip
+
+def test_save_as_template_roi_dung_de_tao(api, goc):
+    cfg = {"industry": "company", "rules": {"max_choices": 3}}
+    slug = api.create_workspace("Công ty", cfg)["data"]["slug"]
+    res = api.save_as_template(slug, "Mẫu công ty")
+    assert res["ok"] and os.path.isfile(res["data"]["path"])
+    mau = [m for m in api.list_templates()["data"]["templates"] if not m["builtin"]]
+    assert [(m["name"], m["config"]["rules"]["max_choices"]) for m in mau] == [("Mẫu công ty", 3)]
+    moi = api.create_workspace("Chi nhánh", mau[0]["config"])["data"]["slug"]
+    assert ch.doc_cau_hinh(ws.duong_dan_db(goc, moi))["rules"]["max_choices"] == 3
+    assert _ma_loi(api.save_as_template(slug, " ")) == "ws_du_lieu_sai"
+
+
+def test_export_vao_thu_muc_xuat_khong_de_len(api, tmp_path):
+    a = api.export_workspace("truong-hoc")
+    b = api.export_workspace("truong-hoc")
+    assert a["ok"] and b["ok"] and a["data"]["path"] != b["data"]["path"]
+    assert os.path.dirname(a["data"]["path"]) == str(tmp_path / "xuat") == a["data"]["dir"]
+    assert os.path.getsize(a["data"]["path"]) > 0
+
+
+def test_export_roi_import_base64_khu_hoi(api, goc):
+    api.create_or_update_club("A", "CLB A", 3, 0, None)
+    api.rename_workspace("truong-hoc", "Sổ gốc")
+    duong = api.export_workspace("truong-hoc")["data"]["path"]
+    b64 = base64.b64encode(open(duong, "rb").read()).decode()
+
+    res = api.import_workspace(b64, "so-goc.zip")
+
+    assert res["ok"] and res["data"]["slug"] == "so-goc"   # slug đặt theo TÊN, không theo tên tệp
+    moi = res["data"]["slug"]
+    assert res["data"]["name"] == "Sổ gốc"
+    api.open_workspace(moi)
+    assert _n_clb(api) == 1
+
+
+def test_import_loi(api, goc):
+    assert _ma_loi(api.import_workspace("không phải base64!!", "a.zip")) == "ws_du_lieu_sai"
+    gia = base64.b64encode(b"day khong phai zip").decode()
+    assert _ma_loi(api.import_workspace(gia, "a.zip")) == "ws_du_lieu_sai"
+    assert [w["slug"] for w in ws.danh_sach(goc)] == ["truong-hoc"]
+
+
+def test_import_tu_choi_zip_slip(api, goc, tmp_path):
+    import zipfile
+    z = str(tmp_path / "xau.zip")
+    with zipfile.ZipFile(z, "w") as f:
+        f.writestr("app.db", b"x")
+        f.writestr("../evil.txt", b"x")
+    b64 = base64.b64encode(open(z, "rb").read()).decode()
+    assert _ma_loi(api.import_workspace(b64, "xau.zip")) == "ws_du_lieu_sai"
+    assert not os.path.exists(os.path.join(goc, "evil.txt"))
+    assert not os.path.exists(os.path.join(goc, "workspaces", "evil.txt"))
+
+
+def test_import_ten_tep_co_duong_dan_khong_thoat_ra_ngoai(api):
+    # ten_tep chỉ dùng đặt tên dự phòng; đường dẫn trong đó bị cắt bỏ
+    duong = api.export_workspace("truong-hoc")["data"]["path"]
+    b64 = base64.b64encode(open(duong, "rb").read()).decode()
+    assert api.import_workspace(b64, "../../etc/x.zip")["ok"]
+
+
+# ------------------------------------------------------------ cấu hình
+
+def test_get_va_update_workspace_config(api, goc):
+    d = api.get_workspace_config()["data"]
+    assert d["slug"] == "truong-hoc" and d["config"]["name"] == "Trường học"
+
+    cfg = d["config"]
+    cfg["rules"]["max_choices"] = 6
     cfg["labels"]["slot"] = {"vi": "Dự án", "en": ""}
-    res = api_ws.update_workspace_config(cfg)
-    assert res["ok"] and res["data"]["labels"]["slot"]["en"] == "Dự án"
-    assert api_ws.get_workspace_config()["data"] == res["data"]
-    assert cfgws.doc_cau_hinh(api_ws.db_path) == res["data"]
+    res = api.update_workspace_config(cfg)
+
+    assert res["ok"]
+    assert res["data"]["config"]["labels"]["slot"] == {"vi": "Dự án", "en": "Dự án"}
+    nhan = api.get_workspace_state()["data"]["config"]
+    assert nhan["rules"]["max_choices"] == 6 and nhan["labels"]["slot"]["vi"] == "Dự án"
 
 
-def test_cau_hinh_theo_slug_khong_can_mo(api_ws):
-    slug = _tao(api_ws, "A", {"industry": "event"})
-    assert api_ws.get_workspace_config(slug)["data"]["industry"] == "event"
-    assert api_ws.update_workspace_config({"industry": "custom"}, slug)["ok"]
-    assert api_ws.get_workspace_config(slug)["data"]["industry"] == "custom"
-    assert api_ws.db_path is None
+def test_update_config_cho_workspace_khac_khong_doi_workspace_dang_mo(api, goc):
+    slug = api.create_workspace("B")["data"]["slug"]
+    cfg = api.get_workspace_config(slug)["data"]["config"]
+    cfg["rules"]["max_choices"] = 2
+    api.update_workspace_config(cfg, slug)
+    assert api.get_workspace_config(slug)["data"]["config"]["rules"]["max_choices"] == 2
+    assert api.get_workspace_config()["data"]["config"]["rules"]["max_choices"] == 10
 
 
-def test_cau_hinh_chua_mo_workspace(api_ws):
-    assert ma_loi(api_ws.get_workspace_config()) == "ws_none_open"
-    assert ma_loi(api_ws.update_workspace_config({})) == "ws_none_open"
-    assert ma_loi(api_ws.get_workspace_config("khong-co")) == "ws_not_found"
+def test_update_config_sai_khong_ghi(api):
+    cfg = api.get_workspace_config()["data"]["config"]
+    cfg["rules"]["max_choices"] = 99
+    assert _ma_loi(api.update_workspace_config(cfg)) == "ws_du_lieu_sai"
+    assert api.get_workspace_config()["data"]["config"]["rules"]["max_choices"] == 10
 
 
-def test_cap_nhat_cau_hinh_sai_khong_ghi(api_ws):
-    slug = _tao(api_ws, "A", {"rules": {"max_choices": 4}})
-    api_ws.open_workspace(slug)
-    res = api_ws.update_workspace_config({"rules": {"max_choices": 0}})
-    assert ma_loi(res) == "ws_invalid"
-    assert api_ws.get_workspace_config()["data"]["rules"]["max_choices"] == 4
-
-
-# ---------- chưa mở workspace thì lỗi không làm sập ----------
-
-def test_loi_chua_mo_workspace_van_ghi_vet_duoc(api_ws, root, monkeypatch):
-    """`_loi_co_ghi_vet` không được nổ khi db_path là None."""
-    monkeypatch.setattr(w, "danh_sach", lambda r: (_ for _ in ()).throw(OSError("x")))
-    res = api_ws.list_workspaces()
-    assert res["ok"] is False and res["errors"][0]["code"] == "error_workspace"
-    assert os.path.exists(os.path.join(root, "loi_ung_dung.txt"))
+def test_thuoc_tinh_workspace_cua_doi_tuong_deu_co_gach_duoi(api):
+    # pywebview đệ quy vào thuộc tính CÔNG KHAI không gọi được (xem test_do_api).
+    ws_attr = [k for k in vars(api) if "ws" in k]
+    assert ws_attr and all(k.startswith("_") for k in ws_attr), ws_attr

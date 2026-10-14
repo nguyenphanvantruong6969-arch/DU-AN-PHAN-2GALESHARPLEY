@@ -1,722 +1,648 @@
-/* js/075_workspace.js — Không gian làm việc (workspace): màn chọn, ô đổi ở thanh
-   bên và trình tạo 4 bước.
+/* js/075_workspace.js — Workspace: màn chọn, nút đổi ở thanh bên, trình hướng dẫn tạo mới.
 
    Một phần của giao diện chính. Các tệp js/ là SCRIPT THƯỜNG (không phải ES
-   module), nạp theo thứ tự trong index.html và dùng chung một phạm vi. Tệp này
-   nạp SAU 02–07 (dùng donSachTheVanHanh, donSachSauKhiXoaDuLieu, doiThe…) và
-   TRƯỚC 08_khoi_dong.js (gọi khoiDongTheoWorkspace từ init()).
+   module) nạp theo đúng thứ tự trong index.html và dùng chung một phạm vi.
 
-   Chế độ: backend có thư mục gốc workspace thì list_workspaces trả ok và ô đổi
-   hiện ra; chạy bằng một tệp dữ liệu chỉ định riêng thì nó trả ws_disabled và
-   toàn bộ phần này im lặng — giao diện chạy y như trước.
+   Backend: api_workspace.py. Chạy với đường dẫn CSDL riêng (argv) thì
+   `get_workspace_state().enabled` là false: nút đổi ẩn, màn chọn không bao giờ
+   hiện — giao diện y như trước khi có workspace.
 
-   ĐỔI WORKSPACE KHÔNG TẢI LẠI TRANG. Backend đổi `db_path` rồi giao diện nạp lại
-   dữ liệu theo đúng đường mở app: dọn trạng thái mỗi thẻ như sau "Xoá dữ
-   liệu" (donSachTheVanHanh + donSachSauKhiXoaDuLieu — hàng chờ nhập, em đang
-   mở, CLB đang mở, hạt giống đã khoá...) rồi nạp thẻ đang xem (loadPipelineTab
-   cho thanh bên). Thẻ khác tự nạp khi bấm vào (doiThe). Trạng thái cũ không
-   được sang workspace mới: một sổ đang chờ nhập mà nằm lại thì sẽ nhập nhầm
-   vào workspace khác.
+   ĐỔI WORKSPACE = TẢI LẠI TRANG. Mỗi thẻ có trạng thái riêng trong các biến
+   `let` ở đầu js/02…06 (hàng chờ nạp tệp, em đang nhập tại chỗ, CLB đang chấm
+   điểm, dải chọn buổi…), mà tất cả đều thuộc về CSDL CŨ. Dọn từng biến là
+   một danh sách sẽ lạc hậu ngay khi có biến mới; tải lại là chạy đúng
+   init() của js/08_khoi_dong.js — con đường khởi động DUY NHẤT — nên không
+   thể sót thứ gì. Ngôn ngữ đã chọn nằm trong localStorage nên được giữ.
 */
 "use strict";
 
+const WS_DANH_TU = ["person", "slot", "session", "group", "score"];
+const WS_NGANH = ["school", "company", "event", "custom"];
+const WS_TONG_BUOC = 4;
+
+let wsTrangThai = null;     // data của get_workspace_state
+let wsDanhSach = [];        // data.workspaces của list_workspaces
+let wsMau = [];             // data.templates của list_templates
+let wsSuaDong = null;       // {slug, kieu: "doi_ten" | "nhan_ban" | "luu_mau"}
+let wsWizard = null;        // null = đang ở màn danh sách
+let wsCoTheDong = false;    // đã có workspace để quay lại thì mới đóng được màn chọn
+
+/* Tải lại trang sau khi đổi workspace. Cờ báo cho cầu nối trình duyệt
+   (browser_host.py) rằng đây KHÔNG phải đóng cửa sổ — nếu không, sự kiện
+   pagehide báo "đã đóng" và nó tắt máy chủ ngay dưới chân trang. */
+function wsTaiLaiTrang() {
+  window.__DANG_TAI_LAI = true;
+  window.location.reload();
+}
+
 /* ------------------------------------------------------------------ *
- * 10. KHÔNG GIAN LÀM VIỆC
+ * TIỆN ÍCH DỰNG DOM
  * ------------------------------------------------------------------ */
 
-const WS_DANH_TU = ["person", "slot", "session", "group", "score"];
-
-const WS = {
-  batChoPhep: false,   // backend co thu muc goc workspace
-  hienTai: null,       // slug workspace dang mo (null = chua mo cai nao)
-  ten: "",             // ten hien thi cua workspace dang mo
-  ds: [],              // list_workspaces: items
-  mau: [],             // list_templates
-  view: "chon",        // "chon" | "ten" | "tao"
-  tenMode: null,       // { kieu: "rename"|"duplicate"|"template", slug, ten }
-  wiz: null,           // trang thai trinh tao
-  buoc: 1,
-  dangLam: false,      // chan bam doi khi yeu cau dang bay
-  truocKhiMo: null,    // phan tu co focus truoc khi mo hop thoai
-};
-
-const WS_VIEW = {
-  chon: { id: "wsViewChon", tieuDe: "wsTieuDeChon", viec: "btnWsMoi" },
-  ten:  { id: "wsViewTen",  tieuDe: "wsTieuDeTen",  viec: "wsTenMoi" },
-  tao:  { id: "wsViewTao",  tieuDe: "wsTieuDeTao",  viec: "wsTen" },
-};
-
-function wsMaLoi(res) {
-  return res && res.errors && res.errors[0] && res.errors[0].code;
+/* Dựng phần tử: wsEl("button", {class: "btn", text: "…", onclick: fn}, ...con). */
+function wsEl(tag, thuocTinh, ...con) {
+  const e = document.createElement(tag);
+  Object.entries(thuocTinh || {}).forEach(([k, v]) => {
+    if (v === null || v === undefined || v === false) return;
+    if (k === "class") e.className = v;
+    else if (k === "text") e.textContent = v;
+    else if (k.startsWith("on")) e.addEventListener(k.slice(2), v);
+    else if (k === "value") e.value = v;
+    else if (k === "checked") e.checked = true;
+    else if (k === "disabled") e.disabled = true;
+    else e.setAttribute(k, v === true ? "" : v);
+  });
+  con.flat().forEach((c) => {
+    if (c === null || c === undefined || c === false) return;
+    e.append(c.nodeType ? c : document.createTextNode(String(c)));
+  });
+  return e;
 }
 
-function wsNhanNganh(nganh) {
-  const khoa = "ws_industry_" + nganh;
-  const chu = t(khoa);
-  return chu === khoa ? String(nganh) : chu;
+function wsTenNganh(nganh) {
+  return t("ws_loai_" + (WS_NGANH.includes(nganh) ? nganh : "custom"));
 }
 
-/* "2026-10-14T09:30:05" -> "2026-10-14 09:30" */
-function wsNgayGio(iso) {
-  return String(iso || "").replace("T", " ").slice(0, 16);
-}
+/* ------------------------------------------------------------------ *
+ * KHỞI ĐỘNG VÀ NÚT Ở THANH BÊN
+ * ------------------------------------------------------------------ */
 
-/* ---- Ô đổi ở thanh bên ---- */
-
-function wsCapNhatCongTac() {
+function initWorkspace() {
   const nut = el("btnWorkspace");
-  if (!nut) return;
-  nut.hidden = !WS.batChoPhep;
-  nut.title = t("ws_switcher_title");
-  nut.dataset.slug = WS.hienTai || "";
-  el("wsTenHienTai").textContent = WS.hienTai ? WS.ten : t("ws_chua_mo");
-}
-
-/* ---- Hộp thoại: mở, đóng, đổi màn, phím tắt ---- */
-
-function wsMoHop(view) {
-  const ov = el("wsOverlay");
-  if (ov.hidden) WS.truocKhiMo = document.activeElement;
-  ov.hidden = false;
-  wsDoiView(view);
-}
-
-function wsDoiView(view) {
-  WS.view = view;
-  Object.keys(WS_VIEW).forEach((k) => { el(WS_VIEW[k].id).hidden = k !== view; });
-  el("wsHop").setAttribute("aria-labelledby", WS_VIEW[view].tieuDe);
-  /* Chua mo workspace nao thi khong co duong thoat: man chon la cua vao. */
-  el("btnWsDong").hidden = !WS.hienTai;
-  const viec = el(WS_VIEW[view].viec);
-  if (viec) {
-    viec.focus();
-    if (view === "ten" && viec.select) viec.select();
-  }
-}
-
-/* `ep`: dong ca khi chua mo workspace nao (dung ngay sau khi mo xong). */
-function wsDongHop(ep) {
-  if (!WS.hienTai && !ep) return false;
-  el("wsOverlay").hidden = true;
-  const quayLai = WS.truocKhiMo;
-  WS.truocKhiMo = null;
-  if (quayLai && quayLai.isConnected && quayLai.focus) quayLai.focus();
-  return true;
-}
-
-function wsPhimTat(ev) {
-  const ov = el("wsOverlay");
-  if (ov.hidden) return;
-  if (ev.key === "Escape") {
-    ev.preventDefault();
-    if (WS.view === "chon") wsDongHop();
-    else wsVeManChon();
-    return;
-  }
-  if (ev.key === "Enter" && WS.view === "tao" &&
-      ev.target && ev.target.tagName === "INPUT" && ev.target.type !== "checkbox") {
-    ev.preventDefault();
-    const tiep = el("btnWsTiep").hidden ? el("btnWsTao") : el("btnWsTiep");
-    tiep.click();
-    return;
-  }
-  if (ev.key !== "Tab") return;
-  /* Giu Tab trong hop thoai: khong cho focus lot ra man hinh phia sau. */
-  const duoc = Array.from(el("wsHop").querySelectorAll(
-    "button, input, select, textarea, [tabindex='0']"))
-    .filter((n) => !n.disabled && !n.hidden && n.type !== "hidden" && n.offsetParent !== null);
-  if (!duoc.length) return;
-  const dau = duoc[0];
-  const cuoi = duoc[duoc.length - 1];
-  if (ev.shiftKey && document.activeElement === dau) {
-    ev.preventDefault();
-    cuoi.focus();
-  } else if (!ev.shiftKey && document.activeElement === cuoi) {
-    ev.preventDefault();
-    dau.focus();
-  }
-}
-
-/* ---- Màn chọn ---- */
-
-function wsMoManChon() {
-  wsMoHop("chon");
-  return wsTaiDanhSach();
-}
-
-function wsVeManChon() {
-  wsDoiView("chon");
-  wsTaiDanhSach();
-}
-
-function wsTaiDanhSach() {
-  return callApi("list_workspaces").then((res) => {
-    const oLoi = el("wsLoiDanhSach");
-    if (!res.ok) {
-      WS.ds = [];
-      oLoi.textContent = t("ws_list_error") + " " + trErrs(res.errors).join(" ");
-      wsVeDanhSach();
-      return res;
-    }
-    oLoi.textContent = "";
-    WS.ds = res.data.items;
-    WS.hienTai = res.data.current;
-    const dangMo = WS.ds.find((w) => w.slug === WS.hienTai);
-    if (dangMo) WS.ten = dangMo.name;
-    wsCapNhatCongTac();
-    wsVeDanhSach();
-    return res;
+  if (nut) nut.addEventListener("click", () => wsMoManChon(true));
+  el("wsOverlay").addEventListener("keydown", (ev) => {
+    if (ev.key === "Escape" && wsCoTheDong) wsDongManChon();
+  });
+  window.addEventListener("langchange", () => {
+    wsCapNhatTieuDe();
+    if (el("wsOverlay").hidden) return;
+    if (wsWizard) wsGomBuoc();   // chữ đang gõ dở không được mất khi đổi ngôn ngữ
+    wsVe();
+  });
+  callApi("get_workspace_state").then((res) => {
+    if (!res.ok) return;
+    wsTrangThai = res.data;
+    /* Nhãn từ vựng của workspace (xem nhan_ws.py / I18N.applyLabels): chỉ vẽ lại
+       khi KHÁC mặc định trường học, nên trường học thường không thấy gì đổi. Lấy từ
+       get_workspace_state chứ không get_workspace_config vì hàm sau tắt khi chạy với
+       đường dẫn CSDL riêng, mà nhãn của CSDL đó vẫn phải áp. */
+    wsApDungCauHinh(wsTrangThai.config);
+    wsVeTenHienTai();
+    wsCapNhatTieuDe();
+    /* Chưa chọn (có nhiều workspace lúc khởi động) thì màn chọn hiện ngay,
+       đè lên trên và KHÔNG đóng được cho tới khi mở một workspace. */
+    if (wsTrangThai.enabled && !wsTrangThai.chon) wsMoManChon(false);
   });
 }
 
-function wsNutHang(khoa, lop, theo, onClick) {
-  const nut = document.createElement("button");
-  nut.type = "button";
-  nut.className = "btn " + lop + " btn-nho";
-  nut.setAttribute("data-i18n", khoa);
-  nut.textContent = t(khoa);
-  nut.setAttribute("aria-describedby", theo);
-  if (onClick) nut.addEventListener("click", onClick);
-  return nut;
+/* Tiêu đề cửa sổ: "<tên danh từ chỗ xếp> — <tên workspace>". Trình duyệt dự phòng lấy
+   từ document.title; cửa sổ gốc pywebview thì phải nhờ backend đổi (dat_tieu_de_cua_so).
+   Chạy với đường dẫn CSDL riêng thì giữ tiêu đề cũ, không đụng gì. */
+function wsCapNhatTieuDe() {
+  if (!wsTrangThai || !wsTrangThai.enabled) return;
+  const tieuDe = window.I18N.nounText("slot", "", window.I18N.getLang()) + " — " +
+    (wsTrangThai.name || wsTrangThai.slug || "");
+  document.title = tieuDe;
+  callApi("dat_tieu_de_cua_so", tieuDe);
+}
+
+/* Nhãn VÀ luật của workspace vào giao diện: chữ (I18N), hai trần nhập liệu ở thẻ 03, và
+   câu gợi ý "tối đa N" (không giới hạn thì dùng câu riêng). Lấy từ get_workspace_state
+   nên chạy được cả khi mở bằng đường dẫn CSDL riêng. */
+function wsApDungCauHinh(cfg) {
+  if (!cfg) return;
+  const luat = cfg.rules || {};
+  TRAN_NGUYEN_VONG_MOI_BUOI = Number.isInteger(luat.max_choices) ? luat.max_choices : 10;
+  TRAN_CLB_THI_MOI_BUOI = luat.max_tests === null ? Infinity
+    : (Number.isInteger(luat.max_tests) ? luat.max_tests : 5);
+  const goiY = el("fallbackStep1Hint");
+  if (goiY) {
+    goiY.setAttribute("data-i18n", luat.max_tests === null
+      ? "fallback_step1_hint_khong_gioi_han" : "fallback_step1_hint");
+  }
+  apDungLuatChamDiem(luat);
+  window.I18N.applyConfig(cfg);
+}
+
+function wsVeTenHienTai() {
+  const nut = el("btnWorkspace");
+  if (!nut || !wsTrangThai) return;
+  nut.hidden = !wsTrangThai.enabled;
+  el("wsTenHienTai").textContent = wsTrangThai.name || wsTrangThai.slug || "";
+}
+
+/* ------------------------------------------------------------------ *
+ * MÀN CHỌN
+ * ------------------------------------------------------------------ */
+
+function wsMoManChon(coTheDong) {
+  wsCoTheDong = coTheDong;
+  wsSuaDong = null;
+  wsWizard = null;
+  el("wsOverlay").hidden = false;
+  wsLamMoiDanhSach();
+}
+
+function wsDongManChon() {
+  el("wsOverlay").hidden = true;
+  const nut = el("btnWorkspace");
+  if (nut && !nut.hidden) nut.focus();
+}
+
+function wsLamMoiDanhSach() {
+  return Promise.all([callApi("list_workspaces"), callApi("list_templates")]).then(([ds, mau]) => {
+    if (!ds.ok) { showErrorToast(ds.errors); return; }
+    wsDanhSach = ds.data.workspaces;
+    wsMau = mau.ok ? mau.data.templates : [];
+    wsVe();
+  });
+}
+
+function wsVe() {
+  if (wsWizard) wsVeWizard();
+  else wsVeDanhSach();
 }
 
 function wsVeDanhSach() {
-  const khung = el("wsDanhSach");
-  clear(khung);
-  el("wsRong").hidden = WS.ds.length > 0;
-  WS.ds.forEach((w) => {
-    const laHienTai = w.slug === WS.hienTai;
-    const hang = document.createElement("div");
-    hang.className = "ws-hang" + (laHienTai ? " is-hien-tai" : "");
-    hang.setAttribute("role", "listitem");
-    hang.dataset.slug = w.slug;
+  const hop = el("wsHop");
+  clear(hop);
+  hop.append(
+    wsEl("h2", { id: "wsTieuDe", class: "ws-tieu-de", tabindex: "-1", text: t("ws_chon_title") }),
+    wsEl("p", { class: "hint-text", text: t("ws_chon_hint") }),
+  );
 
-    const thongTin = document.createElement("div");
-    thongTin.className = "ws-hang-tt";
-    const dong1 = document.createElement("div");
-    dong1.className = "ws-hang-ten-dong";
-    const ten = document.createElement("span");
-    ten.className = "ws-hang-ten";
-    ten.id = "wsTenHang-" + w.slug;
-    ten.textContent = w.name;
-    dong1.appendChild(ten);
-    if (laHienTai) {
-      const nhan = document.createElement("span");
-      nhan.className = "ws-nhan-hien-tai";
-      nhan.setAttribute("data-i18n", "ws_badge_current");
-      nhan.textContent = t("ws_badge_current");
-      dong1.appendChild(nhan);
-    }
-    const meta = document.createElement("div");
-    meta.className = "ws-hang-meta";
-    meta.textContent = t("ws_meta", {
-      industry: wsNhanNganh(w.industry), modified: wsNgayGio(w.modified),
+  if (!wsDanhSach.length) {
+    hop.append(wsEl("p", { class: "ws-rong", text: t("ws_rong") }));
+  } else {
+    const thead = wsEl("thead", null, wsEl("tr", null,
+      wsEl("th", { text: t("ws_cot_ten") }),
+      wsEl("th", { text: t("ws_cot_loai") }),
+      wsEl("th", { text: t("ws_cot_sua") }),
+      wsEl("th", { text: t("th_thao_tac") })));
+    const tbody = wsEl("tbody");
+    wsDanhSach.forEach((w) => {
+      tbody.append(wsDongWorkspace(w));
+      if (wsSuaDong && wsSuaDong.slug === w.slug) tbody.append(wsDongSua(w));
     });
-    thongTin.appendChild(dong1);
-    thongTin.appendChild(meta);
+    hop.append(wsEl("div", { class: "ws-bang-boc" },
+      wsEl("table", { class: "data-table ws-bang", id: "wsBang" }, thead, tbody)));
+  }
 
-    const nutBam = document.createElement("div");
-    nutBam.className = "ws-hang-nut";
-    const theo = ten.id;
-    nutBam.appendChild(wsNutHang("ws_btn_open", "btn-primary", theo, () => wsMo(w.slug)));
-    nutBam.appendChild(wsNutHang("ws_btn_rename", "btn-secondary", theo,
-      () => wsMoHopTen("rename", w)));
-    nutBam.appendChild(wsNutHang("ws_btn_duplicate", "btn-secondary", theo,
-      () => wsMoHopTen("duplicate", w)));
-    const nutXuat = wsNutHang("ws_btn_export", "btn-secondary", theo, null);
-    nutXuat.addEventListener("click", () => wsXuat(w, nutXuat));
-    nutBam.appendChild(nutXuat);
-    nutBam.appendChild(wsNutHang("ws_btn_template", "btn-secondary", theo,
-      () => wsMoHopTen("template", w)));
-    const nutXoa = wsNutHang("ws_btn_delete", "btn-danger", theo, null);
-    /* Nut xac nhan hai buoc co san (chung.js): bam mot lan chi doi nhan. */
-    armTwoStepConfirm(nutXoa, () => t("ws_btn_delete_confirm"), () => wsXoa(w), 4000);
-    nutBam.appendChild(nutXoa);
+  const chan = wsEl("div", { class: "ws-chan" },
+    wsEl("button", { type: "button", class: "btn btn-primary", id: "wsBtnMoi",
+      "data-i18n": "ws_btn_moi", text: t("ws_btn_moi"), onclick: wsBatDauWizard }),
+    wsEl("button", { type: "button", class: "btn btn-secondary", id: "wsBtnNhap",
+      "data-i18n": "ws_btn_nhap_zip", text: t("ws_btn_nhap_zip"),
+      onclick: () => el("wsFileZip").click() }),
+    wsEl("input", { type: "file", id: "wsFileZip", accept: ".zip", hidden: true,
+      onchange: (ev) => wsNhapZip(ev.target) }),
+    wsCoTheDong ? wsEl("button", { type: "button", class: "btn btn-ghost ws-dong", id: "wsBtnDong",
+      "data-i18n": "ws_btn_dong", text: t("ws_btn_dong"), onclick: wsDongManChon }) : null,
+  );
+  hop.append(chan);
+  const tieuDe = el("wsTieuDe");
+  if (tieuDe) tieuDe.focus();
+}
 
-    hang.appendChild(thongTin);
-    hang.appendChild(nutBam);
-    khung.appendChild(hang);
+function wsDongWorkspace(w) {
+  const nutXoa = wsEl("button", { type: "button", class: "btn btn-ghost btn-nho ws-xoa",
+    "data-i18n": "ws_btn_xoa", "data-slug": w.slug, text: t("ws_btn_xoa"),
+    disabled: w.dang_mo, title: w.dang_mo ? t("ws_khong_xoa_dang_mo") : null });
+  if (!w.dang_mo) {
+    armTwoStepConfirm(nutXoa, () => t("ws_btn_xoa_xn"), () => wsXoa(w), 4000);
+  }
+  const hanhDong = (khoa, ham, lop) => wsEl("button", {
+    type: "button", class: "btn btn-ghost btn-nho " + (lop || ""),
+    "data-slug": w.slug, "data-hanh-dong": khoa,
+    text: t("ws_btn_" + khoa), onclick: ham });
+  return wsEl("tr", { "data-slug": w.slug, class: w.dang_mo ? "ws-dang-mo" : null },
+    wsEl("td", { class: "ws-ten" },
+      wsEl("div", { class: "ws-ten-chinh", text: w.name }),
+      wsEl("div", { class: "ws-slug", text: w.slug }),
+      w.dang_mo ? wsEl("span", { class: "ws-badge", text: t("ws_dang_mo_nhan") }) : null),
+    wsEl("td", { text: wsTenNganh(w.industry) }),
+    wsEl("td", { class: "ws-sua", text: w.modified }),
+    wsEl("td", { class: "ws-hanh-dong" },
+      wsEl("button", { type: "button", class: "btn btn-secondary btn-nho",
+        "data-slug": w.slug, "data-hanh-dong": "mo", text: t("ws_btn_mo"),
+        disabled: w.dang_mo, onclick: () => wsMo(w) }),
+      hanhDong("doi_ten", () => wsBatSua(w, "doi_ten")),
+      hanhDong("nhan_ban", () => wsBatSua(w, "nhan_ban")),
+      hanhDong("luu_mau", () => wsBatSua(w, "luu_mau")),
+      hanhDong("xuat", () => wsXuat(w)),
+      nutXoa));
+}
+
+function wsBatSua(w, kieu) {
+  wsSuaDong = wsSuaDong && wsSuaDong.slug === w.slug && wsSuaDong.kieu === kieu
+    ? null : { slug: w.slug, kieu };
+  wsVeDanhSach();
+  const o = document.querySelector("#wsBang .ws-sua-ten");
+  if (o) { o.focus(); o.select(); }
+}
+
+/* Dòng sửa nhanh mở ngay dưới workspace: đổi tên / nhân bản / lưu thành mẫu. */
+function wsDongSua(w) {
+  const kieu = wsSuaDong.kieu;
+  const macDinh = kieu === "nhan_ban" ? t("ws_nhan_ban_ten_mac_dinh", { ten: w.name }) : w.name;
+  const o = wsEl("input", { type: "text", class: "text-input ws-sua-ten", value: macDinh,
+    "aria-label": t(kieu === "luu_mau" ? "ws_ten_mau" : "ws_ten_moi") });
+  const kem = kieu === "nhan_ban"
+    ? wsEl("label", { class: "ws-kem" },
+        wsEl("input", { type: "checkbox", id: "wsKemDuLieu", checked: true }),
+        " ", t("ws_nhan_ban_kem"))
+    : null;
+  const luu = wsEl("button", { type: "button", class: "btn btn-primary btn-nho", id: "wsBtnLuuSua",
+    text: t("ws_btn_luu") });
+  const lam = () => khiBan(luu, () => wsLuuSua(w, kieu, o.value.trim(),
+    kem ? el("wsKemDuLieu").checked : true));
+  luu.addEventListener("click", lam);
+  o.addEventListener("keydown", (ev) => { if (ev.key === "Enter") lam(); });
+  return wsEl("tr", { class: "ws-dong-sua" },
+    wsEl("td", { colspan: "4" }, wsEl("div", { class: "ws-sua-hop" },
+      wsEl("span", { class: "ws-sua-nhan",
+        text: t(kieu === "luu_mau" ? "ws_ten_mau" : "ws_ten_moi") }),
+      o, kem, luu,
+      wsEl("button", { type: "button", class: "btn btn-ghost btn-nho",
+        text: t("btn_cancel"), onclick: () => { wsSuaDong = null; wsVeDanhSach(); } }))));
+}
+
+function wsLuuSua(w, kieu, ten, kemDuLieu) {
+  if (!ten) { showToast(t("ws_v_ten"), "error"); return Promise.resolve(); }
+  const goi = kieu === "doi_ten" ? callApi("rename_workspace", w.slug, ten)
+    : kieu === "nhan_ban" ? callApi("duplicate_workspace", w.slug, ten, kemDuLieu)
+    : callApi("save_as_template", w.slug, ten);
+  return goi.then((res) => {
+    if (!res.ok) { showErrorToast(res.errors); return; }
+    showToast(t(kieu === "doi_ten" ? "ws_da_doi_ten" : kieu === "nhan_ban" ? "ws_da_nhan_ban"
+      : "ws_da_luu_mau", { ten }), "success");
+    wsSuaDong = null;
+    if (kieu === "doi_ten" && wsTrangThai && wsTrangThai.slug === w.slug) {
+      wsTrangThai.name = ten;
+      wsVeTenHienTai();
+      wsCapNhatTieuDe();
+    }
+    return wsLamMoiDanhSach();
   });
 }
 
-/* ---- Mở / xoá / xuất / nhập ---- */
+/* ------------------------------------------------------------------ *
+ * HÀNH ĐỘNG TRÊN MỘT WORKSPACE
+ * ------------------------------------------------------------------ */
 
-/* Nap lai du lieu cua MOI the cho workspace vua mo (xem dau tep). */
-function wsTaiLaiDuLieu() {
-  napLuatDiem();                // luat diem cua workspace moi: an/hien the Nhap diem
-  hsDaChon.clear();
-  donSachSauKhiXoaDuLieu();
-  donSachTheVanHanh();
-  loadPipelineTab();            // o so, canh bao du lieu, thanh ben
-  const the = currentTabName();
-  if (the !== "pipeline") doiThe(the);
-}
-
-function wsMo(slug) {
-  if (slug === WS.hienTai) {
-    wsDongHop();
-    return;
+/* Chuyển workspace: thẻ 03 còn thay đổi chưa lưu thì bấm hai lần mới đi
+   (cùng luật với đổi thẻ — xem roiDiNeuDuoc). */
+function wsMo(w) {
+  const di = () => callApi("open_workspace", w.slug).then((res) => {
+    if (!res.ok) { showErrorToast(res.errors); return; }
+    showToast(t("ws_da_mo", { ten: res.data.name || w.slug }), "success");
+    wsTaiLaiTrang();
+  });
+  if (currentTabName() === "fallback" && typeof roiDiNeuDuoc === "function") {
+    roiDiNeuDuoc(di, "ws:" + w.slug);
+  } else {
+    di();
   }
-  const lam = () => {
-    if (WS.dangLam) return;
-    WS.dangLam = true;
-    callApi("open_workspace", slug).then((res) => {
-      WS.dangLam = false;
-      if (!res.ok) {
-        showErrorToast(res.errors);
-        return;
-      }
-      WS.hienTai = slug;
-      WS.ten = res.data.name;
-      wsCapNhatCongTac();
-      wsDongHop(true);
-      showToast(t("ws_toast_opened", { name: res.data.name }), "success");
-      wsTaiLaiDuLieu();
-    });
-  };
-  /* Dang soan do dang o the Nhap tai cho: canh bao truoc, bam lan hai moi di. */
-  if (WS.hienTai && typeof roiDiNeuDuoc === "function") roiDiNeuDuoc(lam, "ws:" + slug);
-  else lam();
 }
 
 function wsXoa(w) {
-  if (WS.dangLam) return;
-  WS.dangLam = true;
   callApi("delete_workspace", w.slug, "XOA").then((res) => {
-    WS.dangLam = false;
-    if (!res.ok) {
-      showErrorToast(res.errors);
-      return;
-    }
-    showToast(t("ws_toast_deleted", { name: w.name, path: res.data.trash }), "success");
-    if (res.data.was_open) {
-      WS.hienTai = null;
-      WS.ten = "";
-      wsCapNhatCongTac();
-    }
-    wsDoiView("chon");           // cap nhat nut dong (da het workspace dang mo)
-    wsTaiDanhSach();
+    if (!res.ok) { showErrorToast(res.errors); return; }
+    showToast(t("ws_da_xoa", { ten: w.name }), "success");
+    wsLamMoiDanhSach();
   });
 }
 
-function wsXuat(w, nut) {
-  khiBan(nut, () => callApi("export_workspace", w.slug)).then((res) => {
-    if (!res.ok) {
-      showErrorToast(res.errors);
-      return;
-    }
-    showToast(t("ws_toast_exported", { path: res.data.path }), "success");
+function wsXuat(w) {
+  callApi("export_workspace", w.slug).then((res) => {
+    if (!res.ok) { showErrorToast(res.errors); return; }
+    showToast(t("ws_da_xuat", { path: res.data.path }), "success");
     callApi("mo_thu_muc", res.data.path);
   });
 }
 
-function wsNhapZip(file) {
+function wsNhapZip(oFile) {
+  const file = oFile.files && oFile.files[0];
+  oFile.value = "";
   if (!file) return;
+  if (!/\.zip$/i.test(file.name)) { showToast(t("ws_chi_nhan_zip"), "error"); return; }
   const reader = new FileReader();
   reader.onload = () => {
-    callApi("import_workspace", bufferSangBase64(reader.result)).then((res) => {
-      if (!res.ok) {
-        showErrorToast(res.errors);
-        return;
-      }
-      showToast(t("ws_toast_imported", { slug: res.data.slug }), "success");
-      wsTaiDanhSach();
+    callApi("import_workspace", bufferSangBase64(reader.result), file.name).then((res) => {
+      if (!res.ok) { showErrorToast(res.errors); return; }
+      showToast(t("ws_da_nhap", { ten: res.data.name }), "success");
+      wsLamMoiDanhSach();
     });
   };
-  reader.onerror = () => showToast(t("ws_file_read_error"), "error");
+  reader.onerror = () => showToast(String(reader.error || ""), "error");
   reader.readAsArrayBuffer(file);
 }
 
-/* ---- Hộp đặt tên: đổi tên / nhân bản / lưu làm mẫu ---- */
-
-const WS_TIEU_DE_TEN = {
-  rename: "ws_rename_title", duplicate: "ws_duplicate_title", template: "ws_template_title",
-};
-const WS_GOI_Y_TEN = { rename: "", duplicate: "ws_duplicate_hint", template: "ws_template_hint" };
-
-function wsVeChuHopTen() {
-  const m = WS.tenMode;
-  if (!m) return;
-  el("wsTieuDeTen").textContent = t(WS_TIEU_DE_TEN[m.kieu]);
-  el("wsGoiYTen").textContent = WS_GOI_Y_TEN[m.kieu] ? t(WS_GOI_Y_TEN[m.kieu]) : "";
-}
-
-function wsMoHopTen(kieu, w) {
-  WS.tenMode = { kieu, slug: w.slug, ten: w.name };
-  el("wsTenMoi").value = kieu === "duplicate" ? w.name + " (2)" : w.name;
-  el("wsNhanKemDuLieu").hidden = kieu !== "duplicate";
-  el("wsKemDuLieu").checked = true;
-  el("wsLoiTen").textContent = "";
-  wsVeChuHopTen();
-  wsDoiView("ten");
-}
-
-function wsLuuTen() {
-  const m = WS.tenMode;
-  const ten = el("wsTenMoi").value.trim();
-  if (!m) return;
-  if (!ten) {
-    el("wsLoiTen").textContent = t("ws_v_name");
-    el("wsTenMoi").focus();
-    return;
-  }
-  const goi = () => {
-    if (m.kieu === "rename") return callApi("rename_workspace", m.slug, ten);
-    if (m.kieu === "duplicate") {
-      return callApi("duplicate_workspace", m.slug, ten, el("wsKemDuLieu").checked);
-    }
-    return callApi("save_as_template", m.slug, ten);
-  };
-  khiBan(el("btnWsTenLuu"), goi).then((res) => {
-    if (!res.ok) {
-      el("wsLoiTen").textContent = trErrs(res.errors).join(" ");
-      return;
-    }
-    const khoa = { rename: "ws_toast_renamed", duplicate: "ws_toast_duplicated",
-                   template: "ws_toast_template_saved" }[m.kieu];
-    showToast(t(khoa, { name: ten }), "success");
-    if (m.kieu === "rename" && m.slug === WS.hienTai) {
-      WS.ten = ten;
-      wsCapNhatCongTac();
-    }
-    wsVeManChon();
-  });
-}
-
 /* ------------------------------------------------------------------ *
- * Trình tạo 4 bước
+ * TRÌNH HƯỚNG DẪN TẠO WORKSPACE (4 bước)
  * ------------------------------------------------------------------ */
 
-/* Trang thai trinh tao tu mot cau hinh (mau). `en` trung `vi` nghia la o tieng
-   Anh da de trong luc luu — hien lai o trong de sua chu Viet van keo theo. */
-function wsTrangThaiTuCauHinh(cfg, ten, mauSlug) {
-  const nhan = {};
-  WS_DANH_TU.forEach((dt) => {
-    const c = (cfg.labels && cfg.labels[dt]) || {};
-    nhan[dt] = { vi: c.vi || "", en: c.en && c.en !== c.vi ? c.en : "" };
-  });
-  const r = cfg.rules || {};
+/* Điền sẵn MỌI bước từ một mẫu (giữ nguyên tên người dùng đã gõ). */
+function wsWizardTuMau(mau, ten, buoc) {
+  const c = mau.config;
+  const labels = {};
+  WS_DANH_TU.forEach((dt) => { labels[dt] = { vi: c.labels[dt].vi, en: c.labels[dt].en }; });
   return {
+    buoc: buoc || 1,
     ten: ten || "",
-    nganh: cfg.industry || "school",
-    mau: mauSlug,
-    nhan,
-    luat: {
-      max_choices: r.max_choices,
-      max_tests: r.max_tests === undefined ? null : r.max_tests,
-      priority: r.priority || "score",
-      tier_mode: r.tier_mode || "reserve",
-      score_scope: r.score_scope || "per_slot",
-      tiers: Array.isArray(r.tiers) ? r.tiers.slice() : [],
-    },
+    nganh: c.industry,
+    mau: mau.slug,
+    labels,
+    maxChoices: String(c.rules.max_choices),
+    maxTests: c.rules.max_tests === null ? "" : String(c.rules.max_tests),
+    khongGioiHan: c.rules.max_tests === null,
+    priority: c.rules.priority,
+    tierMode: c.rules.tier_mode,
+    scoreScope: c.rules.score_scope,
+    tiersText: (c.rules.tiers || []).join("\n"),
   };
 }
 
-function wsCauHinhTuTrangThai() {
-  const w = WS.wiz;
+function wsBatDauWizard() {
+  const mau = wsMau.find((m) => m.builtin) || wsMau[0];
+  if (!mau) return;
+  wsWizard = wsWizardTuMau(mau, "", 1);
+  wsVeWizard();
+}
+
+/* Gom các ô của bước đang mở vào trạng thái (gọi trước khi đổi bước). */
+function wsGomBuoc() {
+  const w = wsWizard;
+  const lay = (id) => { const o = el(id); return o ? o : null; };
+  if (w.buoc === 1) {
+    w.ten = lay("wzTen").value;
+    w.nganh = lay("wzNganh").value;
+  } else if (w.buoc === 2) {
+    document.querySelectorAll("#wsHop .wz-nhan").forEach((o) => {
+      w.labels[o.dataset.noun][o.dataset.ngon] = o.value;
+    });
+  } else if (w.buoc === 3) {
+    w.maxChoices = lay("wzMaxChoices").value;
+    w.maxTests = lay("wzMaxTests").value;
+    w.khongGioiHan = lay("wzKhongGioiHan").checked;
+    w.priority = lay("wzPriority").value;
+    w.tierMode = lay("wzTierMode").value;
+    w.scoreScope = lay("wzScoreScope").value;
+    w.tiersText = lay("wzTiers").value;
+  }
+}
+
+/* Thứ tự nhóm có tác dụng khi nhóm xếp CỨNG: chế độ "nghiêm ngặt", HOẶC ưu tiên "chỉ theo
+   nhóm" (thuật toán coi đó là xếp cứng bất kể chế độ nhóm — rbda_priority_pipeline.tham_so_luat).
+   Chỉ xét chế độ mà bỏ qua ưu tiên thì "chỉ theo nhóm" + "suất dự trữ mềm" lặng lẽ mất danh
+   sách nhóm, và mọi người ngang nhau, chỉ còn bốc thăm. */
+function wsDungThuTuNhom(w) {
+  return w.tierMode === "strict" || w.priority === "tier";
+}
+
+function wsTiers(w) {
+  return wsDungThuTuNhom(w)
+    ? w.tiersText.split("\n").map((s) => s.trim()).filter(Boolean) : [];
+}
+
+/* Lỗi của MỘT bước ([] = hợp lệ). Cùng luật với cau_hinh_ws.py — backend vẫn
+   kiểm lại, nhưng ở đây báo bằng tiếng người dùng, đúng ô sai. */
+function wsLoiBuoc(w, buoc) {
+  const loi = [];
+  if (buoc === 1 && !w.ten.trim()) loi.push(t("ws_v_ten"));
+  if (buoc === 2) {
+    WS_DANH_TU.forEach((dt) => {
+      if (!w.labels[dt].vi.trim()) loi.push(t("ws_v_vi", { muc: t("ws_dt_" + dt) }));
+    });
+  }
+  if (buoc === 3) {
+    const mc = Number(w.maxChoices);
+    if (w.maxChoices.trim() === "" || !Number.isInteger(mc) || mc < 1 || mc > 20) {
+      loi.push(t("ws_v_max_choices"));
+    }
+    if (!w.khongGioiHan) {
+      const mt = Number(w.maxTests);
+      if (w.maxTests.trim() === "" || !Number.isInteger(mt) || mt < 0 || mt > 20) {
+        loi.push(t("ws_v_max_tests"));
+      }
+    }
+    const tiers = wsTiers(w);
+    if (new Set(tiers).size !== tiers.length) loi.push(t("ws_v_tiers"));
+  }
+  return loi;
+}
+
+function wsCfgTuWizard(w) {
   const labels = {};
-  WS_DANH_TU.forEach((dt) => { labels[dt] = { vi: w.nhan[dt].vi, en: w.nhan[dt].en }; });
+  WS_DANH_TU.forEach((dt) => {
+    labels[dt] = { vi: w.labels[dt].vi.trim(), en: w.labels[dt].en.trim() };
+  });
   return {
-    name: w.ten,
+    name: w.ten.trim(),
     industry: w.nganh,
     labels,
     rules: {
-      max_choices: w.luat.max_choices,
-      max_tests: w.luat.max_tests,
-      priority: w.luat.priority,
-      tier_mode: w.luat.tier_mode,
-      score_scope: w.luat.score_scope,
-      tiers: w.luat.tiers.slice(),
+      max_choices: Number(w.maxChoices),
+      max_tests: w.khongGioiHan ? null : Number(w.maxTests),
+      priority: w.priority,
+      tier_mode: w.tierMode,
+      score_scope: w.scoreScope,
+      tiers: wsTiers(w),
     },
   };
 }
 
-function wsBatDauTao() {
-  callApi("list_templates").then((res) => {
-    if (!res.ok) {
-      showErrorToast(res.errors);
-      return;
-    }
-    WS.mau = res.data;
-    const goc = WS.mau.find((m) => m.builtin) || WS.mau[0];
-    WS.wiz = wsTrangThaiTuCauHinh(goc.config, "", goc.slug);
-    WS.buoc = 1;
-    el("wsLoiBuoc").textContent = "";
-    wsDoiView("tao");
-    wsVeBuoc();
+function wsChuyenBuoc(moi) {
+  wsGomBuoc();
+  if (moi > wsWizard.buoc) {
+    const loi = wsLoiBuoc(wsWizard, wsWizard.buoc);
+    if (loi.length) { wsHienLoiBuoc(loi); return; }
+  }
+  wsWizard.buoc = moi;
+  wsVeWizard();
+}
+
+function wsHienLoiBuoc(loi) {
+  const o = el("wzLoi");
+  clear(o);
+  loi.forEach((cau) => o.append(wsEl("div", { text: cau })));
+  o.hidden = false;
+}
+
+/* Ô nhập có nhãn: trả {nhan, o} để ghép vào lưới. */
+function wsTruong(id, nhanKhoa, oNhap, goiY) {
+  return wsEl("div", { class: "ws-truong" },
+    wsEl("label", { for: id, class: "ws-truong-nhan", text: t(nhanKhoa) }),
+    oNhap,
+    goiY ? wsEl("div", { class: "ws-truong-goi-y", text: goiY }) : null);
+}
+
+function wsChon(id, giaTri, luaChon) {
+  return wsEl("select", { id, class: "text-input" },
+    luaChon.map(([v, nhan]) => wsEl("option", { value: v, text: nhan,
+      selected: v === giaTri ? true : null })));
+}
+
+function wsVeWizard() {
+  const w = wsWizard;
+  const hop = el("wsHop");
+  clear(hop);
+  const tenBuoc = t("ws_wz_b" + w.buoc);
+  hop.append(
+    wsEl("h2", { id: "wsTieuDe", class: "ws-tieu-de", tabindex: "-1", text: t("ws_wz_title") }),
+    wsEl("ol", { class: "ws-buoc", "aria-label": t("ws_wz_buoc", { n: w.buoc, tong: WS_TONG_BUOC }) },
+      [1, 2, 3, 4].map((n) => wsEl("li", {
+        class: "ws-buoc-muc" + (n === w.buoc ? " is-hien-tai" : n < w.buoc ? " is-xong" : ""),
+        "aria-current": n === w.buoc ? "step" : null,
+        text: n + ". " + t("ws_wz_b" + n) }))),
+    wsEl("p", { class: "ws-buoc-ten", text: t("ws_wz_buoc", { n: w.buoc, tong: WS_TONG_BUOC }) + " — " + tenBuoc }),
+  );
+
+  const noiDung = wsEl("div", { class: "ws-wz-noi-dung", id: "wzNoiDung" });
+  if (w.buoc === 1) wsBuoc1(noiDung);
+  else if (w.buoc === 2) wsBuoc2(noiDung);
+  else if (w.buoc === 3) wsBuoc3(noiDung);
+  else wsBuoc4(noiDung);
+  hop.append(noiDung, wsEl("div", { class: "ws-loi", id: "wzLoi", role: "alert", hidden: true }));
+
+  hop.append(wsEl("div", { class: "ws-chan" },
+    w.buoc > 1 ? wsEl("button", { type: "button", class: "btn btn-secondary", id: "wzLui",
+      text: t("ws_btn_quay_lai"), onclick: () => wsChuyenBuoc(w.buoc - 1) }) : null,
+    w.buoc < WS_TONG_BUOC ? wsEl("button", { type: "button", class: "btn btn-primary", id: "wzTiep",
+      text: t("ws_btn_tiep"), onclick: () => wsChuyenBuoc(w.buoc + 1) })
+      : wsEl("button", { type: "button", class: "btn btn-primary", id: "wzTao",
+          text: t("ws_btn_tao"), onclick: (ev) => khiBan(ev.currentTarget, wsTaoWorkspace) }),
+    wsEl("button", { type: "button", class: "btn btn-ghost ws-dong", id: "wzHuy",
+      text: t("btn_cancel"), onclick: () => { wsWizard = null; wsVeDanhSach(); } })));
+  const tieuDe = el("wsTieuDe");
+  if (tieuDe) tieuDe.focus();
+}
+
+/* --- Bước 1: tên, loại, mẫu --- */
+function wsBuoc1(hop) {
+  const w = wsWizard;
+  const oMau = wsChon("wzMau", w.mau, wsMau.map((m) => [m.slug, m.name]));
+  hop.append(
+    wsTruong("wzTen", "ws_wz_ten", wsEl("input", { type: "text", id: "wzTen", class: "text-input",
+      value: w.ten, placeholder: t("ws_wz_ten_ph"), maxlength: "80" })),
+    wsTruong("wzNganh", "ws_wz_loai", wsChon("wzNganh", w.nganh,
+      WS_NGANH.map((n) => [n, wsTenNganh(n)]))),
+    wsTruong("wzMau", "ws_wz_mau", oMau, t("ws_wz_mau_hint")),
+  );
+  /* Chọn mẫu = điền lại CẢ BỐN BƯỚC; chỉ tên đang gõ được giữ. */
+  oMau.addEventListener("change", (ev) => {
+    wsGomBuoc();
+    const mau = wsMau.find((m) => m.slug === ev.target.value);
+    if (mau) wsWizard = wsWizardTuMau(mau, wsWizard.ten, 1);
+    wsVeWizard();
   });
 }
 
-/* Doc cac o cua buoc `n` vao WS.wiz. Tra ve khoa loi (chuoi) neu `kiem` va o sai. */
-function wsDocBuoc(n, kiem) {
-  const w = WS.wiz;
-  if (n === 1) {
-    w.ten = el("wsTen").value.trim();
-    w.nganh = el("wsNganh").value;
-    if (kiem && !w.ten) return "ws_v_name";
-  } else if (n === 2) {
-    WS_DANH_TU.forEach((dt) => {
-      w.nhan[dt].vi = el("wsNhan-" + dt + "-vi").value.trim();
-      w.nhan[dt].en = el("wsNhan-" + dt + "-en").value.trim();
-    });
-    if (kiem && WS_DANH_TU.some((dt) => !w.nhan[dt].vi)) return "ws_v_vi";
-  } else if (n === 3) {
-    const l = w.luat;
-    const mc = String(el("wsMaxChoices").value).trim();
-    const mt = String(el("wsMaxTests").value).trim();
-    const khongGioiHan = el("wsKhongGioiHan").checked;
-    l.priority = el("wsUuTien").value;
-    l.tier_mode = el("wsCheDoNhom").value;
-    l.score_scope = el("wsPhamViDiem").value;
-    if (/^\d+$/.test(mc)) l.max_choices = Number(mc);
-    if (khongGioiHan) l.max_tests = null;
-    else if (/^\d+$/.test(mt)) l.max_tests = Number(mt);
-    if (l.tier_mode === "strict") {
-      l.tiers = el("wsNhom").value.split("\n").map((x) => x.trim()).filter(Boolean);
-    }
-    if (kiem) {
-      if (!/^\d+$/.test(mc) || Number(mc) < 1 || Number(mc) > 20) return "ws_v_choices";
-      if (!khongGioiHan && (!/^\d+$/.test(mt) || Number(mt) > 20)) return "ws_v_tests";
-      if (new Set(l.tiers).size !== l.tiers.length) return "ws_v_tiers_dup";
-    }
-  }
-  return null;
-}
-
-function wsDatTrangThaiOLuat() {
-  el("wsMaxTests").disabled = el("wsKhongGioiHan").checked;
-  el("wsNhom").disabled = el("wsCheDoNhom").value !== "strict";
-}
-
-/* Ve lai noi dung cua buoc hien tai tu WS.wiz. */
-function wsVeBuoc() {
-  const w = WS.wiz;
-  const n = WS.buoc;
-  [1, 2, 3, 4].forEach((i) => { el("wsB" + i).hidden = i !== n; });
-  document.querySelectorAll("#wsBuoc li").forEach((li) => {
-    const i = Number(li.dataset.buoc);
-    li.classList.toggle("is-dang-lam", i === n);
-    li.classList.toggle("is-xong", i < n);
-    if (i === n) li.setAttribute("aria-current", "step");
-    else li.removeAttribute("aria-current");
-  });
-  el("wsBuocNoi").textContent = t("ws_step_of", { n });
-  el("btnWsLui").hidden = n === 1;
-  el("btnWsTiep").hidden = n === 4;
-  el("btnWsTao").hidden = n !== 4;
-
-  if (n === 1) {
-    el("wsTen").value = w.ten;
-    el("wsNganh").value = w.nganh;
-    const ds = el("wsMau");
-    clear(ds);
-    WS.mau.forEach((m) => {
-      const o = document.createElement("option");
-      o.value = m.slug;
-      o.textContent = m.builtin ? t("ws_template_builtin", { name: m.name }) : m.name;
-      ds.appendChild(o);
-    });
-    ds.value = w.mau;
-  } else if (n === 2) {
-    wsVeTuVung();
-  } else if (n === 3) {
-    el("wsMaxChoices").value = w.luat.max_choices;
-    el("wsKhongGioiHan").checked = w.luat.max_tests === null;
-    el("wsMaxTests").value = w.luat.max_tests === null ? "" : w.luat.max_tests;
-    el("wsUuTien").value = w.luat.priority;
-    el("wsCheDoNhom").value = w.luat.tier_mode;
-    el("wsPhamViDiem").value = w.luat.score_scope;
-    el("wsNhom").value = w.luat.tiers.join("\n");
-    wsDatTrangThaiOLuat();
-  } else {
-    wsVeXemLai();
-  }
-  const dau = { 1: "wsTen", 2: "wsNhan-person-vi", 3: "wsMaxChoices", 4: "btnWsTao" }[n];
-  if (el(dau)) el(dau).focus();
-}
-
-function wsVeTuVung() {
-  const khung = el("wsTuVung");
-  clear(khung);
+/* --- Bước 2: năm danh từ --- */
+function wsBuoc2(hop) {
+  const w = wsWizard;
+  hop.append(wsEl("p", { class: "hint-text", text: t("ws_wz_tu_vung_hint") }));
+  const luoi = wsEl("div", { class: "ws-luoi-tu-vung" },
+    wsEl("div", { class: "ws-luoi-dau" }),
+    wsEl("div", { class: "ws-luoi-dau", text: t("ws_wz_vi") }),
+    wsEl("div", { class: "ws-luoi-dau", text: t("ws_wz_en") }));
   WS_DANH_TU.forEach((dt) => {
-    const hang = document.createElement("div");
-    hang.className = "ws-tu-vung-hang";
-    const ten = document.createElement("div");
-    ten.className = "ws-tu-vung-ten";
-    ten.textContent = t("ws_noun_" + dt);
-    hang.appendChild(ten);
-    ["vi", "en"].forEach((ngon) => {
-      const nhan = document.createElement("label");
-      nhan.className = "ws-truong ws-nho";
-      const chu = document.createElement("span");
-      chu.textContent = t("ws_lang_" + ngon);
-      const o = document.createElement("input");
-      o.type = "text";
-      o.className = "text-input";
-      o.id = "wsNhan-" + dt + "-" + ngon;
-      o.maxLength = 40;
-      o.autocomplete = "off";
-      o.value = WS.wiz.nhan[dt][ngon];
-      o.setAttribute("aria-label", t("ws_noun_" + dt) + ": " + t("ws_lang_" + ngon));
-      if (ngon === "en") o.placeholder = t("ws_en_placeholder");
-      nhan.appendChild(chu);
-      nhan.appendChild(o);
-      hang.appendChild(nhan);
-    });
-    khung.appendChild(hang);
+    luoi.append(
+      wsEl("div", { class: "ws-dt" },
+        wsEl("div", { class: "ws-dt-ten", text: t("ws_dt_" + dt) }),
+        wsEl("div", { class: "ws-dt-mo-ta", text: t("ws_dt_" + dt + "_mo_ta") })),
+      wsEl("input", { type: "text", class: "text-input wz-nhan", "data-noun": dt, "data-ngon": "vi",
+        id: "wzNhan_" + dt + "_vi", value: w.labels[dt].vi, maxlength: "40",
+        "aria-label": t("ws_dt_" + dt) + " — " + t("ws_wz_vi") }),
+      wsEl("input", { type: "text", class: "text-input wz-nhan", "data-noun": dt, "data-ngon": "en",
+        id: "wzNhan_" + dt + "_en", value: w.labels[dt].en, maxlength: "40",
+        placeholder: t("ws_wz_en_ph"),
+        "aria-label": t("ws_dt_" + dt) + " — " + t("ws_wz_en") }));
   });
+  hop.append(luoi);
 }
 
-function wsDong(khung, nhan, giaTri) {
-  const d = document.createElement("div");
-  d.className = "ws-xem-lai-dong";
-  const a = document.createElement("dt");
-  a.textContent = nhan;
-  const b = document.createElement("dd");
-  b.textContent = giaTri;
-  d.appendChild(a);
-  d.appendChild(b);
-  khung.appendChild(d);
+/* --- Bước 3: luật --- */
+function wsBuoc3(hop) {
+  const w = wsWizard;
+  const oMaxTests = wsEl("input", { type: "number", id: "wzMaxTests", class: "text-input ws-so",
+    min: "0", max: "20", step: "1", value: w.maxTests, disabled: w.khongGioiHan });
+  const oKhong = wsEl("input", { type: "checkbox", id: "wzKhongGioiHan", checked: w.khongGioiHan,
+    onchange: (ev) => { oMaxTests.disabled = ev.target.checked; } });
+  const oTiers = wsEl("textarea", { id: "wzTiers", class: "text-input ws-tiers", rows: "4",
+    value: w.tiersText, disabled: !wsDungThuTuNhom(w), placeholder: t("ws_r_tiers_ph") });
+  const oTierMode = wsChon("wzTierMode", w.tierMode, [
+    ["reserve", t("ws_r_tm_reserve")], ["strict", t("ws_r_tm_strict")]]);
+  const oPriority = wsChon("wzPriority", w.priority, [
+    ["score", t("ws_r_priority_score")], ["tier", t("ws_r_priority_tier")],
+    ["score+tier", t("ws_r_priority_both")]]);
+  const capNhatODanhSachNhom = () => {
+    oTiers.disabled = !(oTierMode.value === "strict" || oPriority.value === "tier");
+  };
+  oTierMode.addEventListener("change", capNhatODanhSachNhom);
+  oPriority.addEventListener("change", capNhatODanhSachNhom);
+
+  hop.append(
+    wsTruong("wzMaxChoices", "ws_r_max_choices", wsEl("input", { type: "number", id: "wzMaxChoices",
+      class: "text-input ws-so", min: "1", max: "20", step: "1", value: w.maxChoices })),
+    wsTruong("wzMaxTests", "ws_r_max_tests", wsEl("div", { class: "ws-hang" }, oMaxTests,
+      wsEl("label", { class: "ws-kem" }, oKhong, " ", t("ws_r_khong_gioi_han")))),
+    wsTruong("wzPriority", "ws_r_priority", oPriority),
+    wsTruong("wzTierMode", "ws_r_tier_mode", oTierMode),
+    wsTruong("wzScoreScope", "ws_r_score_scope", wsChon("wzScoreScope", w.scoreScope, [
+      ["per_slot", t("ws_r_ss_per_slot")], ["per_person", t("ws_r_ss_per_person")]])),
+    wsTruong("wzTiers", "ws_r_tiers", oTiers, t("ws_r_tiers_chi_strict")),
+  );
 }
 
-function wsVeXemLai() {
-  const w = WS.wiz;
-  const khung = el("wsXemLai");
-  clear(khung);
-  const dl = document.createElement("dl");
-  wsDong(dl, t("ws_r_name"), w.ten);
-  wsDong(dl, t("ws_r_industry"), wsNhanNganh(w.nganh));
-  WS_DANH_TU.forEach((dt) => {
-    const c = w.nhan[dt];
-    wsDong(dl, t("ws_noun_" + dt), c.vi + " / " + (c.en || c.vi));
-  });
-  const l = w.luat;
-  wsDong(dl, t("ws_r_max_choices"), String(l.max_choices));
-  wsDong(dl, t("ws_r_max_tests"), l.max_tests === null ? t("ws_review_no_limit") : String(l.max_tests));
-  wsDong(dl, t("ws_r_priority"), t({ "score": "ws_opt_priority_score", "tier": "ws_opt_priority_tier",
-    "score+tier": "ws_opt_priority_score_tier" }[l.priority]));
-  wsDong(dl, t("ws_r_tier_mode"), t(l.tier_mode === "strict" ? "ws_opt_tier_strict" : "ws_opt_tier_reserve"));
-  wsDong(dl, t("ws_r_score_scope"), t(l.score_scope === "per_person"
-    ? "ws_opt_scope_per_person" : "ws_opt_scope_per_slot"));
-  if (l.tier_mode === "strict") {
-    wsDong(dl, t("ws_r_tiers"), l.tiers.length ? l.tiers.join(" › ") : t("ws_review_none"));
-  }
-  khung.appendChild(dl);
-}
-
-function wsBuocTiep() {
-  const loi = wsDocBuoc(WS.buoc, true);
-  el("wsLoiBuoc").textContent = loi ? t(loi) : "";
-  if (loi) return;
-  WS.buoc += 1;
-  wsVeBuoc();
-}
-
-function wsBuocLui() {
-  wsDocBuoc(WS.buoc, false);
-  el("wsLoiBuoc").textContent = "";
-  WS.buoc -= 1;
-  wsVeBuoc();
-}
-
-/* Doi mau o buoc 1: dien lai MOI buoc tu mau, chi giu ten da go. */
-function wsDoiMau() {
-  const ten = el("wsTen").value.trim();
-  const m = WS.mau.find((x) => x.slug === el("wsMau").value);
-  if (!m) return;
-  WS.wiz = wsTrangThaiTuCauHinh(m.config, ten, m.slug);
-  wsVeBuoc();
-}
-
-function wsTao() {
-  /* Ba buoc dau da duoc doc va kiem khi bam "Tiep"; o buoc 4 cac o cua chung
-     dang an, nen lay thang tu WS.wiz, khong doc lai tu DOM. */
-  const cfg = wsCauHinhTuTrangThai();
-  khiBan(el("btnWsTao"), () => callApi("create_workspace", WS.wiz.ten, cfg)).then((res) => {
-    if (!res.ok) {
-      el("wsLoiBuoc").textContent = trErrs(res.errors).join(" ");
-      return;
-    }
-    showToast(t("ws_toast_created", { name: WS.wiz.ten }), "success");
-    wsDoiView("chon");
-    wsTaiDanhSach().then(() => wsMo(res.data.slug));
-  });
-}
-
-/* ------------------------------------------------------------------ *
- * Khởi động và đổi ngôn ngữ
- * ------------------------------------------------------------------ */
-
-function wsLamLaiTheoNgonNgu() {
-  wsCapNhatCongTac();
-  if (el("wsOverlay").hidden) return;
-  if (WS.view === "chon") wsVeDanhSach();
-  else if (WS.view === "ten") wsVeChuHopTen();
-  else if (WS.wiz) {
-    wsDocBuoc(WS.buoc, false);     // giu chu dang go truoc khi ve lai
-    wsVeBuoc();
+/* --- Bước 4: xem lại --- */
+function wsBuoc4(hop) {
+  const cfg = wsCfgTuWizard(wsWizard);
+  const r = cfg.rules;
+  const hang = (nhan, giaTri, id) => wsEl("tr", null,
+    wsEl("th", { scope: "row", text: nhan }), wsEl("td", { id, text: giaTri }));
+  const nhanHienThi = (dt) => cfg.labels[dt].vi + " / " + (cfg.labels[dt].en || cfg.labels[dt].vi);
+  const dong = [
+    hang(t("ws_wz_ten"), cfg.name, "rvTen"),
+    hang(t("ws_wz_loai"), wsTenNganh(cfg.industry), "rvLoai"),
+    ...WS_DANH_TU.map((dt) => hang(t("ws_dt_" + dt), nhanHienThi(dt), "rvNhan_" + dt)),
+    hang(t("ws_r_max_choices"), String(r.max_choices), "rvMaxChoices"),
+    hang(t("ws_r_max_tests"), r.max_tests === null ? t("ws_r_khong_gioi_han") : String(r.max_tests), "rvMaxTests"),
+    hang(t("ws_r_priority"), t({ score: "ws_r_priority_score", tier: "ws_r_priority_tier",
+      "score+tier": "ws_r_priority_both" }[r.priority]), "rvPriority"),
+    hang(t("ws_r_tier_mode"), t(r.tier_mode === "strict" ? "ws_r_tm_strict" : "ws_r_tm_reserve"), "rvTierMode"),
+    hang(t("ws_r_score_scope"), t(r.score_scope === "per_person" ? "ws_r_ss_per_person" : "ws_r_ss_per_slot"), "rvScoreScope"),
+    hang(t("ws_r_tiers"), r.tiers.length ? r.tiers.join(" › ") : "—", "rvTiers"),
+  ];
+  hop.append(
+    wsEl("p", { class: "hint-text", text: t("ws_wz_xem_lai_hint") }),
+    wsEl("table", { class: "data-table ws-xem-lai" }, wsEl("tbody", null, dong)));
+  /* Chỉ "nhóm trước, rồi đến điểm" mà để suất dự trữ mềm mới bỏ thứ tự nhóm; "chỉ theo
+     nhóm" luôn xếp cứng nên dùng danh sách nhóm. */
+  if (r.priority === "score+tier" && r.tier_mode !== "strict") {
+    hop.append(wsEl("p", { class: "ws-canh-bao", text: t("ws_r_canh_bao_nhom") }));
   }
 }
 
-function initWorkspaceHandlers() {
-  el("btnWorkspace").addEventListener("click", wsMoManChon);
-  el("btnWsDong").addEventListener("click", () => wsDongHop());
-  document.querySelectorAll(".ws-ngon-ngu").forEach((nut) => {
-    nut.addEventListener("click", () => {
-      window.I18N.setLang(window.I18N.getLang() === "vi" ? "en" : "vi");
-    });
-  });
-  el("wsOverlay").addEventListener("mousedown", (ev) => {
-    if (ev.target === el("wsOverlay") && WS.view === "chon") wsDongHop();
-  });
-  el("wsOverlay").addEventListener("keydown", wsPhimTat);
-
-  el("btnWsMoi").addEventListener("click", wsBatDauTao);
-  el("btnWsNhap").addEventListener("click", () => el("wsFileZip").click());
-  el("wsFileZip").addEventListener("change", () => {
-    const f = el("wsFileZip").files && el("wsFileZip").files[0];
-    wsNhapZip(f);
-    el("wsFileZip").value = "";
-  });
-
-  el("wsFormTen").addEventListener("submit", (ev) => {
-    ev.preventDefault();
-    wsLuuTen();
-  });
-  el("btnWsTenHuy").addEventListener("click", wsVeManChon);
-
-  el("btnWsHuy").addEventListener("click", wsVeManChon);
-  el("btnWsLui").addEventListener("click", wsBuocLui);
-  el("btnWsTiep").addEventListener("click", wsBuocTiep);
-  el("btnWsTao").addEventListener("click", wsTao);
-  el("wsMau").addEventListener("change", wsDoiMau);
-  el("wsKhongGioiHan").addEventListener("change", wsDatTrangThaiOLuat);
-  el("wsCheDoNhom").addEventListener("change", wsDatTrangThaiOLuat);
-
-  window.addEventListener("langchange", wsLamLaiTheoNgonNgu);
-}
-
-/* Goi tu init() (08_khoi_dong.js), thay cho loadPipelineTab() truc tiep.
-
-   Che do workspace + da co workspace dang mo: nap du lieu nhu truoc. Chua mo
-   cai nao: hien man chon va CHUA nap gi — moi lenh doc deu cho ra loi khi chua
-   co CSDL. Che do CSDL don (hoac khong goi duoc): chay y nhu truoc day. */
-function khoiDongTheoWorkspace() {
-  callApi("list_workspaces").then((res) => {
-    if (!res.ok || !res.data || !Array.isArray(res.data.items)) {
-      napLuatDiem();
-      loadPipelineTab();
-      return;
+function wsTaoWorkspace() {
+  wsGomBuoc();
+  /* Soát lại cả ba bước: quay lại sửa rồi nhảy thẳng tới cuối vẫn lọt được. */
+  for (let b = 1; b <= 3; b++) {
+    const loi = wsLoiBuoc(wsWizard, b);
+    if (loi.length) {
+      wsWizard.buoc = b;
+      wsVeWizard();
+      wsHienLoiBuoc(loi);
+      return Promise.resolve();
     }
-    WS.batChoPhep = true;
-    WS.ds = res.data.items;
-    WS.hienTai = res.data.current;
-    const dangMo = WS.ds.find((w) => w.slug === WS.hienTai);
-    WS.ten = dangMo ? dangMo.name : (WS.hienTai || "");
-    wsCapNhatCongTac();
-    if (WS.hienTai) {
-      napLuatDiem();
-      loadPipelineTab();
-    } else wsMoManChon();
+  }
+  const cfg = wsCfgTuWizard(wsWizard);
+  return callApi("create_workspace", cfg.name, cfg).then((res) => {
+    if (!res.ok) { showErrorToast(res.errors); return; }
+    showToast(t("ws_da_tao", { ten: cfg.name }), "success");
+    return callApi("open_workspace", res.data.slug).then((mo) => {
+      if (!mo.ok) { showErrorToast(mo.errors); return; }
+      wsTaiLaiTrang();
+    });
   });
 }

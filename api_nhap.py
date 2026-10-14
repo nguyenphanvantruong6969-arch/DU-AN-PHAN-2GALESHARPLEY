@@ -16,7 +16,6 @@ from rbda_priority_pipeline import (
     khoa_sap_buoi,
     sap_buoi,
     BUOI_MAC_DINH,
-    chuan_hoa_nhom,
     gom_theo_buoi,
     loi_suc_chua,
 )
@@ -276,9 +275,7 @@ class NhapDuLieuMixin:
         except Exception as e:
             return None, err("xlsx_read_failed", detail=str(e))
         try:
-            # Tên sheet/tiêu đề theo nhãn của không gian làm việc (sổ cũ của trường
-            # học vẫn nhận được), trần NV và thi theo luật của nó.
-            cfg = self._cau_hinh_so_nhap()
+            cfg = self._cfg_ws()
             if not so_nhap.la_so_nhap(wb.sheetnames, cfg):
                 return None, err("so_nhap_khong_phai_so")
             return so_nhap.doc_so_nhap(wb, self._clb_theo_ten(), self._ma_clb_da_co(),
@@ -428,15 +425,14 @@ class NhapDuLieuMixin:
                             "UPDATE students SET name = ? WHERE student_id = ?",
                             [(s["name"], s["student_id"]) for s in du_lieu["students"]
                              if (s["name"] or "").strip()])
-                        # Điểm theo NGƯỜI (workspace per_person): một ô cho mỗi
-                        # em trong sổ, ô trống = chưa có điểm (NULL). Ghi đè cả
-                        # điểm cũ: sổ là bản đầy đủ.
-                        if "diem_ca_nhan" in du_lieu["students"][0]:
-                            cur.executemany(
-                                "UPDATE students SET diem_ca_nhan = ? WHERE student_id = ?",
-                                [(self._doc_diem(s["diem_ca_nhan"]) if s["diem_ca_nhan"]
-                                  else None, s["student_id"])
-                                 for s in du_lieu["students"]])
+                        # Điểm theo NGƯỜI (workspace per_person): một ô cho cả dòng, lưu ở
+                        # students.diem_ca_nhan. Ô trống hay chữ `thi` -> NULL (chưa có
+                        # điểm). Chỉ sổ CÓ cột điểm chung mới đụng tới cột này.
+                        cur.executemany(
+                            "UPDATE students SET diem_ca_nhan = ? WHERE student_id = ?",
+                            [(so_nhap.diem_cua_nguoi(s), s["student_id"])
+                             for s in du_lieu["students"]
+                             if s.get("diem_ca_nhan") is not None])
 
             kq["warnings"] = canh_bao
             return _ok(kq)
@@ -717,9 +713,20 @@ class NhapDuLieuMixin:
     @staticmethod
     def chuan_hoa_nhom_du_tru(raw) -> str:
         """"Chinh sach", "CHINH SACH", "Chinh-Sach" -> "chinh_sach"."""
-        # Chung MOT ham voi luat xep cua workspace (so khop ten nhom): hai ben
-        # khong the lech nhau.
-        return chuan_hoa_nhom(raw)
+        import unicodedata
+
+        chu = (raw or "").strip()
+        if not chu:
+            return ""
+        # NFD tach dau ra khoi nguyen am roi loc bo — nhung KHONG tach
+        # duoc chu D gach ngang, phai thay tay truoc.
+        chu = chu.replace("Đ", "D").replace("đ", "d")
+        chu = "".join(
+            c for c in unicodedata.normalize("NFD", chu)
+            if not unicodedata.combining(c)
+        )
+        chu = re.sub(r"[^0-9a-zA-Z]+", "_", chu.lower())
+        return chu.strip("_")
 
     # Cot reserve_group la TUY CHON trong ca hai file hoc sinh. Truoc day
     # hoc sinh tao bang CSV luon co nhom du tru rong, phai vao man hinh 04
@@ -964,7 +971,7 @@ class NhapDuLieuMixin:
         LƯU Ý cho người gọi: `ds_clb` phải là mã CLB ĐÃ CHUẨN HOÁ. Mã lệch
         hoa/thường tra không ra buổi, rơi vào buổi mặc định, và gom nhầm nhóm.
 
-        `tran` None = không giới hạn (luật `max_tests` của workspace): không bỏ gì.
+        `tran` None = không giới hạn (workspace đặt `max_tests` là None): không cắt gì.
         """
         if tran is None:
             return list(ds_clb), {}
@@ -1050,7 +1057,7 @@ class NhapDuLieuMixin:
         tới học sinh không có trong file.
         """
         try:
-            tran_nv = self._luat_ws()["max_choices"]    # trần theo luật workspace
+            tran_nv = self._tran_nguyen_vong()   # trần của workspace; đọc TRƯỚC khi mở giao dịch
             fieldnames, rows = self._parse_csv_rows(csv_text)
             if not rows:
                 return _fail(err("csv_empty"))
@@ -1235,7 +1242,7 @@ class NhapDuLieuMixin:
         sinh xuất hiện trong file, giống hành vi submit_test_selection.
         """
         try:
-            tran_thi = self._tran_thi()      # trần theo luật workspace (None = không)
+            tran_thi = self._tran_thi()          # None = không giới hạn
             fieldnames, rows = self._parse_csv_rows(csv_text)
             if not rows:
                 return _fail(err("csv_empty"))
@@ -1392,11 +1399,11 @@ class NhapDuLieuMixin:
                                 # Chỉ bỏ RIÊNG ô điểm này. Bỏ cả học sinh vì
                                 # một ô gõ sai là mất nhiều hơn được.
                                 row_errors.append(err("csv_score_not_a_number",
-                                                      student_id=sid, club_id=that, score=chuoi))
+                                                      student_id=sid, club_id=that, diem_goc=chuoi))
                                 continue
                             if so < 0:
                                 row_errors.append(err("csv_score_negative",
-                                                      student_id=sid, club_id=that, score=chuoi))
+                                                      student_id=sid, club_id=that, diem_goc=chuoi))
                                 continue
                             cur.execute(
                                 "INSERT INTO club_scores (student_id, club_id, score) VALUES (?, ?, ?) "

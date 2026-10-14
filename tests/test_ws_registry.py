@@ -1,602 +1,640 @@
-"""Thư mục workspace trên đĩa: workspace.py và cách main.py dùng nó."""
+"""Workspace trên đĩa (workspace.py) và cách main.py chọn workspace lúc khởi động."""
 
 import json
 import os
 import sqlite3
 import sys
 import zipfile
+from pathlib import Path
 
 import pytest
 
-import cau_hinh_ws as cfgws
-import workspace as w
+import cau_hinh_ws as ch
+import workspace as ws
 from rbda_priority_pipeline import init_db
 
 
-# ---------- tiện ích ----------
-
-def _them_clb(db, club_id="A", ten="Cờ vua"):
-    conn = sqlite3.connect(db)
-    conn.execute(
-        "INSERT INTO clubs (club_id, name, capacity) VALUES (?, ?, 10)",
-        (club_id, ten))
-    conn.commit()
-    conn.close()
+def _them_clb(db, club_id="A", ten="Bóng đá"):
+    with sqlite3.connect(db) as c:
+        c.execute("INSERT INTO clubs (club_id, name, capacity, reserve_capacity) "
+                  "VALUES (?, ?, 5, 0)", (club_id, ten))
 
 
 def _clb(db):
-    conn = sqlite3.connect(db)
-    try:
-        return conn.execute(
-            "SELECT club_id, name FROM clubs ORDER BY club_id").fetchall()
-    finally:
-        conn.close()
+    with sqlite3.connect(db) as c:
+        return c.execute("SELECT club_id, name FROM clubs ORDER BY club_id").fetchall()
 
 
-def _db_cu(root, voi_clb=True):
-    """Dựng app.db kiểu BẢN CŨ: ngay trong root, chưa có bảng workspace_settings."""
-    db = os.path.join(root, "app.db")
-    init_db(db)
-    if voi_clb:
-        _them_clb(db)
-    conn = sqlite3.connect(db)
-    conn.execute("DROP TABLE workspace_settings")
-    conn.commit()
-    conn.close()
-    return db
-
-
-def _zip_tay(duong, muc):
-    with zipfile.ZipFile(duong, "w") as z:
-        for ten, noi_dung in muc.items():
-            z.writestr(ten, noi_dung)
-    return str(duong)
+def _ten_thu_muc(root, *con):
+    return sorted(os.listdir(os.path.join(root, "workspaces", *con)))
 
 
 @pytest.fixture
 def root(tmp_path):
-    return str(tmp_path)
+    # Thư mục con: conftest tự đặt "TaiXuong_gia" ngay trong tmp_path.
+    goc = tmp_path / "goc"
+    goc.mkdir()
+    return str(goc)
 
 
-# ---------- tao / danh_sach ----------
+# ------------------------------------------------------------------ tao / danh_sach
 
-def test_danh_sach_rong_khi_chua_co_thu_muc(root):
-    assert w.danh_sach(root) == []
-
-
-def test_tao_va_danh_sach(root):
-    slug = w.tao(root, "Câu lạc bộ Đại học", {"industry": "custom"})
-    assert slug == "cau-lac-bo-dai-hoc"
-    (ws,) = w.danh_sach(root)
-    assert ws["slug"] == slug
-    assert ws["name"] == "Câu lạc bộ Đại học"
-    assert ws["industry"] == "custom"
-    assert ws["path"] == os.path.join(root, "workspaces", slug, "app.db")
-    assert os.path.isfile(ws["path"])
-    assert len(ws["modified"]) == 19 and ws["modified"][10] == "T"
-    assert cfgws.doc_cau_hinh(ws["path"])["name"] == "Câu lạc bộ Đại học"
+def test_tao_dung_thu_muc_csdl_va_cau_hinh(root):
+    slug = ws.tao(root, "Trường học", None)
+    assert slug == "truong-hoc"
+    db = ws.duong_dan_db(root, slug)
+    assert os.path.isfile(db)
+    cfg = ch.doc_cau_hinh(db)
+    assert cfg["name"] == "Trường học"
+    assert cfg["rules"] == ch.MAC_DINH_TRUONG_HOC["rules"]
+    # init_db đã chạy: bảng nghiệp vụ có đủ
+    _them_clb(db)
 
 
-def test_tao_khong_cfg_dung_mac_dinh_truong_hoc(root):
-    slug = w.tao(root, "Trường A")
-    cfg = cfgws.doc_cau_hinh(os.path.join(root, "workspaces", slug, "app.db"))
-    assert cfg == dict(cfgws.MAC_DINH_TRUONG_HOC, name="Trường A")
+def test_tao_nhan_cfg_va_ten_trong_cfg_bi_ten_ghi_de(root):
+    cfg = {"name": "Bị ghi đè", "industry": "company",
+           "labels": {"person": {"vi": "Nhân viên", "en": "Employee"}},
+           "rules": {"max_choices": 3}}
+    slug = ws.tao(root, "Công ty ABC", cfg)
+    assert slug == "cong-ty-abc"
+    doc = ch.doc_cau_hinh(ws.duong_dan_db(root, slug))
+    assert doc["name"] == "Công ty ABC"
+    assert doc["industry"] == "company"
+    assert doc["rules"]["max_choices"] == 3
+    assert ch.nhan(doc, "person", "en") == "Employee"
 
 
-def test_ten_trong_cfg_thua_ten_tham_so(root):
-    slug = w.tao(root, "Tên thật", {"name": "Tên khác"})
-    assert w.danh_sach(root)[0]["name"] == "Tên thật"
-    assert slug == "ten-that"
+@pytest.mark.parametrize("ten, slug", [
+    ("Trường học", "truong-hoc"),
+    ("  Đại Hội   Thể  Thao  ", "dai-hoi-the-thao"),
+    ("CLB (2026)!", "clb"),     # bo_dau bỏ phần trong ngoặc, như ở sổ nhập
+    ("!!!", "workspace"),
+])
+def test_tao_slug(root, ten, slug):
+    assert ws.tao(root, ten, None) == slug
 
 
-def test_slug_trung_them_hau_to(root):
-    assert w.tao(root, "Trường Học") == "truong-hoc"
-    assert w.tao(root, "truong hoc") == "truong-hoc-2"
-    assert w.tao(root, "TRƯỜNG-HỌC!") == "truong-hoc-3"
-    assert [x["slug"] for x in w.danh_sach(root)] == [
-        "truong-hoc", "truong-hoc-2", "truong-hoc-3"]
+def test_tao_trung_slug_them_hau_to(root):
+    assert ws.tao(root, "Trường học", None) == "truong-hoc"
+    assert ws.tao(root, "Truong hoc", None) == "truong-hoc-2"
+    assert ws.tao(root, "TRƯỜNG HỌC", None) == "truong-hoc-3"
+    # tên vẫn là tên người gõ, chỉ slug khác
+    ten = {w["slug"]: w["name"] for w in ws.danh_sach(root)}
+    assert ten == {"truong-hoc": "Trường học", "truong-hoc-2": "Truong hoc",
+                   "truong-hoc-3": "TRƯỜNG HỌC"}
 
 
-def test_ten_toan_ky_hieu_van_co_slug(root):
-    assert w.tao(root, "(***)") == "workspace"
-    assert w.tao(root, "???") == "workspace-2"
+def test_tao_thu_muc_thieu_app_db_van_chiem_cho(root):
+    os.makedirs(os.path.join(root, "workspaces", "a"))
+    assert ws.tao(root, "A", None) == "a-2"
 
 
-def test_ten_rat_dai_bi_cat(root):
-    slug = w.tao(root, "a" * 300)
-    assert len(slug) <= 60
-
-
-@pytest.mark.parametrize("ten", ["", "   ", None])
-def test_ten_trong_bi_tu_choi_va_khong_tao_gi(root, ten):
+@pytest.mark.parametrize("ten", ["", "   ", None, 5])
+def test_tao_ten_rong(root, ten):
     with pytest.raises(ValueError):
-        w.tao(root, ten)
+        ws.tao(root, ten, None)
     assert not os.path.exists(os.path.join(root, "workspaces"))
 
 
-def test_cfg_sai_khong_de_lai_thu_muc(root):
+def test_tao_cfg_sai_khong_de_lai_thu_muc(root):
     with pytest.raises(ValueError, match="max_choices"):
-        w.tao(root, "X", {"rules": {"max_choices": 99}})
-    assert w.danh_sach(root) == []
-    assert not os.path.exists(os.path.join(root, "workspaces", "x"))
+        ws.tao(root, "X", {"rules": {"max_choices": 99}})
+    assert not os.path.exists(os.path.join(root, "workspaces"))
 
 
-def test_danh_sach_bo_qua_trash_va_thu_muc_khong_co_db(root):
-    w.tao(root, "Một")
-    ws = os.path.join(root, "workspaces")
-    os.makedirs(os.path.join(ws, "_trash", "cu-20200101-000000"))
-    os.makedirs(os.path.join(ws, "_nhap_tam"))
-    os.makedirs(os.path.join(ws, "rong"))
-    assert [x["slug"] for x in w.danh_sach(root)] == ["mot"]
+def test_danh_sach_rong_khi_chua_co_gi(root):
+    assert ws.danh_sach(root) == []
 
 
-def test_danh_sach_van_liet_ke_db_hong(root):
-    slug = w.tao(root, "Hỏng")
-    db = os.path.join(root, "workspaces", slug, "app.db")
-    with open(db, "wb") as f:
-        f.write(b"khong phai sqlite")
-    (ws,) = w.danh_sach(root)
-    assert ws["slug"] == slug and ws["name"] == slug
+def test_danh_sach_truong_va_bo_qua_thung_rac_va_thu_muc_la(root):
+    a = ws.tao(root, "Alpha", {"industry": "event"})
+    ws.tao(root, "Beta", None)
+    ws.xoa(root, "beta")
+    os.makedirs(os.path.join(root, "workspaces", "khong-co-db"))
+    os.makedirs(os.path.join(root, "workspaces", "_nhap-tam"))
+    (open(os.path.join(root, "workspaces", "tep-le.txt"), "w")).close()
+    ds = ws.danh_sach(root)
+    assert [w["slug"] for w in ds] == ["alpha"]
+    w = ds[0]
+    assert set(w) == {"slug", "name", "industry", "path", "modified"}
+    assert (w["name"], w["industry"]) == ("Alpha", "event")
+    assert w["path"] == ws.duong_dan_db(root, a)
+    assert os.path.isfile(w["path"])
+    assert len(w["modified"]) == 19  # YYYY-MM-DD HH:MM:SS
 
 
-# ---------- doi_ten ----------
-
-def test_doi_ten_giu_nguyen_slug(root):
-    slug = w.tao(root, "Tên cũ", {"rules": {"max_choices": 4}})
-    w.doi_ten(root, slug, "Tên mới")
-    (ws,) = w.danh_sach(root)
-    assert ws["slug"] == slug and ws["name"] == "Tên mới"
-    assert cfgws.doc_cau_hinh(ws["path"])["rules"]["max_choices"] == 4
+def test_danh_sach_workspace_khong_co_cau_hinh_dung_slug_lam_ten(root):
+    thu_muc = os.path.join(root, "workspaces", "cu")
+    os.makedirs(thu_muc)
+    init_db(os.path.join(thu_muc, "app.db"))
+    w = ws.danh_sach(root)[0]
+    assert (w["slug"], w["name"], w["industry"]) == ("cu", "cu", "school")
 
 
-def test_doi_ten_sai(root):
-    slug = w.tao(root, "A")
-    with pytest.raises(ValueError):
-        w.doi_ten(root, slug, "  ")
-    with pytest.raises(ValueError):
-        w.doi_ten(root, "khong-co", "B")
-
-
-@pytest.mark.parametrize("slug", ["../x", "..", "a/b", "A", "", "_trash", None])
-def test_slug_xau_bi_tu_choi_khong_thoat_khoi_workspaces(root, slug):
-    w.tao(root, "A")
-    for ham in (lambda: w.doi_ten(root, slug, "B"),
-                lambda: w.xoa(root, slug),
-                lambda: w.nhan_ban(root, slug, "B", True),
-                lambda: w.luu_mau(root, slug, "M"),
-                lambda: w.xuat_zip(root, slug, os.path.join(root, "z.zip"))):
+@pytest.mark.parametrize("slug", ["../x", "a/b", "_trash", "", "A", "a b", None, "..", "a\\b"])
+def test_slug_xau_bi_tu_choi(root, slug):
+    ws.tao(root, "A", None)
+    for goi in (lambda: ws.doi_ten(root, slug, "B"), lambda: ws.xoa(root, slug),
+                lambda: ws.nhan_ban(root, slug, "B", True),
+                lambda: ws.luu_mau(root, slug, "B"),
+                lambda: ws.xuat_zip(root, slug, os.path.join(root, "o.zip"))):
         with pytest.raises(ValueError):
-            ham()
+            goi()
 
 
-# ---------- xoa ----------
+def test_slug_khong_ton_tai(root):
+    with pytest.raises(ValueError, match="khong-co"):
+        ws.doi_ten(root, "khong-co", "B")
 
-def test_xoa_dom_vao_trash_va_co_ban_sao_luu(root):
-    slug = w.tao(root, "Sẽ xoá")
-    db = os.path.join(root, "workspaces", slug, "app.db")
+
+# ------------------------------------------------------------------ doi_ten
+
+def test_doi_ten_chi_doi_ten_con_thu_muc_va_luat_giu_nguyen(root):
+    cfg = {"industry": "company", "rules": {"max_choices": 4, "max_tests": None}}
+    slug = ws.tao(root, "Cũ", cfg)
+    db = ws.duong_dan_db(root, slug)
     _them_clb(db)
-    rac = w.xoa(root, slug)
-    assert w.danh_sach(root) == []
-    assert not os.path.exists(os.path.join(root, "workspaces", slug))
-    assert os.path.dirname(rac) == os.path.join(root, "workspaces", "_trash")
-    assert os.path.basename(rac).startswith(slug + "-")
-    sao_luu = [f for f in os.listdir(rac) if f.startswith("app.db.bak-")]
-    assert len(sao_luu) == 1
-    # bản sao lưu đọc được và còn dữ liệu; app.db gốc cũng còn nguyên trong thùng
-    assert _clb(os.path.join(rac, sao_luu[0])) == [("A", "Cờ vua")]
-    assert _clb(os.path.join(rac, "app.db")) == [("A", "Cờ vua")]
+    truoc = ch.doc_cau_hinh(db)
+    ws.doi_ten(root, slug, "  Mới  ")
+    sau = ch.doc_cau_hinh(db)
+    assert sau["name"] == "Mới"
+    assert {**sau, "name": None} == {**truoc, "name": None}
+    assert [w["slug"] for w in ws.danh_sach(root)] == [slug] == ["cu"]
+    assert _clb(db) == [("A", "Bóng đá")]
+
+
+def test_doi_ten_rong(root):
+    slug = ws.tao(root, "A", None)
+    with pytest.raises(ValueError):
+        ws.doi_ten(root, slug, "  ")
+    assert ch.doc_cau_hinh(ws.duong_dan_db(root, slug))["name"] == "A"
+
+
+# ------------------------------------------------------------------ xoa
+
+def test_xoa_dua_vao_thung_rac_kem_ban_sao_luu(root):
+    slug = ws.tao(root, "Sẽ xoá", None)
+    db = ws.duong_dan_db(root, slug)
+    _them_clb(db)
+
+    dich = ws.xoa(root, slug)
+
+    assert ws.danh_sach(root) == []
+    assert not os.path.exists(os.path.dirname(db))
+    thung = os.path.join(root, "workspaces", "_trash")
+    (muc,) = os.listdir(thung)
+    assert muc.startswith("se-xoa-") and os.path.join(thung, muc) == dich
+    tep = sorted(os.listdir(dich))
+    assert "app.db" in tep
+    (sao_luu,) = [t for t in tep if t.startswith("app.db.bak-")]
+    # cả app.db lẫn bản sao lưu còn nguyên dữ liệu
+    assert _clb(os.path.join(dich, "app.db")) == [("A", "Bóng đá")]
+    assert _clb(os.path.join(dich, sao_luu)) == [("A", "Bóng đá")]
 
 
 def test_xoa_hai_lan_cung_slug_khong_de_nhau(root):
-    r1 = w.xoa(root, w.tao(root, "Lặp"))
-    r2 = w.xoa(root, w.tao(root, "Lặp"))
-    assert r1 != r2 and os.path.isdir(r1) and os.path.isdir(r2)
+    for _ in range(2):
+        slug = ws.tao(root, "Lặp", None)
+        ws.xoa(root, slug)
+    assert len(os.listdir(os.path.join(root, "workspaces", "_trash"))) == 2
 
 
-def test_xoa_db_hong_van_xoa_duoc_va_giu_ban_sao(root):
-    slug = w.tao(root, "Hỏng")
-    db = os.path.join(root, "workspaces", slug, "app.db")
-    with open(db, "wb") as f:
-        f.write(b"khong phai sqlite")
-    rac = w.xoa(root, slug)
-    assert any(f.startswith("app.db.bak-") for f in os.listdir(rac))
+def test_xoa_roi_tao_lai_dung_lai_slug(root):
+    ws.xoa(root, ws.tao(root, "A", None))
+    assert ws.tao(root, "A", None) == "a"
 
 
-def test_xoa_slug_khong_co(root):
-    with pytest.raises(ValueError):
-        w.xoa(root, "khong-co")
-
-
-# ---------- nhan_ban ----------
+# ------------------------------------------------------------------ nhan_ban
 
 def test_nhan_ban_kem_du_lieu(root):
-    slug = w.tao(root, "Gốc", {"rules": {"max_choices": 3}})
-    _them_clb(os.path.join(root, "workspaces", slug, "app.db"))
-    moi = w.nhan_ban(root, slug, "Bản chép", True)
-    assert moi == "ban-chep"
-    db = os.path.join(root, "workspaces", moi, "app.db")
-    assert _clb(db) == [("A", "Cờ vua")]
-    cfg = cfgws.doc_cau_hinh(db)
-    assert cfg["name"] == "Bản chép" and cfg["rules"]["max_choices"] == 3
-    # gốc không bị đụng
-    assert cfgws.doc_cau_hinh(
-        os.path.join(root, "workspaces", slug, "app.db"))["name"] == "Gốc"
+    cfg = {"industry": "event", "rules": {"max_choices": 6}}
+    nguon = ws.tao(root, "Gốc", cfg)
+    db = ws.duong_dan_db(root, nguon)
+    _them_clb(db, "A")
+    _them_clb(db, "B", "Cờ vua")
+
+    moi = ws.nhan_ban(root, nguon, "Bản sao", True)
+
+    assert moi == "ban-sao"
+    db2 = ws.duong_dan_db(root, moi)
+    assert _clb(db2) == _clb(db) == [("A", "Bóng đá"), ("B", "Cờ vua")]
+    cfg2 = ch.doc_cau_hinh(db2)
+    assert cfg2["name"] == "Bản sao"
+    assert cfg2["rules"]["max_choices"] == 6 and cfg2["industry"] == "event"
+    # độc lập: sửa bản sao không đụng bản gốc
+    _them_clb(db2, "C")
+    assert len(_clb(db)) == 2
+    assert ch.doc_cau_hinh(db)["name"] == "Gốc"
 
 
-def test_nhan_ban_khong_du_lieu(root):
-    slug = w.tao(root, "Gốc", {"rules": {"max_choices": 3}, "industry": "event"})
-    _them_clb(os.path.join(root, "workspaces", slug, "app.db"))
-    moi = w.nhan_ban(root, slug, "Bản trống", False)
-    db = os.path.join(root, "workspaces", moi, "app.db")
-    assert _clb(db) == []
-    cfg = cfgws.doc_cau_hinh(db)
-    assert cfg["name"] == "Bản trống"
-    assert cfg["rules"]["max_choices"] == 3 and cfg["industry"] == "event"
-    assert _clb(os.path.join(root, "workspaces", slug, "app.db")) != []
+def test_nhan_ban_khong_kem_du_lieu(root):
+    nguon = ws.tao(root, "Gốc", {"rules": {"max_choices": 6, "tiers": ["X", "Y"]}})
+    db = ws.duong_dan_db(root, nguon)
+    _them_clb(db)
+
+    moi = ws.nhan_ban(root, nguon, "Trống", False)
+
+    db2 = ws.duong_dan_db(root, moi)
+    assert _clb(db2) == []
+    cfg2 = ch.doc_cau_hinh(db2)
+    assert cfg2["name"] == "Trống"
+    assert cfg2["rules"]["max_choices"] == 6
+    assert cfg2["rules"]["tiers"] == ["X", "Y"]
+    assert _clb(db) == [("A", "Bóng đá")]
 
 
-def test_nhan_ban_trung_ten_them_hau_to(root):
-    slug = w.tao(root, "Gốc")
-    assert w.nhan_ban(root, slug, "Gốc", True) == "goc-2"
-    assert w.nhan_ban(root, slug, "Gốc", False) == "goc-3"
+@pytest.mark.parametrize("kem", [True, False])
+def test_nhan_ban_cung_ten_thi_them_hau_to(root, kem):
+    nguon = ws.tao(root, "A", None)
+    assert ws.nhan_ban(root, nguon, "A", kem) == "a-2"
 
 
-def test_nhan_ban_nguon_hong_khong_de_lai_thu_muc(root):
-    slug = w.tao(root, "Gốc")
-    with open(os.path.join(root, "workspaces", slug, "app.db"), "wb") as f:
-        f.write(b"khong phai sqlite")
-    with pytest.raises(Exception):
-        w.nhan_ban(root, slug, "Bản", True)
-    assert [x["slug"] for x in w.danh_sach(root)] == [slug]
-    assert not os.path.exists(os.path.join(root, "workspaces", "ban"))
+def test_nhan_ban_ten_rong_khong_de_lai_gi(root):
+    nguon = ws.tao(root, "A", None)
+    with pytest.raises(ValueError):
+        ws.nhan_ban(root, nguon, "", True)
+    assert [w["slug"] for w in ws.danh_sach(root)] == ["a"]
 
 
-# ---------- mẫu ----------
+# ------------------------------------------------------------------ mẫu
 
-def test_danh_sach_mau_luon_co_mau_truong_hoc(root):
-    (mau,) = w.danh_sach_mau(root)
-    assert mau["builtin"] is True and mau["name"] == "Trường học"
-    assert mau["config"]["rules"] == cfgws.MAC_DINH_TRUONG_HOC["rules"]
-    assert mau["config"]["labels"] == cfgws.MAC_DINH_TRUONG_HOC["labels"]
+def test_mau_dung_san_luon_co_va_luon_dung_dau(root):
+    ds = ws.danh_sach_mau(root)
+    assert len(ds) == 1
+    m = ds[0]
+    assert (m["name"], m["builtin"]) == ("Trường học", True)
+    assert m["config"]["rules"] == ch.MAC_DINH_TRUONG_HOC["rules"]
+    assert m["config"]["labels"] == ch.MAC_DINH_TRUONG_HOC["labels"]
+    # sửa bản trả về không làm hỏng mặc định
+    m["config"]["rules"]["tiers"].append("x")
+    assert ch.MAC_DINH_TRUONG_HOC["rules"]["tiers"] == []
 
 
 def test_luu_mau_chi_ghi_cau_hinh(root):
-    slug = w.tao(root, "Công ty", {
-        "industry": "company",
-        "labels": {"person": {"vi": "Nhân viên", "en": "Employee"}},
-        "rules": {"max_choices": 5}})
-    _them_clb(os.path.join(root, "workspaces", slug, "app.db"))
-    ms = w.luu_mau(root, slug, "Mẫu công ty")
-    assert ms == "mau-cong-ty"
-    tep = os.path.join(root, "templates", "mau-cong-ty.json")
-    with open(tep, encoding="utf-8") as f:
-        noi_dung = json.load(f)
-    assert noi_dung["name"] == "Mẫu công ty"
-    assert noi_dung["rules"]["max_choices"] == 5
-    assert "Cờ vua" not in json.dumps(noi_dung, ensure_ascii=False)  # không dữ liệu
-    ds = w.danh_sach_mau(root)
-    assert [m["slug"] for m in ds] == ["truong-hoc", "mau-cong-ty"]
-    mau = ds[1]
-    assert mau["builtin"] is False and mau["industry"] == "company"
-    # dùng được ngay để tạo workspace mới
-    moi = w.tao(root, "Công ty B", mau["config"])
-    cfg = cfgws.doc_cau_hinh(
-        os.path.join(root, "workspaces", moi, "app.db"))
-    assert cfg["labels"]["person"]["en"] == "Employee" and cfg["name"] == "Công ty B"
+    slug = ws.tao(root, "Công ty", {"industry": "company",
+                                    "labels": {"slot": {"vi": "Dự án", "en": "Project"}},
+                                    "rules": {"max_choices": 3}})
+    _them_clb(ws.duong_dan_db(root, slug))
+
+    duong = ws.luu_mau(root, slug, "Mẫu công ty")
+
+    assert duong == os.path.join(root, "templates", "cong-ty.json")
+    noi_dung = open(duong, encoding="utf-8").read()
+    assert "Bóng đá" not in noi_dung  # không có dữ liệu
+    ds = ws.danh_sach_mau(root)
+    assert [m["builtin"] for m in ds] == [True, False]
+    m = ds[1]
+    assert (m["slug"], m["name"]) == ("cong-ty", "Mẫu công ty")
+    assert m["config"]["rules"]["max_choices"] == 3
+    assert m["config"]["labels"]["slot"] == {"vi": "Dự án", "en": "Project"}
 
 
-def test_luu_mau_cung_ten_ghi_de_va_khong_chiem_slug_dung_san(root):
-    slug = w.tao(root, "A")
-    w.luu_mau(root, slug, "Mẫu")
-    w.doi_ten(root, slug, "A2")
-    w.luu_mau(root, slug, "Mẫu")
-    assert len(os.listdir(os.path.join(root, "templates"))) == 1
-    assert w.luu_mau(root, slug, "Trường học") == "truong-hoc-2"
-    ds = w.danh_sach_mau(root)
-    assert ds[0]["builtin"] is True and sum(m["builtin"] for m in ds) == 1
+def test_mau_dung_de_tao_workspace_moi(root):
+    nguon = ws.tao(root, "Công ty", {"industry": "company", "rules": {"max_choices": 3}})
+    ws.luu_mau(root, nguon, "Mẫu")
+    mau = ws.danh_sach_mau(root)[1]
+    moi = ws.tao(root, "Chi nhánh", mau["config"])
+    cfg = ch.doc_cau_hinh(ws.duong_dan_db(root, moi))
+    assert (cfg["name"], cfg["industry"], cfg["rules"]["max_choices"]) == ("Chi nhánh", "company", 3)
+
+
+def test_luu_lai_mau_tu_cung_workspace_cap_nhat_chu_khong_nhan_doi(root):
+    slug = ws.tao(root, "A", None)
+    ws.luu_mau(root, slug, "Một")
+    ws.luu_mau(root, slug, "Hai")
+    ds = ws.danh_sach_mau(root)
+    assert [m["name"] for m in ds] == ["Trường học", "Hai"]
 
 
 def test_mau_hong_bi_bo_qua(root):
-    os.makedirs(os.path.join(root, "templates"))
-    with open(os.path.join(root, "templates", "hong.json"), "w") as f:
-        f.write("{khong phai json")
-    with open(os.path.join(root, "templates", "sai.json"), "w") as f:
-        f.write('{"rules": {"max_choices": 99}}')
-    assert [m["slug"] for m in w.danh_sach_mau(root)] == ["truong-hoc"]
+    slug = ws.tao(root, "A", None)
+    ws.luu_mau(root, slug, "Tốt")
+    thu_muc = os.path.join(root, "templates")
+    open(os.path.join(thu_muc, "hong.json"), "w").write("{khong phai json")
+    open(os.path.join(thu_muc, "sai-luat.json"), "w").write(
+        json.dumps({"name": "x", "config": {"rules": {"max_choices": 0}}}))
+    open(os.path.join(thu_muc, "thieu.json"), "w").write("{}")
+    open(os.path.join(thu_muc, "ghi-chu.txt"), "w").write("x")
+    assert [m["name"] for m in ws.danh_sach_mau(root)] == ["Trường học", "Tốt"]
 
 
-# ---------- zip ----------
+def test_luu_mau_ten_rong(root):
+    slug = ws.tao(root, "A", None)
+    with pytest.raises(ValueError):
+        ws.luu_mau(root, slug, " ")
+    assert not os.path.exists(os.path.join(root, "templates"))
+
+
+# ------------------------------------------------------------------ zip
 
 def test_zip_khu_hoi(root, tmp_path):
-    slug = w.tao(root, "Xuất", {"rules": {"max_choices": 6}})
-    _them_clb(os.path.join(root, "workspaces", slug, "app.db"))
-    dich = str(tmp_path / "ra" / "xuat.zip")
-    assert w.xuat_zip(root, slug, dich) == dich
+    cfg = {"industry": "event", "rules": {"max_choices": 7}}
+    slug = ws.tao(root, "Sự kiện", cfg)
+    db = ws.duong_dan_db(root, slug)
+    _them_clb(db)
+    open(os.path.join(os.path.dirname(db), "app.db.bak-20260101"), "wb").write(b"x")
+    open(os.path.join(os.path.dirname(db), "ghi-chu.txt"), "w").write("giữ")
+    dich = str(tmp_path / "ra" / "su-kien.zip")
+
+    assert ws.xuat_zip(root, slug, dich) == dich
+
     with zipfile.ZipFile(dich) as z:
-        assert z.namelist() == ["app.db"]
-    root2 = str(tmp_path / "may_khac")
-    moi = w.nhap_zip(root2, dich)
-    assert moi == "xuat"
-    db = os.path.join(root2, "workspaces", moi, "app.db")
-    assert _clb(db) == [("A", "Cờ vua")]
-    cfg = cfgws.doc_cau_hinh(db)
-    assert cfg["name"] == "Xuất" and cfg["rules"]["max_choices"] == 6
-    assert not os.path.exists(dich + ".tmp")
-    # không rác: chỉ còn đúng thư mục workspace
-    assert os.listdir(os.path.join(root2, "workspaces")) == [moi]
+        assert sorted(z.namelist()) == ["app.db", "ghi-chu.txt"]
+
+    moi = ws.nhap_zip(root, dich)
+
+    assert moi == "su-kien-2"  # slug cũ đã có: đổi tên như tao()
+    db2 = ws.duong_dan_db(root, moi)
+    assert _clb(db2) == [("A", "Bóng đá")]
+    assert ch.doc_cau_hinh(db2) == ch.doc_cau_hinh(db)
+    assert open(os.path.join(os.path.dirname(db2), "ghi-chu.txt")).read() == "giữ"
+    # không còn thư mục tạm
+    assert _ten_thu_muc(root) == ["su-kien", "su-kien-2"]
 
 
-def test_nhap_zip_trung_slug_doi_ten_nhu_tao(root, tmp_path):
-    slug = w.tao(root, "Trùng")
-    dich = str(tmp_path / "t.zip")
-    w.xuat_zip(root, slug, dich)
-    assert w.nhap_zip(root, dich) == "trung-2"
-    assert w.nhap_zip(root, dich) == "trung-3"
-    assert len(w.danh_sach(root)) == 3
+def test_nhap_zip_vao_root_khac_giu_nguyen_slug(root, tmp_path):
+    slug = ws.tao(root, "Sự kiện", None)
+    _them_clb(ws.duong_dan_db(root, slug))
+    z = str(tmp_path / "x.zip")
+    ws.xuat_zip(root, slug, z)
+    root2 = str(tmp_path / "may-khac")
+    os.makedirs(root2)
+    assert ws.nhap_zip(root2, z) == "su-kien"
+    assert _clb(ws.duong_dan_db(root2, "su-kien")) == [("A", "Bóng đá")]
+
+
+def test_xuat_zip_khi_csdl_dang_mo_ghi_van_nhat_quan(root, tmp_path):
+    slug = ws.tao(root, "A", None)
+    db = ws.duong_dan_db(root, slug)
+    _them_clb(db)
+    giu = sqlite3.connect(db)  # một kết nối khác đang mở
+    try:
+        z = str(tmp_path / "a.zip")
+        ws.xuat_zip(root, slug, z)
+    finally:
+        giu.close()
+    assert _clb(ws.duong_dan_db(str(tmp_path / "r2"), ws.nhap_zip(str(tmp_path / "r2"), z))) \
+        == [("A", "Bóng đá")]
+
+
+def _zip_voi(duong, muc):
+    with zipfile.ZipFile(duong, "w") as z:
+        for ten, noi_dung in muc:
+            z.writestr(ten, noi_dung)
+    return str(duong)
+
+
+def _db_bytes(tmp_path):
+    p = str(tmp_path / "_mau.db")
+    init_db(p)
+    return open(p, "rb").read()
 
 
 @pytest.mark.parametrize("ten", [
-    "../evil.db", "a/../../evil.db", "/abs/evil.db", "\\abs\\evil.db",
-    "C:\\evil.db", "C:/evil.db", "..\\evil.db", "x\\..\\..\\evil.db",
+    "../evil.txt", "a/../../evil.txt", "..\\evil.txt", "a\\..\\..\\evil.txt",
+    "/tmp/evil.txt", "\\evil.txt", "C:\\evil.txt", "C:/evil.txt", "ok/..",
 ])
-def test_zip_slip_bi_tu_choi(root, tmp_path, ten):
-    slug = w.tao(root, "Hợp lệ")
-    db = os.path.join(root, "workspaces", slug, "app.db")
-    with open(db, "rb") as f:
-        db_bytes = f.read()
-    z = _zip_tay(tmp_path / "xau.zip", {"app.db": db_bytes, ten: b"x"})
-    truoc = sorted(os.listdir(os.path.join(root, "workspaces")))
+def test_nhap_zip_tu_choi_zip_slip(root, tmp_path, ten):
+    z = _zip_voi(tmp_path / "xau.zip", [("app.db", _db_bytes(tmp_path)), (ten, "x")])
     with pytest.raises(ValueError, match="không an toàn"):
-        w.nhap_zip(root, z)
-    assert sorted(os.listdir(os.path.join(root, "workspaces"))) == truoc
-    assert not os.path.exists(os.path.join(os.path.dirname(root), "evil.db"))
+        ws.nhap_zip(root, z)
+    # không workspace nào được tạo, không rác, không tệp thoát ra ngoài
+    assert ws.danh_sach(root) == []
+    assert _ten_thu_muc(root) == []
+    assert not os.path.exists(str(tmp_path / "evil.txt"))
+    assert not os.path.exists(os.path.join(root, "evil.txt"))
 
 
-def test_zip_slip_voi_app_db_la_muc_xau(root, tmp_path):
-    z = _zip_tay(tmp_path / "xau.zip", {"../app.db": b"x"})
-    with pytest.raises(ValueError, match="không an toàn"):
-        w.nhap_zip(root, z)
+def test_nhap_zip_tu_choi_lien_ket_tuong_trung(root, tmp_path):
+    p = str(tmp_path / "lk.zip")
+    with zipfile.ZipFile(p, "w") as z:
+        z.writestr("app.db", _db_bytes(tmp_path))
+        info = zipfile.ZipInfo("lien-ket")
+        info.external_attr = (0o120777) << 16
+        z.writestr(info, "/etc/passwd")
+    with pytest.raises(ValueError, match="liên kết"):
+        ws.nhap_zip(root, p)
+    assert _ten_thu_muc(root) == []
 
 
-def test_zip_khong_co_app_db(root, tmp_path):
-    z = _zip_tay(tmp_path / "thieu.zip", {"readme.txt": b"hi", "a/b/app.db": b"x"})
+def test_nhap_zip_thieu_app_db(root, tmp_path):
+    z = _zip_voi(tmp_path / "thieu.zip", [("ghi-chu.txt", "x"), ("con/app.db", "x")])
     with pytest.raises(ValueError, match="app.db"):
-        w.nhap_zip(root, z)
+        ws.nhap_zip(root, z)
+    assert _ten_thu_muc(root) == []
 
 
-@pytest.mark.parametrize("noi_dung", [b"khong phai sqlite", b"SQLite format 3\x00" + b"x" * 200])
-def test_zip_app_db_hong(root, tmp_path, noi_dung):
-    z = _zip_tay(tmp_path / "h.zip", {"app.db": noi_dung})
+def test_nhap_zip_app_db_khong_phai_sqlite(root, tmp_path):
+    z = _zip_voi(tmp_path / "hong.zip", [("app.db", "đây không phải sqlite " * 50)])
+    with pytest.raises(ValueError, match="CSDL"):
+        ws.nhap_zip(root, z)
+    assert _ten_thu_muc(root) == []
+
+
+def test_nhap_zip_khong_phai_zip_hoac_khong_ton_tai(root, tmp_path):
+    p = tmp_path / "gia.zip"
+    p.write_text("không phải zip")
     with pytest.raises(ValueError):
-        w.nhap_zip(root, z)
-    assert w.danh_sach(root) == []
-    assert os.listdir(os.path.join(root, "workspaces")) == []  # không rác tạm
-
-
-def test_zip_sqlite_la_khong_phai_cua_phan_mem(root, tmp_path):
-    la = str(tmp_path / "la.db")
-    c = sqlite3.connect(la)
-    c.execute("CREATE TABLE khac (x)")
-    c.commit()
-    c.close()
-    with open(la, "rb") as f:
-        z = _zip_tay(tmp_path / "la.zip", {"app.db": f.read()})
-    with pytest.raises(ValueError, match="không phải CSDL của phần mềm"):
-        w.nhap_zip(root, z)
-
-
-def test_tep_khong_phai_zip(root, tmp_path):
-    p = tmp_path / "x.zip"
-    p.write_bytes(b"khong phai zip")
+        ws.nhap_zip(root, str(p))
     with pytest.raises(ValueError):
-        w.nhap_zip(root, str(p))
-    with pytest.raises(ValueError):
-        w.nhap_zip(root, str(tmp_path / "khong_co.zip"))
+        ws.nhap_zip(root, str(tmp_path / "khong-co.zip"))
+    assert _ten_thu_muc(root) == []
 
 
-def test_zip_nen_trong_mot_thu_muc_va_db_cu_duoc_nang_cap(root, tmp_path):
-    cu = _db_cu(str(tmp_path), voi_clb=True)  # thiếu workspace_settings
-    with open(cu, "rb") as f:
-        z = _zip_tay(tmp_path / "t.zip", {"Truong cu/app.db": f.read(),
-                                          "Truong cu/ghi_chu.txt": b"bo qua"})
-    slug = w.nhap_zip(root, z)
-    assert slug == "t"  # cấu hình chưa có tên -> lấy tên tệp zip
-    db = os.path.join(root, "workspaces", slug, "app.db")
-    assert _clb(db) == [("A", "Cờ vua")]
-    assert cfgws.doc_cau_hinh(db)["name"] == "t"
-    assert os.listdir(os.path.join(root, "workspaces", slug)) == ["app.db"]
+def test_nhap_zip_khong_co_cau_hinh_lay_ten_theo_tep_zip(root, tmp_path):
+    z = _zip_voi(tmp_path / "Bản Cũ.zip", [("app.db", _db_bytes(tmp_path))])
+    # init_db đã tạo bảng cấu hình nhưng chưa có hàng 'config'
+    slug = ws.nhap_zip(root, z)
+    assert slug == "ban-cu"
+    assert ch.doc_cau_hinh(ws.duong_dan_db(root, slug))["name"] == "Bản Cũ"
 
 
-# ---------- di_chuyen_db_cu ----------
-
-def test_di_chuyen_giu_du_lieu(root):
-    _db_cu(root)
-    with open(os.path.join(root, "app.db.bak-20250101_000000_000000"), "wb") as f:
-        f.write(b"ban sao luu")
-    assert w.di_chuyen_db_cu(root) == "truong-hoc"
-    dich = os.path.join(root, "workspaces", "truong-hoc")
-    assert not os.path.exists(os.path.join(root, "app.db"))
-    assert not os.path.exists(os.path.join(root, "app.db.bak-20250101_000000_000000"))
-    assert sorted(os.listdir(dich)) == [
-        "app.db", "app.db.bak-20250101_000000_000000"]
-    assert _clb(os.path.join(dich, "app.db")) == [("A", "Cờ vua")]
-    assert cfgws.doc_cau_hinh(os.path.join(dich, "app.db"))["name"] == "Trường học"
-    (ws,) = w.danh_sach(root)
-    assert ws["slug"] == "truong-hoc" and ws["name"] == "Trường học"
-    ghi_chu = os.path.join(root, "DA_CHUYEN_SANG_WORKSPACES.txt")
-    with open(ghi_chu, encoding="utf-8-sig") as f:
-        assert "workspaces" in f.read()
-    # thư mục tạm không còn
-    assert not os.path.exists(os.path.join(root, "_dang_chuyen_workspaces"))
+def test_nhap_zip_ho_tro_zip_tu_csdl_cu_chua_co_bang_cau_hinh(root, tmp_path):
+    p = str(tmp_path / "cu.db")
+    init_db(p)
+    with sqlite3.connect(p) as c:
+        c.execute("DROP TABLE workspace_settings")
+        c.execute("INSERT INTO clubs (club_id, name, capacity) VALUES ('A','A',3)")
+    z = _zip_voi(tmp_path / "cu.zip", [("app.db", open(p, "rb").read())])
+    slug = ws.nhap_zip(root, z)
+    db = ws.duong_dan_db(root, slug)
+    assert _clb(db) == [("A", "A")]
+    assert ch.doc_cau_hinh(db)["name"] == "cu"
 
 
-def test_di_chuyen_chay_hai_lan_an_toan(root):
-    _db_cu(root)
-    assert w.di_chuyen_db_cu(root) == "truong-hoc"
-    db = os.path.join(root, "workspaces", "truong-hoc", "app.db")
-    _them_clb(db, "B", "Bóng đá")
-    truoc = _clb(db)
-    assert w.di_chuyen_db_cu(root) is None
-    assert w.di_chuyen_db_cu(root) is None
-    assert _clb(db) == truoc
-    assert [x["slug"] for x in w.danh_sach(root)] == ["truong-hoc"]
+# ------------------------------------------------------------------ di trú app.db cũ
+
+def _app_db_cu(root, co_sao_luu=True):
+    db = os.path.join(root, "app.db")
+    init_db(db)
+    _them_clb(db, "A", "Cờ vua")
+    if co_sao_luu:
+        for ts in ("20260101_000000_000001", "20260102_000000_000002"):
+            with sqlite3.connect(db) as src, sqlite3.connect(db + ".bak-" + ts) as dst:
+                src.backup(dst)
+    return db
 
 
-def test_di_chuyen_khong_lam_gi_khi_khong_co_db_cu(root):
-    assert w.di_chuyen_db_cu(root) is None
-    assert not os.path.exists(os.path.join(root, "workspaces"))
-    assert not os.path.exists(os.path.join(root, "_dang_chuyen_workspaces"))
+def test_di_chuyen_db_cu_giu_du_lieu_va_chay_mot_lan(root):
+    db_cu = _app_db_cu(root)
+    # CSDL cũ: chưa từng có hàng cấu hình
+    assert ch.doc_cau_hinh(db_cu)["name"] == ""
+
+    assert ws.di_chuyen_db_cu(root) is True
+
+    moi = os.path.join(root, "workspaces", "truong-hoc")
+    assert not os.path.exists(db_cu)
+    assert sorted(os.listdir(moi)) == ["app.db", "app.db.bak-20260101_000000_000001",
+                                       "app.db.bak-20260102_000000_000002"]
+    assert _clb(os.path.join(moi, "app.db")) == [("A", "Cờ vua")]
+    assert _clb(os.path.join(moi, "app.db.bak-20260101_000000_000001")) == [("A", "Cờ vua")]
+    assert ch.doc_cau_hinh(os.path.join(moi, "app.db"))["name"] == "Trường học"
+    assert [w["slug"] for w in ws.danh_sach(root)] == ["truong-hoc"]
+    assert ws.danh_sach(root)[0]["name"] == "Trường học"
+
+    ghi_chu = open(os.path.join(root, "DA_CHUYEN_SANG_WORKSPACES.txt"), encoding="utf-8").read()
+    assert "workspaces" in ghi_chu and "truong-hoc" in ghi_chu
+    assert ghi_chu.count("\n") == 1  # một đoạn ngắn
+
+    # không còn thư mục dựng dở
+    assert sorted(os.listdir(root)) == ["DA_CHUYEN_SANG_WORKSPACES.txt", "workspaces"]
+
+
+def test_di_chuyen_db_cu_chay_hai_lan_an_toan(root):
+    _app_db_cu(root)
+    assert ws.di_chuyen_db_cu(root) is True
+    truoc = sorted(os.listdir(os.path.join(root, "workspaces", "truong-hoc")))
+    assert ws.di_chuyen_db_cu(root) is False
+    assert ws.di_chuyen_db_cu(root) is False
+    assert sorted(os.listdir(os.path.join(root, "workspaces", "truong-hoc"))) == truoc
+    assert _clb(os.path.join(root, "workspaces", "truong-hoc", "app.db")) == [("A", "Cờ vua")]
+
+
+def test_di_chuyen_khong_lam_gi_khi_khong_co_app_db(root):
+    assert ws.di_chuyen_db_cu(root) is False
+    assert os.listdir(root) == []
+
+
+def test_di_chuyen_khong_dung_vao_app_db_khi_da_co_workspaces(root):
+    os.makedirs(os.path.join(root, "workspaces"))
+    db_cu = _app_db_cu(root, co_sao_luu=False)
+    assert ws.di_chuyen_db_cu(root) is False
+    assert os.path.isfile(db_cu)
     assert not os.path.exists(os.path.join(root, "DA_CHUYEN_SANG_WORKSPACES.txt"))
 
 
-def test_di_chuyen_khong_lam_gi_khi_da_co_workspaces(root):
-    w.tao(root, "Mới")
-    cu = _db_cu(root)
-    assert w.di_chuyen_db_cu(root) is None
-    assert os.path.isfile(cu)  # db cũ để nguyên, không bị đụng
-    assert [x["slug"] for x in w.danh_sach(root)] == ["moi"]
+def test_di_chuyen_chon_ca_tep_nhat_ky_cua_sqlite_nhung_khong_tep_la(root):
+    # Gọi thẳng hàm chọn tệp: SQLite tự xoá một app.db-journal giả khi mở CSDL.
+    _app_db_cu(root, co_sao_luu=False)
+    for t in ("app.db-journal", "app.db-wal", "app.db-shm", "app.db.zip", "app.dbx"):
+        open(os.path.join(root, t), "wb").write(b"j")
+    os.makedirs(os.path.join(root, "app.db.bak-thu-muc"))
+    assert ws._tep_can_chuyen(root) == ["app.db", "app.db-journal", "app.db-shm", "app.db-wal"]
 
 
-def test_di_chuyen_dem_theo_ca_tep_phu_journal(root, monkeypatch):
-    """`-journal` phải đi cùng app.db TRƯỚC khi SQLite mở nó lần đầu ở chỗ mới
-    (journal nóng được phát lại khi mở; bỏ lại thì mất bước hoàn tác)."""
-    _db_cu(root)
-    with open(os.path.join(root, "app.db-journal"), "wb") as f:
-        f.write(b"nhat ky")
-    thay = {}
-    ghi_that = w.ghi_cau_hinh
-
-    def ghi_theo_doi(db, cfg):
-        thay["tep"] = sorted(os.listdir(os.path.dirname(db)))
-        return ghi_that(db, cfg)
-
-    monkeypatch.setattr(w, "ghi_cau_hinh", ghi_theo_doi)
-    w.di_chuyen_db_cu(root)
-    assert thay["tep"] == ["app.db", "app.db-journal"]
-    assert not os.path.exists(os.path.join(root, "app.db-journal"))
+def test_di_chuyen_db_hong_van_dem_di_nguyen_trang(root):
+    open(os.path.join(root, "app.db"), "wb").write(b"day khong phai sqlite" * 20)
+    assert ws.di_chuyen_db_cu(root) is True
+    moi = os.path.join(root, "workspaces", "truong-hoc", "app.db")
+    assert open(moi, "rb").read() == b"day khong phai sqlite" * 20
 
 
-def test_di_chuyen_lam_tiep_sau_khi_bi_ngat(root):
-    """Sập sau khi dời app.db nhưng trước khi tạo workspaces/ -> lần sau làm tiếp."""
-    _db_cu(root)
-    with open(os.path.join(root, "app.db.bak-1"), "wb") as f:
-        f.write(b"ban sao luu")
-    tam = os.path.join(root, "_dang_chuyen_workspaces", "truong-hoc")
-    os.makedirs(tam)
-    os.replace(os.path.join(root, "app.db"), os.path.join(tam, "app.db"))
-    assert not os.path.exists(os.path.join(root, "workspaces"))
-    assert w.di_chuyen_db_cu(root) == "truong-hoc"
-    dich = os.path.join(root, "workspaces", "truong-hoc")
-    assert sorted(os.listdir(dich)) == ["app.db", "app.db.bak-1"]
-    assert _clb(os.path.join(dich, "app.db")) == [("A", "Cờ vua")]
+def test_di_chuyen_tiep_tuc_sau_khi_hong_giua_chung(root):
+    """Dời app.db xong mà chưa kịp đổi tên thư mục: lần sau phải làm nốt."""
+    db_cu = _app_db_cu(root, co_sao_luu=False)
+    dang_dung = os.path.join(root, "_workspaces_dang_dung", "truong-hoc")
+    os.makedirs(dang_dung)
+    os.replace(db_cu, os.path.join(dang_dung, "app.db"))
+
+    assert ws.di_chuyen_db_cu(root) is True
+
+    assert _clb(os.path.join(root, "workspaces", "truong-hoc", "app.db")) == [("A", "Cờ vua")]
+    assert not os.path.exists(os.path.join(root, "_workspaces_dang_dung"))
 
 
-def test_di_chuyen_khong_ghi_de_db_da_dang_chuyen(root):
-    """Lần sau có app.db TRỐNG mới ở root (vd 'bắt đầu mới') thì không đè bản thật."""
-    _db_cu(root)
-    tam = os.path.join(root, "_dang_chuyen_workspaces", "truong-hoc")
-    os.makedirs(tam)
-    os.replace(os.path.join(root, "app.db"), os.path.join(tam, "app.db"))
-    init_db(os.path.join(root, "app.db"))  # app.db rỗng mới
-    w.di_chuyen_db_cu(root)
-    assert _clb(os.path.join(root, "workspaces", "truong-hoc", "app.db")) == [
-        ("A", "Cờ vua")]
-
-
-def test_di_chuyen_db_hong_van_dem_di(root):
-    with open(os.path.join(root, "app.db"), "wb") as f:
-        f.write(b"khong phai sqlite")
-    assert w.di_chuyen_db_cu(root) == "truong-hoc"
-    with open(os.path.join(root, "workspaces", "truong-hoc", "app.db"), "rb") as f:
-        assert f.read() == b"khong phai sqlite"
-
-
-# ---------- tim_workspace_hong + main ----------
-
-def test_tim_workspace_hong(root):
-    assert w.tim_workspace_hong(root) is None
-    w.tao(root, "Tốt")
-    assert w.tim_workspace_hong(root) is None
-    xau = w.tao(root, "Xấu")
-    db = os.path.join(root, "workspaces", xau, "app.db")
-    with open(db, "wb") as f:
-        f.write(b"khong phai sqlite")
-    duong, loi = w.tim_workspace_hong(root)
-    assert duong == db and isinstance(loi, sqlite3.DatabaseError)
-
+# ------------------------------------------------------------------ main.py
 
 @pytest.fixture
 def main_mod(monkeypatch, tmp_path):
     import main
 
-    monkeypatch.setattr(main, "BASE_DIR", str(tmp_path))
+    goc = tmp_path / "goc"
+    goc.mkdir()
+    monkeypatch.setattr(main, "BASE_DIR", str(goc))
+    monkeypatch.setattr(sys, "argv", ["main.py"])
+    return main
+
+
+def test_main_khong_co_gi_thi_dung_truong_hoc_mac_dinh(main_mod, tmp_path):
+    goc = Path(main_mod.BASE_DIR)
+    db = main_mod.chon_db_path()
+    assert db == str(goc / "workspaces" / "truong-hoc" / "app.db")
+    assert ch.doc_cau_hinh(db) == {**ch.MAC_DINH_TRUONG_HOC, "name": "Trường học"}
+    assert not (goc / "app.db").exists()  # không còn app.db rải cạnh chương trình
+    assert main_mod.chon_db_path() == db      # lần sau mở lại đúng nó
+    assert [w["slug"] for w in ws.danh_sach(str(goc))] == ["truong-hoc"]
+
+
+def test_main_co_app_db_cu_thi_di_tru_roi_mo_no(main_mod, tmp_path):
+    goc = Path(main_mod.BASE_DIR)
+    _app_db_cu(str(goc), co_sao_luu=False)
+    db = main_mod.chon_db_path()
+    assert db == str(goc / "workspaces" / "truong-hoc" / "app.db")
+    assert _clb(db) == [("A", "Cờ vua")]
+    assert not (goc / "app.db").exists()
+
+
+def test_main_dung_mot_workspace_thi_mo_no(main_mod, tmp_path):
+    goc = Path(main_mod.BASE_DIR)
+    slug = ws.tao(str(goc), "Câu lạc bộ", None)
+    assert main_mod.chon_db_path() == ws.duong_dan_db(str(goc), slug)
+    assert [w["slug"] for w in ws.danh_sach(str(goc))] == ["cau-lac-bo"]  # không tạo thêm
+
+
+def test_main_nhieu_workspace_thi_mo_cai_sua_gan_nhat(main_mod, tmp_path):
+    goc = Path(main_mod.BASE_DIR)
+    root = str(goc)
+    cu = ws.tao(root, "Cũ", None)
+    moi = ws.tao(root, "Mới", None)
+    os.utime(ws.duong_dan_db(root, cu), (1_000_000_000, 1_000_000_000))
+    assert main_mod.chon_db_path() == ws.duong_dan_db(root, moi)
+
+
+def test_main_co_duong_dan_argv_thi_giu_hanh_vi_cu(main_mod, monkeypatch, tmp_path):
+    goc = Path(main_mod.BASE_DIR)
+    db = str(goc / "rieng" / "x.db")
+    monkeypatch.setattr(sys, "argv", ["main.py", db])
+    assert main_mod.chon_db_path() == os.path.abspath(db)
+    # không đụng gì tới đĩa: không workspaces, không di trú
+    assert not (goc / "workspaces").exists()
+    assert not (goc / "rieng").exists()
+
+
+def test_main_co_app_db_canh_chuong_trinh_va_argv_thi_khong_di_tru(main_mod, monkeypatch, tmp_path):
+    goc = Path(main_mod.BASE_DIR)
+    _app_db_cu(str(goc), co_sao_luu=False)
+    monkeypatch.setattr(sys, "argv", ["main.py", str(goc / "app.db")])
+    main_mod.chon_db_path()
+    assert (goc / "app.db").exists()
+    assert not (goc / "workspaces").exists()
+
+
+def test_main_mo_man_hinh_chinh_voi_workspace(main_mod, monkeypatch, tmp_path):
+    goc = Path(main_mod.BASE_DIR)
     mo = []
-    monkeypatch.setattr(
-        main, "_show_ui", lambda title, page, api, **k: mo.append((page, api)))
-    return main, mo
-
-
-def test_main_khong_tham_so_chuyen_db_cu_va_chua_mo_workspace_nao(
-        main_mod, monkeypatch, tmp_path):
-    main, mo = main_mod
-    monkeypatch.setattr(sys, "argv", ["main.py"])
-    _db_cu(str(tmp_path))
-    main.main()
-    page, api = mo[0]
-    assert page == "index.html"
-    assert api.db_path is None  # màn chọn workspace sẽ mở (js/075_workspace.js)
-    assert not (tmp_path / "app.db").exists()
-    assert _clb(str(tmp_path / "workspaces" / "truong-hoc" / "app.db")) == [
-        ("A", "Cờ vua")]
-    r = api.list_workspaces()
-    assert r["ok"] and r["data"]["current"] is None
-    assert [x["slug"] for x in r["data"]["items"]] == ["truong-hoc"]
-
-
-def test_main_khong_tham_so_va_chua_co_gi(main_mod, monkeypatch, tmp_path):
-    main, mo = main_mod
-    monkeypatch.setattr(sys, "argv", ["main.py"])
-    main.main()
+    monkeypatch.setattr(main_mod, "_show_ui", lambda title, page, api, **k: mo.append((page, api)))
+    main_mod.main()
     assert mo[0][0] == "index.html"
-    assert mo[0][1].list_workspaces()["data"]["items"] == []
+    assert mo[0][1].db_path == str(goc / "workspaces" / "truong-hoc" / "app.db")
 
 
-def test_main_co_tham_so_khong_dung_den_workspace(main_mod, monkeypatch, tmp_path):
-    main, mo = main_mod
-    _db_cu(str(tmp_path))  # app.db cũ ở thư mục chương trình: không được đụng
-    dang_ky = tmp_path / "rieng" / "khac.db"
-    dang_ky.parent.mkdir()
-    monkeypatch.setattr(sys, "argv", ["main.py", str(dang_ky)])
-    main.main()
-    assert mo[0][0] == "index.html"
-    assert mo[0][1].db_path == str(dang_ky)
-    assert mo[0][1].list_workspaces()["errors"][0]["code"] == "ws_disabled"
-    assert not (tmp_path / "workspaces").exists()
-    assert (tmp_path / "app.db").exists()
-    assert not (tmp_path / "DA_CHUYEN_SANG_WORKSPACES.txt").exists()
-
-
-def test_main_workspace_hong_ra_man_hinh_phuc_hoi_dung_tep(
-        main_mod, monkeypatch, tmp_path):
-    main, mo = main_mod
-    monkeypatch.setattr(sys, "argv", ["main.py"])
-    slug = w.tao(str(tmp_path), "Hỏng")
-    db = tmp_path / "workspaces" / slug / "app.db"
-    db.write_bytes(b"khong phai sqlite")
-    main.main()
-    page, api = mo[0]
-    assert page == "recovery.html"
-    assert type(api).__name__ == "RecoveryAPI"
-    assert api.db_path == str(db)
-
-
-def test_main_loi_chuan_bi_workspace_ra_man_hinh_phuc_hoi(main_mod, monkeypatch):
-    main, mo = main_mod
-    monkeypatch.setattr(sys, "argv", ["main.py"])
-
-    def hong(root):
-        raise OSError("thu muc chi doc")
-
-    monkeypatch.setattr(main.workspace, "di_chuyen_db_cu", hong)
-    main.main()
+def test_main_workspace_hong_thi_mo_man_hinh_phuc_hoi(main_mod, monkeypatch, tmp_path):
+    goc = Path(main_mod.BASE_DIR)
+    root = str(goc)
+    slug = ws.tao(root, "Hỏng", None)
+    db = ws.duong_dan_db(root, slug)
+    open(db, "wb").write(b"day khong phai sqlite" * 20)
+    mo = []
+    monkeypatch.setattr(main_mod, "_show_ui", lambda title, page, api, **k: mo.append((page, api)))
+    main_mod.main()
     assert mo[0][0] == "recovery.html"

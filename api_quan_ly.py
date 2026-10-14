@@ -396,6 +396,7 @@ class QuanLyMixin:
             # truoc day vo khoa chinh (student_id, club_id) va CA lan luu
             # hong. Tick la tap hop -> bo trung, giu thu tu dau tien.
             club_ids = list(dict.fromkeys(club_ids))
+            tran_thi = self._tran_thi()   # trần của workspace (None = không giới hạn); đọc trước giao dịch
             with self._ket_noi_ghi() as cur:
                 exists = cur.execute(
                     "SELECT 1 FROM students WHERE student_id = ?", (student_id,)
@@ -410,8 +411,6 @@ class QuanLyMixin:
                 # Tran tinh THEO TUNG BUOI. Tu choi ca loi goi chu khong cat bot:
                 # nguoi dung dang ngoi truoc man hinh va sua duoc ngay, con cat
                 # bot la phan mem tu y doi dieu ho vua khai.
-                # Trần lấy từ luật của không gian làm việc (None = không giới hạn).
-                tran_thi = self._tran_thi()
                 qua = self._buoi_qua_tran(cur, club_ids, tran_thi)
                 if qua:
                     b, n = qua
@@ -435,8 +434,8 @@ class QuanLyMixin:
     def submit_preferences(self, student_id: str, ordered_club_ids: list):
         """
         BƯỚC 2 (độc lập với tick-box thi) — xếp hạng nguyện vọng,
-        tối đa 10 club (giới hạn Microsoft Forms Ranking, giữ đồng
-        bộ với luồng nhập chính).
+        tối đa `rules.max_choices` mỗi buổi (mặc định 10 — giới hạn Microsoft Forms
+        Ranking, giữ đồng bộ với luồng nhập chính).
         """
         try:
             if not isinstance(ordered_club_ids, list):
@@ -450,6 +449,7 @@ class QuanLyMixin:
             if len(ordered_club_ids) != len(set(ordered_club_ids)):
                 return _fail(err("duplicate_preference_in_list"))
 
+            tran_nv = self._tran_nguyen_vong()   # trần của workspace; đọc trước giao dịch
             with self._ket_noi_ghi() as cur:
                 exists = cur.execute(
                     "SELECT 1 FROM students WHERE student_id = ?", (student_id,)
@@ -463,7 +463,6 @@ class QuanLyMixin:
                 if invalid:
                     return _fail(err("unknown_clubs", club_ids=invalid))
 
-                tran_nv = self._luat_ws()["max_choices"]
                 qua = self._buoi_qua_tran(cur, ordered_club_ids, tran_nv)
                 if qua:
                     b, n = qua
@@ -516,6 +515,10 @@ class QuanLyMixin:
                 cur.execute("DELETE FROM club_test_selection WHERE student_id = ?", (student_id,))
                 cur.execute("DELETE FROM preferences WHERE student_id = ?", (student_id,))
                 n_xoa = self._xoa_diem_khong_con_tick(cur, student_id)
+                # Điểm theo NGƯỜI (workspace per_person) cũng đi theo, như điểm từng CLB.
+                cur.execute("UPDATE students SET diem_ca_nhan = NULL "
+                            "WHERE student_id = ? AND diem_ca_nhan IS NOT NULL", (student_id,))
+                n_xoa += cur.rowcount
             return _ok({"student_id": student_id, "reset": True,
                         "n_scores_removed": n_xoa})
         except Exception as e:
