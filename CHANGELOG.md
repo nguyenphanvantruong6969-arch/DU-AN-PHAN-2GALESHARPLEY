@@ -1,5 +1,23 @@
 # CHANGELOG
 
+## 2026-10-15 — Biểu mẫu Google Forms CLB: sáu điểm Cao và Trung của bản phân tích (ngoài sổ đăng ký, theo yêu cầu chủ dự án)
+
+Nguồn: bảng "Điểm cần cải thiện", mục 1–6, của sơ đồ biểu mẫu. Số liệu là dữ liệu mô phỏng.
+- **Mục 1, khoá so trùng mã học sinh (sửa).** `chamTheoCLB` (`mau_forms_thi_clb/tao_google_forms.py`, khuôn `MAU`) và
+  `xu_li_raw.py` so trùng bằng khoá bỏ khoảng trắng và không phân biệt hoa thường: `HS 001` và `hs001` là một
+  người. Mã ghi ra vẫn là mã đã gõ, không đổi các ID trong sổ. Kiểm: `test_ma_chi_khac_khoang_trang_hoac_hoa_thuong_la_mot_hoc_sinh`
+  (Node), `test_ma_chi_khac_khoang_trang_hoac_hoa_thuong_bi_coi_la_nop_trung` (xu-li-raw). `DINH_DANG_RAW.md` mục 3 cập nhật.
+- **Mục 3 và 5, chữ trợ giúp trên form (sửa).** Trang Top, ô tick, câu "thi CLB nào trước" và "CLB tiếp theo" nêu rõ
+  điều kiện được chấm điểm và thứ tự chọn. Kiểm: `test_google_forms_noi_ro_dieu_kien_duoc_cham_diem`. Tiêu đề câu hỏi không đổi.
+- **Mục 2, gõ nhầm mã (chỉ tài liệu, cần kiểm).** `HUONG_DAN_TUNG_BUOC.md` thêm dòng xử lí: xoá đúng phiếu, học sinh nộp lại.
+  Chưa xác nhận được sau khi xoá học sinh có nộp lại được không. Không tự bật `setLimitOneResponsePerUser` hay
+  `setCollectEmail`: hai cài đặt này đổi ai được nộp, và cần quyết định của nhà trường.
+- **Mục 4, công bố điểm (chỉ tài liệu).** Bước 2.2 của hướng dẫn thành "bắt buộc trước khi gửi", thêm bước 5 kiểm lại trước khi gửi.
+  Không thêm lệnh Apps Script về công bố điểm vì chưa kiểm được API.
+- **Mục 6, chặn trùng nguyện vọng (chưa sửa).** Cần quyết định của tác giả: vì sao biểu mẫu đã bỏ lưới. Chưa đổi.
+- **Không đổi** cột CSV, hợp đồng raw, hay `dem_cau` (212 câu). Sinh lại `TAO_GOOGLE_FORM.gs` và `HUONG_DAN_TUNG_BUOC.md`
+  bằng đúng khuôn; vòng tròn skill và `test_ma_google_forms_khop_du_lieu` vẫn khớp.
+
 ## 2026-10-15 — Workspace: Việt hoá sạch màn chọn và sửa bảng (ngoài sổ đăng ký, theo yêu cầu chủ dự án; chồng lấn Z1)
 
 Ở giao diện tiếng Việt, màn chọn workspace còn "workspace" và ".zip" lẫn trong câu, và bảng bị vỡ.

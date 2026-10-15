@@ -300,8 +300,9 @@ def huong_dan(du_lieu, tieu_de, diem, tran, canh_bao):
     w("Mở đường dẫn SỬA biểu mẫu:")
     w("")
     w("1. Nếu nút **Xuất bản** ở góc trên còn màu tím, bấm để xuất bản.")
-    w("2. Tab **Cài đặt** → **Bài kiểm tra**: mục **Công bố điểm** chọn **Sau khi xem xét thủ công**. "
-      "Bỏ tick \"Câu hỏi bị trả lời sai\" và \"Câu trả lời đúng\".")
+    w("2. **Bắt buộc trước khi gửi.** Tab **Cài đặt** → **Bài kiểm tra**: mục **Công bố điểm** chọn **Sau khi xem xét thủ công**. "
+      "Bỏ tick \"Câu hỏi bị trả lời sai\" và \"Câu trả lời đúng\". "
+      "Bỏ qua bước này thì học sinh thấy đáp án ngay sau khi nộp và có thể kể lại cho bạn chưa thi.")
     w("3. Tab **Cài đặt** → **Câu trả lời**: bật **Giới hạn 1 câu trả lời**.")
     if vd:
         thi = [c for c in vd["clubs"] if c["de"]]
@@ -311,14 +312,15 @@ def huong_dan(du_lieu, tieu_de, diem, tran, canh_bao):
           % (vd["ten"], thi[0]["name"], thi[1]["name"], thi[0]["name"], thi[1]["name"]))
     else:
         w("4. Bấm biểu tượng con mắt (Xem trước) và làm thử một lượt.")
+    w("5. Trước khi gửi, kiểm lại: mục 2 và mục 3 của bước này đã làm xong.")
     w("")
     w("## Bước 3. Gửi cho học sinh")
     w("")
     w("1. Gửi đường dẫn HỌC SINH qua nhóm lớp, email hoặc mã QR.")
     w("2. Nhắc học sinh: buổi bận thì chọn \"Không\"; bấm vào Top 1 và chọn CLB thích nhất trong danh sách, rồi Top 2, ...; "
       "mỗi CLB chỉ chọn một lần, Top không dùng thì để (Bỏ trống); "
-      "tick tối đa %d CLB muốn thi; chọn làm bài lần lượt theo thứ tự trong danh sách. "
-      "Chỉ bài của CLB đã tick và đã chọn ở một Top mới được tính điểm." % tran)
+      "tick tối đa %d CLB muốn thi; khi làm bài, chọn CLB đứng trên cùng trong số CLB đã tick, rồi chọn lần lượt các CLB đứng sau. "
+      "CLB được tính điểm khi vừa được xếp ở một Top, vừa được tick, và vừa được làm bài." % tran)
     w("3. Hết hạn: tab **Câu trả lời**, tắt **Chấp nhận câu trả lời**.")
     w("")
     w("## Bước 4. Chấm điểm và xuất Excel")
@@ -346,6 +348,7 @@ def huong_dan(du_lieu, tieu_de, diem, tran, canh_bao):
     w("| Chạy quá 6 phút, bị ngắt | Biểu mẫu quá dài. Xoá biểu mẫu dở dang, chia đề thành hai tệp Excel, tạo hai biểu mẫu |")
     w("| Có hai biểu mẫu giống nhau | Đã chạy taoBieuMau hai lần. Xoá một cái, chỉ gửi học sinh một đường dẫn |")
     w("| Học sinh không mở được | Biểu mẫu chưa xuất bản, hoặc đã tắt nhận câu trả lời, hoặc học sinh chưa đăng nhập Google |")
+    w("| Học sinh gõ nhầm mã (cần kiểm trước khi dùng) | Tab **Câu trả lời**: xoá đúng phiếu đó, không xoá phiếu khác. Học sinh nộp lại với mã đúng. Chưa xác nhận được là sau khi xoá học sinh có nộp lại được không |")
     w("")
     return "\n".join(L) + "\n"
 

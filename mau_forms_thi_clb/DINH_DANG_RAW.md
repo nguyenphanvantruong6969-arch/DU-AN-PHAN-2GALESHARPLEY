@@ -75,7 +75,7 @@ dạng này: `xep_hang` được đổi sang `Top n`, và câu `[thi-<club_id>]`
 | Mã | Nghĩa |
 |---|---|
 | `giu` | Phiếu hợp lệ, được dùng |
-| `bo_nop_trung` | Mã học sinh đã nộp trước đó. Chỉ giữ phiếu đầu tiên |
+| `bo_nop_trung` | Mã học sinh đã nộp trước đó. So khớp bỏ mọi khoảng trắng và không phân biệt hoa thường (`HS 001`, `hs001` là một người). Chỉ giữ phiếu đầu tiên; `student_id` của phiếu giữ là mã đã gõ, không đổi |
 | `bo_khong_ma` | Không có mã học sinh |
 
 `ghi_chu` ở câu đề thi khi `duoc_tinh = 0`:

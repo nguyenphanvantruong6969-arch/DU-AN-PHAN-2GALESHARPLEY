@@ -163,10 +163,12 @@ def xu_li(raw, dap_an=None, clb_truong=None):
         if not sid:
             bc["phieu_khong_ma"].append("Phiếu %d" % ps)
             continue
-        if sid in dau_tien:
-            bc["phieu_trung"].append("%s: phiếu %d bị bỏ, giữ phiếu %d" % (sid, ps, dau_tien[sid]))
+        # Khoá so trùng giống chamTheoCLB: bỏ mọi khoảng trắng, không phân biệt hoa thường.
+        khoa_trung = "".join(sid.split()).lower()
+        if khoa_trung in dau_tien:
+            bc["phieu_trung"].append("%s: phiếu %d bị bỏ, giữ phiếu %d" % (sid, ps, dau_tien[khoa_trung]))
             continue
-        dau_tien[sid] = ps
+        dau_tien[khoa_trung] = ps
         giu[ps] = (sid, rows)
     for e, ds in email_ma.items():
         if len(ds) > 1:

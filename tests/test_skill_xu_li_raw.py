@@ -267,6 +267,22 @@ def test_clb_chon_o_nhieu_top_khong_chan_ca_bo(tmp_path, xr, de):
     assert bc["clb_nhieu_top"] == ["HS001 · thu_2: %s ở Top 1 và Top 3, giữ Top 1" % T2[2]]
 
 
+def test_ma_chi_khac_khoang_trang_hoac_hoa_thuong_bi_coi_la_nop_trung(tmp_path, xr, de):
+    """Raw cũ (ghi trước khi chuẩn hoá khoá) có "HS 007" và "hs007": skill chọn lại phiếu
+    giữ cũng phải coi là một học sinh, không để hai chỗ trong sổ."""
+    T2 = [c["id"] for c in de[0]["clubs"]]
+    r = Raw(xr, de)
+    r.phieu("HS 007", "Học sinh Bảy", {"thu_2": {"tick": [T2[0]], "lam": {T2[0]: 2}}})
+    r.phieu("hs007", "Học sinh Bảy lần 2", {"thu_2": {"tick": [T2[1]], "lam": {T2[1]: 2}}})
+    r.ghi(str(tmp_path / "RAW_PHIEU.xlsx"))
+    ghi_dap_an(de, str(tmp_path / "DAP_AN.xlsx"))
+    ghi_clb(de, str(tmp_path / "01.xlsx"))
+    _, hs, bc = xr.chay(str(tmp_path / "RAW_PHIEU.xlsx"), str(tmp_path / "ra"),
+                        str(tmp_path / "DAP_AN.xlsx"), str(tmp_path / "01.xlsx"))
+    assert [h["student_id"] for h in hs] == ["HS 007"]
+    assert bc["phieu_trung"] == ["hs007: phiếu 2 bị bỏ, giữ phiếu 1"]
+
+
 def test_mot_tep_gop_cho_cung_ket_qua_nhu_hai_tep_rieng(bo, xr):
     """SO_NHAP_CLB.xlsx gộp (trang Raw và Đáp án) phải ra đúng kết quả như hai tệp riêng."""
     thu, T2, T4 = bo

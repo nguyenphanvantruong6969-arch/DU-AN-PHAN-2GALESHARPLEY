@@ -270,3 +270,23 @@ def test_clb_cung_ten_o_hai_buoi_ra_hai_ten_rieng_trong_so(tmp_path):
     ten = json.loads(next(l for l in out.splitlines() if l.startswith("TEN ")).split(" ", 1)[1])
     assert len(ten) == len({t.lower() for t in ten}), ten
     assert any(t.endswith("(Thứ Ba)") for t in ten), ten
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="cần Node.js để chạy bản giả lập FormApp")
+def test_ma_chi_khac_khoang_trang_hoac_hoa_thuong_la_mot_hoc_sinh(tmp_path):
+    """"HS 001" và "hs001" là cùng một học sinh: chỉ giữ phiếu đầu, và mã ghi ra
+    là mã của phiếu đầu (không đổi mã đã nộp)."""
+    js = tmp_path / "cham.js"
+    kich_ban = CHAM.replace(
+        "responses=[resp(a),resp(b)];",
+        "responses=[resp(Object.assign({},a,{student_id:'HS 001'})),"
+        "resp(Object.assign({},b,{student_id:'hs001'}))];")
+    js.write_text(kich_ban, encoding="utf-8")
+    gs = os.path.join(GOC, "mau_forms_thi_clb", "TAO_GOOGLE_FORM.gs")
+    out = subprocess.run(["node", str(js), gs, str(tmp_path / "x.json")],
+                         capture_output=True, text=True, encoding="utf-8", check=True).stdout
+    dong = {l.split(" ", 1)[0]: l.split(" ", 1)[1] for l in out.strip().splitlines()}
+    hs = json.loads(dong["HS"])
+    assert [r[0] for r in hs[1:]] == ["HS 001"], hs
+    canh_bao = " | ".join(json.loads(dong["Cảnh"].split(" ", 1)[1]))
+    assert "Nộp lần nữa" in canh_bao, canh_bao

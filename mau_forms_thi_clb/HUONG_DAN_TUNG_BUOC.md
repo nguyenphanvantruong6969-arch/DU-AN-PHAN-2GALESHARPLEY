@@ -24,14 +24,15 @@ Chạy taoBieuMau lần nữa là tạo thêm một biểu mẫu mới. Chỉ ch
 Mở đường dẫn SỬA biểu mẫu:
 
 1. Nếu nút **Xuất bản** ở góc trên còn màu tím, bấm để xuất bản.
-2. Tab **Cài đặt** → **Bài kiểm tra**: mục **Công bố điểm** chọn **Sau khi xem xét thủ công**. Bỏ tick "Câu hỏi bị trả lời sai" và "Câu trả lời đúng".
+2. **Bắt buộc trước khi gửi.** Tab **Cài đặt** → **Bài kiểm tra**: mục **Công bố điểm** chọn **Sau khi xem xét thủ công**. Bỏ tick "Câu hỏi bị trả lời sai" và "Câu trả lời đúng". Bỏ qua bước này thì học sinh thấy đáp án ngay sau khi nộp và có thể kể lại cho bạn chưa thi.
 3. Tab **Cài đặt** → **Câu trả lời**: bật **Giới hạn 1 câu trả lời**.
 4. Bấm biểu tượng con mắt (Xem trước) và làm thử: ở **Thứ Hai** chọn Có, chọn vài CLB ở Top 1, Top 2 (các Top còn lại để (Bỏ trống)), tick **CLB Cờ vua** và **CLB Văn học**, chọn làm CLB Cờ vua trước, rồi CLB Văn học, rồi "Em không thi thêm CLB nào buổi này". Kiểm tra chỉ hiện đề của đúng hai CLB đó. Các buổi khác chọn "Không, em bận buổi này".
+5. Trước khi gửi, kiểm lại: mục 2 và mục 3 của bước này đã làm xong.
 
 ## Bước 3. Gửi cho học sinh
 
 1. Gửi đường dẫn HỌC SINH qua nhóm lớp, email hoặc mã QR.
-2. Nhắc học sinh: buổi bận thì chọn "Không"; bấm vào Top 1 và chọn CLB thích nhất trong danh sách, rồi Top 2, ...; mỗi CLB chỉ chọn một lần, Top không dùng thì để (Bỏ trống); tick tối đa 5 CLB muốn thi; chọn làm bài lần lượt theo thứ tự trong danh sách. Chỉ bài của CLB đã tick và đã chọn ở một Top mới được tính điểm.
+2. Nhắc học sinh: buổi bận thì chọn "Không"; bấm vào Top 1 và chọn CLB thích nhất trong danh sách, rồi Top 2, ...; mỗi CLB chỉ chọn một lần, Top không dùng thì để (Bỏ trống); tick tối đa 5 CLB muốn thi; khi làm bài, chọn CLB đứng trên cùng trong số CLB đã tick, rồi chọn lần lượt các CLB đứng sau. CLB được tính điểm khi vừa được xếp ở một Top, vừa được tick, và vừa được làm bài.
 3. Hết hạn: tab **Câu trả lời**, tắt **Chấp nhận câu trả lời**.
 
 ## Bước 4. Chấm điểm và xuất Excel
@@ -58,4 +59,5 @@ Mở đường dẫn SỬA biểu mẫu:
 | Chạy quá 6 phút, bị ngắt | Biểu mẫu quá dài. Xoá biểu mẫu dở dang, chia đề thành hai tệp Excel, tạo hai biểu mẫu |
 | Có hai biểu mẫu giống nhau | Đã chạy taoBieuMau hai lần. Xoá một cái, chỉ gửi học sinh một đường dẫn |
 | Học sinh không mở được | Biểu mẫu chưa xuất bản, hoặc đã tắt nhận câu trả lời, hoặc học sinh chưa đăng nhập Google |
+| Học sinh gõ nhầm mã (cần kiểm trước khi dùng) | Tab **Câu trả lời**: xoá đúng phiếu đó, không xoá phiếu khác. Học sinh nộp lại với mã đúng. Chưa xác nhận được là sau khi xoá học sinh có nộp lại được không |
 

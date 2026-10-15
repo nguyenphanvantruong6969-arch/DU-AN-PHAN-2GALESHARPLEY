@@ -360,6 +360,17 @@ def test_google_forms_chan_tick_qua_5_clb():
     assert "không tick ở câu chọn CLB thi, không tính điểm" in gs
 
 
+def test_google_forms_noi_ro_dieu_kien_duoc_cham_diem():
+    """Ba điều kiện (xếp Top, tick, làm bài) và thứ tự chọn CLB phải hiện ngay trên form,
+    không chỉ nằm trong hướng dẫn của giáo viên."""
+    import tao_google_forms as tg
+    gs = tg.noi_dung()
+    assert "Muốn CLB được chấm điểm: xếp CLB đó ở một Top, tick ở ô bên dưới, rồi làm bài thi." in gs
+    assert "CLB được chấm điểm khi vừa được xếp ở một Top, vừa được tick ở đây, và vừa được làm bài." in gs
+    assert "Chọn CLB đứng trên cùng trong số các CLB em đã tick." in gs
+    assert "Chỉ hiện các CLB đứng sau CLB vừa làm." in gs
+
+
 def test_raw_google_khop_tai_lieu_dinh_dang():
     """Cột raw trong .gs phải đúng như DINH_DANG_RAW.md mô tả (skill đọc theo tài liệu)."""
     import re
