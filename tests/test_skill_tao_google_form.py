@@ -225,7 +225,7 @@ const by=n=>sheets.filter(s=>s.n===n).pop().data;
 console.log('HS', JSON.stringify(by('2. Học sinh').map(r=>r.filter(x=>x!==''))));
 console.log('CLB', JSON.stringify(by('1. CLB').slice(0,2)));
 console.log('Cảnh báo', JSON.stringify(by('Cảnh báo').slice(1).map(r=>r[2])));
-console.log('raw xep_hang HS1', JSON.stringify(by('RAW_PHIEU').filter(r=>r[6]==='xep_hang'&&r[3]==='HS1').map(r=>[r[5],r[8],r[11]])));
+console.log('raw xep_hang HS1', JSON.stringify(by('Raw').filter(r=>r[6]==='xep_hang'&&r[3]==='HS1').map(r=>[r[5],r[8],r[11]])));
 
 """
 

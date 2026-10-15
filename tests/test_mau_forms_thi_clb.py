@@ -372,8 +372,11 @@ def test_raw_google_khop_tai_lieu_dinh_dang():
     assert cot == re.findall(r"^\| `([a-z_]+)` \|", muc1, re.M)
     for loai in ("thong_tin", "dang_ky_buoi", "xep_hang", "chon_thi", "cong_thi", "de_thi"):
         assert "loai: '%s'" % loai in gs and "`%s`" % loai in tai_lieu
-    assert "taoTepNap_(thuMuc, 'RAW_PHIEU', raw)" in gs
-    assert "taoTepNap_(thuMuc, 'DAP_AN', bangDapAn_())" in gs
+    # Một tệp duy nhất: trang Raw và Đáp án nằm trong SO_NHAP_CLB.xlsx.
+    assert "ghiTrang_(ss.insertSheet('Raw'), raw, true);" in gs
+    assert "ghiTrang_(ss.insertSheet('Đáp án'), bangDapAn_(), true);" in gs
+    assert "xuatExcel_(ss.getId(), thuMuc, 'SO_NHAP_CLB.xlsx');" in gs
+    assert "taoTepNap_" not in gs and "taoSoNhap_" not in gs
 
 
 def test_google_forms_bang_top_va_chon_lan_luot():

@@ -1,17 +1,22 @@
 # Định dạng dữ liệu raw của biểu mẫu Google Forms
 
-Tài liệu này mô tả hai tệp mà hàm `chamTheoCLB` trong `TAO_GOOGLE_FORM.gs`
-ghi vào thư mục "Kết quả CLB <ngày giờ>" trên Google Drive:
+Tài liệu này mô tả hai bảng mà hàm `chamTheoCLB` trong `TAO_GOOGLE_FORM.gs`
+ghi vào tệp `SO_NHAP_CLB.xlsx` trong thư mục "Kết quả CLB <ngày giờ>" trên
+Google Drive. Đây là tệp DUY NHẤT thư mục đó có. Hai bảng nằm ở hai trang:
 
-- `RAW_PHIEU.xlsx`: mọi câu trả lời của mọi phiếu, mỗi câu một dòng, câu đề
+- Trang `Raw`: mọi câu trả lời của mọi phiếu, mỗi câu một dòng, câu đề
   thi đã được chấm.
-- `DAP_AN.xlsx`: đáp án của toàn bộ đề thi.
+- Trang `Đáp án`: đáp án của toàn bộ đề thi.
+
+Phần mềm chỉ đọc trang `1. CLB` và `2. Học sinh`. Skill `xu-li-raw-forms` đọc
+hai trang này từ chính tệp đó, hoặc từ hai tệp `RAW_PHIEU.xlsx` và
+`DAP_AN.xlsx` rời (bản cũ).
 
 Skill `xu-li-raw-forms` (`.claude/skills/xu-li-raw-forms/`) đọc theo đúng tài
 liệu này để ra Sổ nhập CLB (`SO_NHAP_CLB.xlsx`) nạp vào phần mềm. Đổi cột trong `.gs` thì phải sửa tài liệu
 này và skill cùng lúc; `tests/test_skill_xu_li_raw.py` báo lỗi nếu cột lệch.
 
-Cả hai tệp chỉ có **một trang**, dòng 1 là tên cột. Mọi ô ghi dạng chữ (kể cả
+Mỗi trang (`Raw`, `Đáp án`) chỉ có một bảng, dòng 1 là tên cột. Mọi ô ghi dạng chữ (kể cả
 số), để mã như `001` không bị đổi thành `1`. Đọc ra thì tự đổi sang số khi cần.
 
 ## 1. `RAW_PHIEU.xlsx`

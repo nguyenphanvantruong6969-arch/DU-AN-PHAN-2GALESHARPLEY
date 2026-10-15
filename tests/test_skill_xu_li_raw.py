@@ -265,3 +265,22 @@ def test_clb_chon_o_nhieu_top_khong_chan_ca_bo(tmp_path, xr, de):
                         str(tmp_path / "DAP_AN.xlsx"), str(tmp_path / "01.xlsx"))
     assert hs[0]["nguyen_vong"]["thu_2"] == [T2[2], T2[0]]
     assert bc["clb_nhieu_top"] == ["HS001 · thu_2: %s ở Top 1 và Top 3, giữ Top 1" % T2[2]]
+
+
+def test_mot_tep_gop_cho_cung_ket_qua_nhu_hai_tep_rieng(bo, xr):
+    """SO_NHAP_CLB.xlsx gộp (trang Raw và Đáp án) phải ra đúng kết quả như hai tệp riêng."""
+    thu, T2, T4 = bo
+    gop = openpyxl.Workbook()
+    gop.remove(gop.active)
+    for ten, duong in (("Raw", thu / "RAW_PHIEU.xlsx"), ("Đáp án", thu / "DAP_AN.xlsx")):
+        ws = gop.create_sheet(ten)
+        for dong in openpyxl.load_workbook(str(duong)).active.iter_rows(values_only=True):
+            ws.append(list(dong))
+    gop.save(str(thu / "GOP.xlsx"))
+
+    clb1, hs1, bc1 = xr.chay(str(thu / "RAW_PHIEU.xlsx"), str(thu / "r1"),
+                             str(thu / "DAP_AN.xlsx"), str(thu / "01.xlsx"))
+    clb2, hs2, bc2 = xr.chay(str(thu / "GOP.xlsx"), str(thu / "r2"), None, str(thu / "01.xlsx"))
+    assert hs1 == hs2
+    assert bc1 == bc2
+    assert sorted(os.listdir(str(thu / "r2"))) == ["BAO_CAO_BAT_THUONG.md", "SO_NHAP_CLB.xlsx"]

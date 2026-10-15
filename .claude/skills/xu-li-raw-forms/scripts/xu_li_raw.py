@@ -60,12 +60,25 @@ def _o(v):
     return str(v).strip()
 
 
-def doc_bang(duong):
-    """Đọc .xlsx (trang đầu) hoặc .csv thành [dict]."""
+def _co_trang(duong, ten_trang):
+    """True nếu duong là .xlsx và có trang tên ten_trang (SO_NHAP_CLB gộp Raw, Đáp án)."""
+    if not duong.lower().endswith((".xlsx", ".xlsm")):
+        return False
+    import openpyxl
+    wb = openpyxl.load_workbook(duong, read_only=True)
+    try:
+        return ten_trang in wb.sheetnames
+    finally:
+        wb.close()
+
+
+def doc_bang(duong, ten_trang=None):
+    """Đọc .xlsx (trang ten_trang nếu có, không thì trang đầu) hoặc .csv thành [dict]."""
     if duong.lower().endswith((".xlsx", ".xlsm")):
         import openpyxl
         wb = openpyxl.load_workbook(duong, read_only=True, data_only=True)
-        dong = [[_o(x) for x in r] for r in wb[wb.sheetnames[0]].iter_rows(values_only=True)]
+        ten = ten_trang if ten_trang in wb.sheetnames else wb.sheetnames[0]
+        dong = [[_o(x) for x in r] for r in wb[ten].iter_rows(values_only=True)]
         wb.close()
     else:
         with io.open(duong, encoding="utf-8-sig", newline="") as f:
@@ -343,12 +356,16 @@ def doc_clb_tu_so(duong):
 
 
 def chay(duong_raw, thu_muc_ra, duong_dap_an=None, duong_clb=None):
-    td, raw = doc_bang(duong_raw)
+    # Raw có thể là RAW_PHIEU.xlsx, hoặc SO_NHAP_CLB.xlsx gộp (trang "Raw" và "Đáp án").
+    td, raw = doc_bang(duong_raw, "Raw")
     _can_cot("RAW_PHIEU", td, COT_RAW)
     dap_an = None
     if duong_dap_an:
         td, dap_an = doc_bang(duong_dap_an)
         _can_cot("DAP_AN", td, COT_DAP_AN)
+    elif _co_trang(duong_raw, "Đáp án"):
+        td, dap_an = doc_bang(duong_raw, "Đáp án")
+        _can_cot("Đáp án", td, COT_DAP_AN)
     clb_truong = None
     if duong_clb:
         # Nhận sổ nhập (sheet "1. CLB" đã điền chỉ tiêu), hoặc tệp danh sách
