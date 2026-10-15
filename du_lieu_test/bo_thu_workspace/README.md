@@ -4,8 +4,8 @@ Phân 54 nhân viên vào 8 dự án nội bộ trong hai ngày (Thứ 3, Thứ 
 
 | Tệp | Dùng để |
 |---|---|
-| `cong-ty-binh-minh.zip` | Workspace rỗng đã gắn sẵn cấu hình → **Nhập workspace** trên màn chọn workspace |
-| `SO_NHAP_DU_AN.xlsx` | Sổ nhập theo nhãn của workspace (sheet `1. Dự án`, `2. Nhân viên`) → nhập sau khi mở workspace |
+| `cong-ty-binh-minh.zip` | **Chỉ cần tệp này.** Workspace đã gắn cấu hình và nạp sẵn dữ liệu → **Nhập workspace**, mở, bấm chạy |
+| `SO_NHAP_DU_AN.xlsx` | Sổ nhập đã nạp trong zip (sheet `1. Dự án`, `2. Nhân viên`). Chỉ nạp được vào workspace có đúng nhãn này |
 | `cau_hinh_workspace.json` | Cấu hình để đối chiếu, hoặc gõ tay vào trình tạo 4 bước |
 | `tao_bo_workspace.py` | Sinh lại cả ba tệp (tất định, `SEED = 2026`) |
 

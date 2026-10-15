@@ -12,7 +12,7 @@ Luật: tối đa 5 nguyện vọng và 2 dự án phỏng vấn mỗi ngày; đ
 
 Ghi ra ba tệp cạnh script này:
     cau_hinh_workspace.json  — cấu hình (để đối chiếu, hoặc gõ tay vào trình tạo 4 bước)
-    cong-ty-binh-minh.zip    — workspace rỗng đã gắn sẵn cấu hình; dùng "Nhập workspace"
+    cong-ty-binh-minh.zip    — workspace đã gắn cấu hình VÀ nạp sẵn sổ; dùng "Nhập workspace"
     SO_NHAP_DU_AN.xlsx       — Sổ nhập theo đúng nhãn của workspace
 
 Mọi tên người đều bịa, ghép từ bảng họ/đệm/tên. Tất định theo SEED.
@@ -20,6 +20,7 @@ Mọi tên người đều bịa, ghép từ bảng họ/đệm/tên. Tất đ�
     python du_lieu_test/bo_thu_workspace/tao_bo_workspace.py
 """
 
+import base64
 import json
 import os
 import random
@@ -122,6 +123,18 @@ def main():
     root = tempfile.mkdtemp()
     try:
         slug = ws.tao(root, TEN_WS, CAU_HINH)
+        # Nạp sẵn sổ vào workspace: người thử chỉ cần nhập zip, mở, bấm chạy.
+        from api import PipelineAPI
+        db = ws.duong_dan_db(root, slug)
+        with open(os.path.join(DAY, "SO_NHAP_DU_AN.xlsx"), "rb") as f:
+            kq = PipelineAPI(db, thu_muc_xuat=root).import_so_nhap(
+                base64.b64encode(f.read()).decode())
+        if not kq["ok"] or kq["data"].get("warnings"):
+            raise SystemExit("Nạp sổ vào workspace thất bại: %r" % kq)
+        for tep in os.listdir(os.path.dirname(db)):   # bản sao lưu lúc nạp không đi theo
+            if tep != ws.TEN_DB and not tep.endswith(".zip"):
+                p = os.path.join(os.path.dirname(db), tep)
+                shutil.rmtree(p) if os.path.isdir(p) else os.remove(p)
         ws.xuat_zip(root, slug, os.path.join(DAY, slug + ".zip"))
     finally:
         shutil.rmtree(root, ignore_errors=True)
