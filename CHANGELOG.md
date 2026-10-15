@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 2026-10-15 — Skill `tao-workspace-tu-raw` và hai bộ dữ liệu thử (ngoài sổ đăng ký, theo yêu cầu chủ dự án)
+
+- **Skill mới `.claude/skills/tao-workspace-tu-raw/`**: raw bất kỳ (Excel/CSV tự do, Google/Microsoft Forms, hai
+  tệp tách rời, văn bản dán) → workspace `.zip` nạp sẵn dữ liệu + Sổ nhập theo nhãn + `BAO_CAO_SOAT.md`.
+  Bốn dạng nguyện vọng (`cot_xep_hang`, `mot_o`, `dong_dai`, `ma_tran`), đủ luật workspace, điểm theo chỗ / theo
+  người. Đoán rồi hỏi duyệt; chỉ tiêu bắt buộc hỏi; sai một điều không ghi tệp nào; kiểm bằng `import_so_nhap` +
+  báo cáo sức khoẻ + chạy thử; từ chối ghi đầu ra vào kho git (dữ liệu người thật). Không đụng mã sản phẩm.
+  Test: `tests/test_skill_tao_workspace.py` (20 ca).
+- **Bộ dữ liệu thử (mô phỏng)**: `du_lieu_test/bo_thu_chuong_trinh/` (trường 3 buổi, 180 học sinh) và
+  `du_lieu_test/bo_thu_workspace/` (workspace "Công ty Bình Minh", zip nạp sẵn, kèm script sinh lại).
+
 ## 2026-10-14 — Sửa lỗi CI Windows của PR #1 (24 test đỏ; Linux đạt)
 
 Bộ test Windows đỏ 24 ca trong khi Linux xanh. Hai nguyên nhân, một thật của sản phẩm và một của test:
