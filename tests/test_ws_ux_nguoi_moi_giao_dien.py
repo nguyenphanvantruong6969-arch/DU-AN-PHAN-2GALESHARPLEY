@@ -210,6 +210,49 @@ def test_khong_the_nao_cua_cong_ty_hay_su_kien_con_tu_cua_truong_hoc(mo, nguoi):
     assert not loi, loi
 
 
+# ------------------------------------------------------------------ thẻ Nhập điểm: bố cục và thanh tiến độ
+
+def _khung(page, vung):
+    return page.evaluate("v => { const b = document.querySelector(v).getBoundingClientRect();"
+                         " return [Math.round(b.left), Math.round(b.width)]; }", vung)
+
+
+def test_the_nhap_diem_cung_cot_voi_cac_the_khac_khong_bi_co_hep_giua_trang(mo):
+    """Thẻ ít nội dung (Nhập điểm) từng co còn ~620px và lệch giữa trang vì .main là phần tử lưới
+    margin:auto; mọi thẻ phải chiếm cùng một khung nội dung."""
+    page, api, goc, (truong, cty, sk), loi = mo
+    _vao(page, "pipeline")
+    khung_chuan = _khung(page, "#view-pipeline")
+    _vao(page, "scoring")
+    assert _khung(page, "#view-scoring") == khung_chuan
+    assert _khung(page, "#view-scoring .panel") == khung_chuan           # bảng tiến độ rộng bằng cột
+    for the in ("results", "fallback", "admin"):
+        _vao(page, the)
+        assert _khung(page, "#view-%s" % the) == khung_chuan, the
+    _sang(page, cty, "Công ty ABC")                                         # bảng KPI theo người cũng vậy
+    _vao(page, "scoring")
+    assert _khung(page, "#view-scoring #scoringPersonArea") == khung_chuan
+    assert not loi, loi
+
+
+def test_thanh_tien_do_cham_diem_to_dung_ti_le(mo):
+    """Thanh "Đã chấm" là <span> nên width/height từng không có tác dụng: thanh luôn rỗng."""
+    page, api, goc, (truong, cty, sk), loi = mo
+    _vao(page, "scoring")
+    ds = [d for d in api.get_scoring_overview()["data"] if d["n_applicants"] > 0]
+    assert ds
+    thanh = page.locator("#scoringOverviewBody .scoring-progress-bar")
+    assert thanh.count() == len(ds)
+    for i, d in enumerate(ds):
+        rong_thanh = thanh.nth(i).evaluate("e => e.getBoundingClientRect().width")
+        phan = thanh.nth(i).locator(".scoring-progress-fill").evaluate(
+            "e => { const b = e.getBoundingClientRect(); return [b.width, b.height]; }")
+        assert phan[1] > 0, d                                              # có chiều cao
+        mong = rong_thanh * round(100 * d["n_scored"] / d["n_applicants"]) / 100
+        assert abs(phan[0] - mong) < 1, (d, phan, mong)
+    assert not loi, loi
+
+
 # ------------------------------------------------------------------ người dùng mới tìm nút workspace
 
 def test_nut_workspace_o_thanh_ben_noi_ro_bam_vao_de_doi_hoac_tao(mo):
@@ -218,7 +261,7 @@ def test_nut_workspace_o_thanh_ben_noi_ro_bam_vao_de_doi_hoac_tao(mo):
     chu = page.locator("#btnWorkspace").inner_text()
     assert "bấm để đổi/tạo" in chu
     page.locator("#btnWorkspace").click()
-    assert page.locator("#wsBtnMoi").is_visible()
+    page.wait_for_selector("#wsBtnMoi", state="visible", timeout=10000)   # danh sách vẽ sau lời gọi backend
     assert not loi, loi
 
 

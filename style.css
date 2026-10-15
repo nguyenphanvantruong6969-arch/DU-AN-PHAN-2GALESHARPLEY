@@ -316,6 +316,10 @@ button, input {
      thua gan 700px trong ben phai — dung nhu anh chup man hinh kiosk. */
   max-width: 1280px;
   margin-inline: auto;
+  /* margin auto làm phần tử lưới co về vừa nội dung: thẻ ít nội dung (Nhập điểm) hẹp còn ~620px và
+     lệch giữa trang, khác các thẻ khác. width:100% giữ cả cột, max-width vẫn chặn ở 1280px. */
+  width: 100%;
+  min-width: 0;
 }
 
 .view { display: none; }
@@ -1762,6 +1766,7 @@ html.tat-hieu-ung .status-strip:hover {
 }
 
 .scoring-progress-fill {
+  display: block;          /* là <span>: inline thì width/height không có tác dụng, thanh luôn rỗng */
   height: 100%;
   background: var(--moss);
   transition: width 240ms var(--ease-out);

@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 2026-10-15 — Thẻ Nhập điểm: bố cục và thanh tiến độ
+
+- `.main` là phần tử lưới có `margin-inline:auto` nên co về vừa nội dung: thẻ ít nội dung (Nhập điểm) chỉ còn ~620px và lệch giữa trang,
+  khác các thẻ khác. Thêm `width:100%` (vẫn chặn ở 1280px): mọi thẻ chiếm cùng một khung.
+- `.scoring-progress-fill` là `<span>` (inline) nên `width/height` vô tác dụng, thanh "Đã chấm" luôn rỗng dù 31/31. Thêm `display:block`.
+- Test: `tests/test_ws_ux_nguoi_moi_giao_dien.py` (`test_the_nhap_diem_cung_cot…`, `test_thanh_tien_do_cham_diem_to_dung_ti_le`; cả hai đỏ khi bỏ
+  bản sửa CSS). Sửa một race trong test nút workspace (chờ danh sách vẽ xong).
+
 ## 2026-10-15 — Thử phần mềm như người dùng mới: chuyên viên nhân sự và người tổ chức sự kiện (TASK 11)
 
 Chạy `python main.py` (chế độ trình duyệt dự phòng) và lái bằng Playwright: tạo workspace bằng trình hướng dẫn, tải sổ mẫu,
