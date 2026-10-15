@@ -1,6 +1,6 @@
 ---
 name: xu-li-raw-forms
-description: Xử lí dữ liệu raw xuất từ biểu mẫu Google Forms "Đăng ký CLB và thi tuyển" (tệp RAW_PHIEU.xlsx và DAP_AN.xlsx do hàm chamTheoCLB tạo) thành MỘT Sổ nhập CLB (SO_NHAP_CLB.xlsx) kéo thẳng vào phần mềm xếp CLB rbda-kiosk (sheet CLB có chỉ tiêu, sheet học sinh có nguyện vọng và điểm), chấm lại bài thi theo đáp án gốc, và soát dữ liệu bất thường (phiếu trùng, mã sai dạng, đáp án Forms lệch, làm bài không tick, tick không làm, thiếu xếp hạng). Dùng khi người dùng nói "xử lí raw", "xử lý dữ liệu raw", "RAW_PHIEU", "chuyển kết quả Google Forms sang phần mềm", "làm tệp nạp từ biểu mẫu", "soát phiếu", "process the raw export", hoặc đưa một thư mục "Kết quả CLB ...".
+description: Xử lí dữ liệu raw xuất từ biểu mẫu Google Forms "Đăng ký CLB và thi tuyển" (tệp SO_NHAP_CLB.xlsx do hàm chamTheoCLB tạo, có trang Raw và Đáp án; bản cũ là RAW_PHIEU.xlsx và DAP_AN.xlsx) thành MỘT Sổ nhập CLB (SO_NHAP_CLB.xlsx) kéo thẳng vào phần mềm xếp CLB rbda-kiosk (sheet CLB có chỉ tiêu, sheet học sinh có nguyện vọng và điểm), chấm lại bài thi theo đáp án gốc, và soát dữ liệu bất thường (phiếu trùng, mã sai dạng, đáp án Forms lệch, làm bài không tick, tick không làm, thiếu xếp hạng). Dùng khi người dùng nói "xử lí raw", "xử lý dữ liệu raw", "RAW_PHIEU", "chuyển kết quả Google Forms sang phần mềm", "làm tệp nạp từ biểu mẫu", "soát phiếu", "process the raw export", hoặc đưa một thư mục "Kết quả CLB ...".
 ---
 
 # Xử lí dữ liệu raw của Google Forms thành Sổ nhập CLB
@@ -8,8 +8,9 @@ description: Xử lí dữ liệu raw xuất từ biểu mẫu Google Forms "Đ�
 > **Đường dẫn lệnh.** Trong kho mã rbda-kiosk, script nằm ở `.claude/skills/xu-li-raw-forms/scripts/xu_li_raw.py`. Ở bản đóng gói (.zip), dùng `scripts/xu_li_raw.py` trong thư mục của skill này; các tệp phụ thuộc đã có sẵn cạnh nó.
 
 Biểu mẫu Google Forms được dựng bằng `mau_forms_thi_clb/TAO_GOOGLE_FORM.gs`.
-Hàm `chamTheoCLB` trong đó xuất thư mục "Kết quả CLB <ngày giờ>" có
-`RAW_PHIEU.xlsx` và `DAP_AN.xlsx`. Định dạng hai tệp này nằm trong
+Hàm `chamTheoCLB` trong đó xuất thư mục "Kết quả CLB <ngày giờ>" chỉ có một tệp
+`SO_NHAP_CLB.xlsx`, gồm các trang `Raw` và `Đáp án`. Bản cũ có hai tệp rời
+`RAW_PHIEU.xlsx` và `DAP_AN.xlsx`, skill vẫn đọc được. Định dạng các trang này nằm trong
 `mau_forms_thi_clb/DINH_DANG_RAW.md`: **đọc tài liệu đó trước** nếu cần hiểu
 một cột.
 
@@ -19,7 +20,7 @@ Skill này biến raw thành đúng MỘT tệp phần mềm xếp CLB nạp đ�
 ## Nguyên tắc
 
 - **Không tin mù quáng các cột tính sẵn trong raw.** Script tự chấm lại theo
-  `DAP_AN.xlsx`, tự chọn phiếu giữ (phiếu đầu của mỗi mã), tự quyết bài nào
+  đáp án (trang `Đáp án` hoặc `DAP_AN.xlsx`), tự chọn phiếu giữ (phiếu đầu của mỗi mã), tự quyết bài nào
   được tính (phải tick, phải được chọn ở một Top, tối đa 5 CLB mỗi buổi).
   Chỗ nào khác với raw thì ghi vào báo cáo.
 - **Ô sai lẻ thì bỏ riêng ô đó và báo.** Một phiếu trùng, một bài không tick
@@ -35,14 +36,14 @@ Skill này biến raw thành đúng MỘT tệp phần mềm xếp CLB nạp đ�
 
 ```bash
 python .claude/skills/xu-li-raw-forms/scripts/xu_li_raw.py \
-    --raw  "<thư mục kết quả>/RAW_PHIEU.xlsx" \
-    --dap-an "<thư mục kết quả>/DAP_AN.xlsx" \
+    --raw  "<thư mục kết quả>/SO_NHAP_CLB.xlsx" \
     --clb  "<SO_NHAP_CLB.xlsx đã điền chỉ tiêu>" \
     --ra   ./nap
 ```
 
 - `--raw` bắt buộc. Nhận `.xlsx` hoặc `.csv`.
-- `--dap-an` nên có. Thiếu thì dùng cột `diem` có sẵn trong raw, không chấm lại.
+- `--dap-an` là tuỳ chọn. Thiếu thì lấy trang `Đáp án` trong chính tệp `--raw`; nếu cũng không có thì dùng cột `diem` có sẵn trong raw, không chấm lại.
+- Không được để `--ra` trùng thư mục chứa tệp `SO_NHAP_CLB.xlsx` đầu vào: script dừng ngay, không ghi gì, để không ghi đè bản gộp duy nhất.
 - `--clb` là danh sách CLB đã điền chỉ tiêu: một Sổ nhập CLB (đọc sheet
   `1. CLB`), hoặc tệp kiểu cũ có cột `club_id, name, capacity, reserve_capacity,
   reserve_group, buoi` (ví dụ `01_danh_sach_CLB.xlsx` trong thư mục kết quả).
@@ -53,7 +54,7 @@ python .claude/skills/xu-li-raw-forms/scripts/xu_li_raw.py \
 - Mã thoát `1` và dòng "KHÔNG GHI TỆP NÀO" nghĩa là đầu vào hỏng: đọc lý do,
   báo người dùng, không tự sửa dữ liệu.
 
-Người dùng đưa thư mục đã giải nén từ Drive thì tìm ba tệp trong đó. Có nhiều
+Người dùng đưa thư mục đã giải nén từ Drive thì tìm tệp SO_NHAP_CLB.xlsx trong đó (bản cũ: RAW_PHIEU.xlsx và DAP_AN.xlsx). Có nhiều
 thư mục "Kết quả CLB ..." thì dùng thư mục mới nhất theo tên, và nói rõ đã dùng
 thư mục nào.
 

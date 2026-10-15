@@ -420,8 +420,9 @@ def test_huong_dan_toan_bo_quy_trinh():
     tw.kiem_chu(doc)
     chu = "\n".join([p.text for p in doc.paragraphs]
                     + [c.text for t in doc.tables for r in t.rows for c in r.cells])
+    # Một tệp kết quả: SO_NHAP_CLB.xlsx, với trang Raw và Đáp án bên trong.
     for can in ("taoBieuMau", "chamTheoCLB", "tao-google-form-clb", "xu-li-raw-forms",
-                "MAU_DE_THI.xlsx", "RAW_PHIEU.xlsx", "DAP_AN.xlsx", "SO_NHAP_CLB.xlsx",
+                "MAU_DE_THI.xlsx", "SO_NHAP_CLB.xlsx", "Raw", "Đáp án",
                 "Nhập sổ", "LINK_BIEU_MAU",
                 "dong_goi_skill.py", "(Bỏ trống)", "Chọn tất cả"):
         assert can in chu, can

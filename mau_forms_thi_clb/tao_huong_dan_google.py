@@ -117,17 +117,14 @@ def viet():
     buoc(doc, "Chọn hàm chamTheoCLB, bấm “Chạy”. Lần đầu Google hỏi thêm quyền dùng Drive và "
               "Sheets: bấm cho phép như ở mục B.")
     buoc(doc, "Đợi chạy xong. Nhật ký thực thi hiện đường dẫn “Thư mục kết quả”.")
-    buoc(doc, "Mở đường dẫn đó. Trong thư mục có các tệp sau:")
+    buoc(doc, "Mở đường dẫn đó. Trong thư mục chỉ có MỘT tệp:")
     bang(doc, ["Tệp", "Dùng để"], [
-        ["BANG_DIEM.xlsx", "Xem kết quả. Có 2 trang: Bảng điểm (điểm từng CLB, thang 10) và "
-                           "Cảnh báo."],
-        ["SO_NHAP_CLB.xlsx", "Sổ nhập CLB: tệp DUY NHẤT nạp vào phần mềm. Trang “1. CLB” phải "
-                             "điền cột Chỉ tiêu trước. Trang “2. Học sinh”: nguyện vọng và điểm."],
-        ["RAW_PHIEU.xlsx", "Dữ liệu raw: mọi câu trả lời của mọi phiếu, mỗi câu một dòng. Câu đề "
-                           "thi đã chấm sẵn: đúng hay sai, điểm, có được tính không. Dùng để soát "
-                           "lại hoặc xử lí tiếp. Định dạng xem tệp DINH_DANG_RAW.md."],
-        ["DAP_AN.xlsx", "Đáp án của 100 câu đề thi, kèm 4 lựa chọn và điểm mỗi câu."],
-        ["BANG_DIEM <ngày giờ>", "Bản Google Sheets của bảng điểm, để xem trên mạng."],
+        ["SO_NHAP_CLB.xlsx", "Tệp DUY NHẤT của kết quả. Trang “1. CLB” phải điền cột Chỉ tiêu "
+                             "trước. Trang “2. Học sinh”: nguyện vọng và điểm; phần mềm nạp đúng "
+                             "hai trang này. Các trang còn lại để xem và xử lí tiếp: “Bảng điểm” "
+                             "(điểm từng CLB, thang 10), “Cảnh báo”, “Raw” (mọi câu trả lời của "
+                             "mọi phiếu, đã chấm từng câu; định dạng xem tệp DINH_DANG_RAW.md) và "
+                             "“Đáp án” (đáp án của đề thi)."],
     ], dam_cot_dau=True)
     buoc(doc, "Tải về máy: bấm chuột phải vào tên thư mục, chọn “Tải xuống” (Download). Google "
               "nén cả thư mục thành một tệp .zip. Giải nén ra là có các tệp Excel.")
@@ -142,7 +139,7 @@ def viet():
               "bấm “Nhập sổ”.")
     buoc(doc, "Sau khi nạp, đọc hết phần cảnh báo của phần mềm. Nạp được không có nghĩa là "
               "không có gì sai.")
-    buoc(doc, "Đối chiếu với trang “Cảnh báo” trong BANG_DIEM.xlsx. Hai cảnh báo hay gặp: em làm "
+    buoc(doc, "Đối chiếu với trang “Cảnh báo” trong SO_NHAP_CLB.xlsx. Hai cảnh báo hay gặp: em làm "
               "bài một CLB mà không tick hoặc không chọn ở Top nào (bài không được tính), và em "
               "tick một CLB mà không làm bài.")
 

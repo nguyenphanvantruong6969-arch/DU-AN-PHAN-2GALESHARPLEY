@@ -5,7 +5,7 @@
 Ghi ra:
 
     tao-google-form-clb.zip   Excel đề thi -> TAO_GOOGLE_FORM.gs + hướng dẫn
-    xu-li-raw-forms.zip       RAW_PHIEU.xlsx -> Sổ nhập CLB (SO_NHAP_CLB.xlsx) + báo cáo
+    xu-li-raw-forms.zip       SO_NHAP_CLB.xlsx (trang Raw, Đáp án; hoặc RAW_PHIEU.xlsx cũ) -> Sổ nhập CLB (SO_NHAP_CLB.xlsx) + báo cáo
 
 Trong kho mã, hai skill dùng chung vài tệp (khuôn mẫu .gs, bộ soát của
 sinh-du-lieu-clb). Tải riêng một skill ra ngoài thì thiếu các tệp đó, nên mỗi

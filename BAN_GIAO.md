@@ -82,6 +82,14 @@ help display data better"*. Mã học sinh viết bị sửa: `app.js`
 
 ---
 
+### Google Forms gộp thành một tệp SO_NHAP_CLB.xlsx — 15/10/2026 (ngoài sổ đăng ký 33 mục)
+
+Nhánh `claude/youthful-feynman-56bum8`. Chủ dự án yêu cầu hệ thống Forms cũ xuất đúng một tệp chuẩn.
+AI (Claude) sửa khuôn `mau_forms_thi_clb/tao_google_forms.py`, sinh lại `TAO_GOOGLE_FORM.gs`, sửa
+`xu_li_raw.py` (đọc trang Raw, Đáp án; chặn ghi đè đầu vào) và các tài liệu hướng dẫn liên quan.
+Test: `tests/test_so_nhap_gop_sau_trang.py`, `tests/test_skill_xu_li_raw.py`. Chưa chạy được Apps Script
+thật. Dữ liệu là mô phỏng, học sinh hư cấu. Chi tiết: `CHANGELOG.md`.
+
 ### Rà soát thiết kế 27/09/2026 — ĐỌC `KE_HOACH_SUA_THIET_KE.md`
 
 Nhánh `claude/program-design-review-oxjnp1`. Đã làm xong và đã đẩy lên:
