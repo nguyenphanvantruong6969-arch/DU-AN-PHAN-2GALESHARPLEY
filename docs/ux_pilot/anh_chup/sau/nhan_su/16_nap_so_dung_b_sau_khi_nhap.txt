@@ -1,0 +1,52 @@
+Chưa có dữ liệu để sắp xếp: cần ít nhất một nhân viên và một dự án. Hãy nạp Sổ nhập dự án ở phần "Nhập dữ liệu" trước.
+×
+Xong: 12 dự án, 300 nhân viên (300 nhân viên mới, 0 bỏ qua)
+----
+Vận hành sắp xếp
+
+Kiểm tra dữ liệu, bốc thăm, xếp nhân viên vào dự án và xuất kết quả.
+
+300
+nhân viên
+12
+dự án
+300
+đã nộp nguyện vọng
+0
+đã xếp dự án
+Nhập dữ liệu
+Tải sổ nhập mẫu
+
+Toàn bộ dữ liệu nằm trong một tệp Excel duy nhất: Sổ nhập dự án. Chưa có sổ thì bấm "Tải sổ nhập mẫu", điền danh sách dự án và nhân viên, lưu lại rồi kéo sổ vào ô bên dưới.
+
+Kéo Sổ nhập dự án vào đây
+Một tệp Excel (.xlsx). Bấm để chọn tệp.
+SO_NHAP.xlsx
+Xong: 12 dự án, 300 nhân viên (300 nhân viên mới, 0 bỏ qua)
+Bỏ tệp
+Xong: 12 dự án, 300 nhân viên (300 nhân viên mới, 0 bỏ qua)
+Cảnh báo dữ liệu
+Kiểm tra lại
+
+Những điểm dưới đây không chặn việc sắp xếp nhưng có thể làm kết quả sai lệch. Nên xem trước khi chạy.
+
+Không thấy vấn đề nào. Dữ liệu đã sẵn sàng.
+Các bước xử lý
+Số khởi tạo bốc thăm
+Kiểm tra dữ liệu
+Chạy sắp xếp
+Chưa bốc thăm lần nào. Lần sắp xếp đầu tiên sẽ bốc thăm và tự khoá kết quả.
+Sao lưu dữ liệu
+Chưa chạy
+Kiểm tra dữ liệu
+Chưa chạy
+Bốc thăm
+Chưa chạy
+Xếp nhân viên vào dự án
+Chưa chạy
+Lưu kết quả
+Chưa chạy
+Xuất kết quả
+Chưa chạy
+Lịch sử sắp xếp
+Hiện/ẩn

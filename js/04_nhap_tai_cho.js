@@ -265,8 +265,13 @@ function loadFallbackStudentList() {
    nhan noi ro em da chon NHUNG CLB nao — de nguoi van hanh khong phai
    bam vao tung em moi biet. */
 function trangThaiNhap(s) {
-  const coThi = (s.tested_clubs || []).length > 0;
   const coNv = (s.ranked_clubs || []).length > 0;
+  /* Luật không có bước chọn chỗ dự thi (điểm một người một số, hay chỉ theo nhóm): chỉ còn
+     nguyện vọng là việc phải nhập, đừng báo "thiếu chỗ dự thi" trên từng thẻ. */
+  if (LUAT_CHAM_DIEM.khongThi) {
+    return coNv ? { lop: "is-du", khoa: "hs_trang_thai_du" } : { lop: "is-trong", khoa: "hs_trang_thai_trong" };
+  }
+  const coThi = (s.tested_clubs || []).length > 0;
   if (coThi && coNv) return { lop: "is-du", khoa: "hs_trang_thai_du" };
   if (!coThi && !coNv) return { lop: "is-trong", khoa: "hs_trang_thai_trong" };
   return { lop: "is-thieu", khoa: coThi ? "hs_trang_thai_thieu_nv" : "hs_trang_thai_thieu_thi" };
@@ -280,7 +285,7 @@ function veChipCLB(ds, coHang) {
   ).join("");
 }
 
-function veDongCLB(khoaNhan, ds, coHang, nhieuBuoi, thuTuBuoi) {
+function veDongCLB(khoaNhan, ds, coHang, nhieuBuoi, thuTuBuoi, lopThem) {
   let noiDung;
   if (!ds.length) {
     noiDung = `<span class="hs-chua-chon">${esc(t("hs_the_chua_chon"))}</span>`;
@@ -301,7 +306,7 @@ function veDongCLB(khoaNhan, ds, coHang, nhieuBuoi, thuTuBuoi) {
       veChipCLB(nhom[b], coHang) + `</span>`
     ).join("");
   }
-  return `<div class="hs-card-dong"><span class="hs-card-nhan">${esc(t(khoaNhan))}</span>` +
+  return `<div class="hs-card-dong${lopThem ? " " + lopThem : ""}"><span class="hs-card-nhan">${esc(t(khoaNhan))}</span>` +
          `<span class="hs-card-chips">${noiDung}</span></div>`;
 }
 
@@ -318,7 +323,7 @@ function veTheHocSinh(s, nhieuBuoi, thuTuBuoi) {
       `<span class="hs-card-ma">${esc(s.student_id)}</span>` +
       `<span class="hs-trang-thai ${tt.lop}">${esc(t(tt.khoa))}</span>` +
     `</div>` +
-    veDongCLB("hs_nhan_clb_thi", s.tested_clubs || [], false, nhieuBuoi, thuTuBuoi) +
+    veDongCLB("hs_nhan_clb_thi", s.tested_clubs || [], false, nhieuBuoi, thuTuBuoi, "chi-thi") +
     veDongCLB("hs_nhan_nguyen_vong", s.ranked_clubs || [], true, nhieuBuoi, thuTuBuoi);
   /* Doi hoc sinh khi con thay doi chua luu: phai bam hai lan (xem
      roiDiNeuDuoc). */

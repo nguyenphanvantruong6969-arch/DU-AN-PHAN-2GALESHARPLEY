@@ -2676,6 +2676,7 @@ tr.ws-hong td { background: var(--rust-soft); }
 .ws-buoc-ten { margin: 4px 0 14px; color: var(--slate); font-size: 12.5px; }
 
 .ws-truong { display: flex; flex-direction: column; gap: 5px; margin-bottom: 16px; }
+.ws-truong[hidden] { display: none; }     /* display:flex ở trên thắng thuộc tính hidden */
 .ws-truong-nhan { font-weight: 600; font-size: 13px; }
 .ws-truong-goi-y { font-size: 12.5px; color: var(--slate); }
 .ws-truong .text-input { min-width: 0; width: 100%; max-width: 460px; }
@@ -2711,3 +2712,10 @@ tr.ws-hong td { background: var(--rust-soft); }
   .ws-luoi-tu-vung { grid-template-columns: 1fr; }
   .ws-hop { padding: 20px 16px; }
 }
+
+
+/* ===== Luật của workspace (js/06_cham_diem.js, apDungLuatChamDiem) =====
+   Nhóm xếp cứng bỏ qua suất dự trữ; điểm một-người-một-số hay không có điểm thì không có bước
+   "chọn chỗ dự thi". Ẩn bằng CSS để mọi bảng dựng lại (đổi workspace, tải lại) vẫn đúng. */
+body.nhom-cung .chi-du-tru { display: none !important; }
+body.khong-thi .chi-thi { display: none !important; }

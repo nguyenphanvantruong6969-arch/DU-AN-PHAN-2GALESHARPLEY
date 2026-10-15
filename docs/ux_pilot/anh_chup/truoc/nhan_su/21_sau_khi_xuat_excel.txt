@@ -1,0 +1,470 @@
+Đã xuất kết quả của 300 nhân viên ra một tệp Excel: /tmp/pilot_nmunr024/tai_xuong/ket_qua_phan_bo.xlsx
+Gồm 6 trang: Hướng dẫn, Danh sách nhân viên, Theo dự án, Chưa có chỗ, Thống kê, Dấu vết (kỹ thuật).
+----
+Kết quả
+
+Nhân viên đã được xếp vào dự án nào và mỗi dự án đã đủ chỗ chưa.
+
+Thu gọn tất cả
+Tóm tắt lần xếp
+Lần chạy gần nhất: 2026-10-15T00:17:14 · số khởi tạo 42
+Nhân viên đã có chỗ
+289/300
+96,3% nhân viên
+Được nguyện vọng 1
+90,3%
+100% trong 3 nguyện vọng đầu
+Chỗ còn trống
+41
+trên tổng 330 chỗ
+Nhân viên chưa có chỗ nào
+11
+⚠ Cần xử lý
+Xuất dữ liệu
+Kết quả sắp xếp: một tệp Excel (danh sách nhân viên, từng dự án, nhân viên chưa có chỗ, thống kê)
+Kèm các tệp CSV rời (chỉ cần khi đổ số liệu vào phần mềm khác)
+Dữ liệu đầu vào hiện tại: một Sổ nhập CLB nạp lại được
+Thay đổi so với lần chạy trước
+(chưa có lần chạy trước để so sánh)
+Hồ sơ nhân viên đã chọn
+(chưa chọn nhân viên nào)
+Chọn nhân viên…
+Xuất các mục đã chọn
+Đã xuất kết quả của 300 nhân viên ra một tệp Excel: /tmp/pilot_nmunr024/tai_xuong/ket_qua_phan_bo.xlsx
+Gồm 6 trang: Hướng dẫn, Danh sách nhân viên, Theo dự án, Chưa có chỗ, Thống kê, Dấu vết (kỹ thuật).
+Dữ liệu đầu vào (Sổ nhập CLB) → /tmp/pilot_nmunr024/tai_xuong/SO_NHAP_CLB_20261015_0017.xlsx
+Mở thư mục
+
+Hồ sơ nhân viên: bấm "Chọn nhân viên…" rồi đánh dấu nhân viên ở bảng bên dưới. Đang mở một nhân viên ở thẻ 03 thì bấm "Xuất CSV nhân viên này" ngay tại đó.
+
+Tệp xuất có KPI chấm và số bốc thăm. Không gửi các tệp này cho giáo viên chấm KPI.
+
+Mức lấp đầy của từng dự án
+12 dự án
+Sắp xếp
+Theo quý
+Đầy nhất
+Vắng nhất
+Chọi cao nhất
+
+Rê chuột (hoặc dùng bàn phím di tới) một dòng để xem chi tiết. Nhãn bên phải chỉ ra dự án cần để ý.
+
+Dự án Báo cáo quản trị
+16/20
+80%
+chọi 1,5×
+Dự án Bảo mật và tuân thủ
+29/29
+100%
+chọi 2,62×
+Dự án Cổng tuyển dụng nội bộ
+20/32
+62,5%
+chọi 1,47×
+Dự án Hạ tầng đám mây
+22/22
+100%
+chọi 2,09×
+Dự án Kho dữ liệu doanh nghiệp
+28/33
+84,8%
+chọi 1,33×
+Dự án Phân tích kinh doanh
+29/29
+100%
+chọi 1,76×
+Dự án Quản lý kho vận
+26/26
+100%
+chọi 3,19×
+Dự án Tích hợp ERP
+26/26
+100%
+chọi 2,04×
+Dự án Trải nghiệm người dùng
+32/32
+100%
+chọi 1,69×
+Dự án Trợ lý ảo nội bộ
+25/25
+100%
+chọi 1,84×
+Dự án Tự động hoá kiểm thử
+21/21
+100%
+chọi 2,33×
+Dự án Ứng dụng di động
+15/35
+42,9%
+chọi 1×
+○ Còn nhiều chỗ
+Suất thường Vào bằng suất dự trữ Còn trống
+Theo từng dự án
+12 dự án
+
+Không cộng dồn cột "Số nhân viên đăng ký": một nhân viên chọn ba dự án trong cùng quý sẽ được đếm ở cả ba dòng, nhưng chỉ nhận được một chỗ.
+
+MÃ DỰ ÁN	TÊN	SỐ NHÂN VIÊN ĐĂNG KÝ	ĐẶT NGUYỆN VỌNG 1	TỔNG CHỖ	ĐÃ XẾP	TỈ LỆ CHỌI	
+MỨC
+
+da_baocaoquantri	Dự án Báo cáo quản trị	30	15	20	16	1,5	Xem danh sách
+da_baomatvatuanthu	Dự án Bảo mật và tuân thủ	76	36	29	29	2,62	Xem danh sách
+da_congtuyendungnoibo	Dự án Cổng tuyển dụng nội bộ	47	16	32	20	1,47	Xem danh sách
+da_hatangdammay	Dự án Hạ tầng đám mây	46	18	22	22	2,09	Xem danh sách
+da_khodulieudoanhnghiep	Dự án Kho dữ liệu doanh nghiệp	44	25	33	28	1,33	Xem danh sách
+da_phantichkinhdoanh	Dự án Phân tích kinh doanh	51	27	29	29	1,76	Xem danh sách
+da_quanlykhovan	Dự án Quản lý kho vận	83	48	26	26	3,19	Xem danh sách
+da_tichhoperp	Dự án Tích hợp ERP	53	26	26	26	2,04	Xem danh sách
+da_trainghiemnguoidung	Dự án Trải nghiệm người dùng	54	34	32	32	1,69	Xem danh sách
+da_trolyaonoibo	Dự án Trợ lý ảo nội bộ	46	23	25	25	1,84	Xem danh sách
+da_tudonghoakiemthu	Dự án Tự động hoá kiểm thử	49	19	21	21	2,33	Xem danh sách
+da_ungdungdidong	Dự án Ứng dụng di động	35	13	35	15	1	Xem danh sách
+Mức đáp ứng nguyện vọng
+289 chỗ đã xếp
+
+Số nhân viên có chỗ chưa cho biết chỗ đó có đúng nguyện vọng hay không. Bảng này cho biết điều đó.
+
+90,3% chỗ đã xếp là nguyện vọng 1 · 100% nằm trong 3 nguyện vọng đầu
+
+90,3%
+nguyện vọng 1
+Nguyện vọng 1
+90,3%
+Nguyện vọng 2
+9,7%
+Nguyện vọng 3
+0%
+Nguyện vọng 4 trở lên
+0%
+Nguyện vọng 1
+261 · 90,3%
+Nguyện vọng 2
+28 · 9,7%
+Nguyện vọng 3
+0 · 0%
+Nguyện vọng 4 trở lên
+0 · 0%
+Nhân viên chưa có dự án nào
+11 nhân viên
+
+Nhân viên chỉ chọn một dự án đông người và nhân viên chọn nhiều dự án nhưng vẫn chưa có chỗ là hai trường hợp khác nhau, cần cách xử lý khác nhau.
+
+MÃ NHÂN VIÊN	HỌ TÊN	SỐ NGUYỆN VỌNG	CÁC DỰ ÁN ĐÃ CHỌN
+NV078	Vũ Minh Phúc	1	Dự án Quản lý kho vận 3,19
+NV088	Trần Minh Tuấn	2	Dự án Tự động hoá kiểm thử 2,33 Dự án Trải nghiệm người dùng 1,69
+NV116	Đặng Khánh Ngân	1	Dự án Tự động hoá kiểm thử 2,33
+NV135	Trịnh Văn Dũng	1	Dự án Bảo mật và tuân thủ 2,62
+NV153	Lý Thị Bình	1	Dự án Bảo mật và tuân thủ 2,62
+NV241	Hồ Quốc Uyên	1	Dự án Quản lý kho vận 3,19
+NV247	Bùi Hoài Nam	2	Dự án Trải nghiệm người dùng 1,69 Dự án Quản lý kho vận 3,19
+NV270	Vũ Hoài Sương	1	Dự án Quản lý kho vận 3,19
+NV278	Lê Bảo Nam	2	Dự án Bảo mật và tuân thủ 2,62 Dự án Tích hợp ERP 2,04
+NV282	Mai Minh Yến	3	Dự án Trải nghiệm người dùng 1,69 Dự án Tự động hoá kiểm thử 2,33 Dự án Bảo mật và tuân thủ 2,62
+NV288	Đặng Văn Chi	1	Dự án Quản lý kho vận 3,19
+Danh sách xếp dự án
+300 dòng
+11 nhân viên chưa có dự án
+Chưa chọn nhân viên nào. Đánh dấu ở cột đầu bảng.
+Xuất CSV nhân viên đã chọn
+Bỏ chọn
+	MÃ NHÂN VIÊN	HỌ TÊN	DỰ ÁN	LOẠI CHỖ	HẠNG NGUYỆN VỌNG
+	NV001	Tạ Bảo Linh	Dự án Quản lý kho vận	Tổng quát	1
+	NV002	Ngô Văn An	Dự án Hạ tầng đám mây	Tổng quát	1
+	NV003	Hoàng Hoài Giang	Dự án Bảo mật và tuân thủ	Tổng quát	1
+	NV004	Vũ Hoài An	Dự án Tự động hoá kiểm thử	Tổng quát	2
+	NV005	Hồ Bảo Khanh	Dự án Hạ tầng đám mây	Tổng quát	2
+	NV006	Ngô Văn Dũng	Dự án Kho dữ liệu doanh nghiệp	Tổng quát	1
+	NV007	Đỗ Khánh Phúc	Dự án Tự động hoá kiểm thử	Tổng quát	1
+	NV008	Vũ Anh Việt	Dự án Báo cáo quản trị	Tổng quát	1
+	NV009	Lê Bảo Tuấn	Dự án Kho dữ liệu doanh nghiệp	Tổng quát	1
+	NV010	Đặng Quốc Nhi	Dự án Bảo mật và tuân thủ	Tổng quát	1
+	NV011	Hoàng Quốc Linh	Dự án Phân tích kinh doanh	Tổng quát	1
+	NV012	Chu Quốc Yến	Dự án Quản lý kho vận	Tổng quát	1
+	NV013	Phan Văn Huy	Dự án Báo cáo quản trị	Tổng quát	1
+	NV014	Bùi Quốc Khanh	Dự án Hạ tầng đám mây	Tổng quát	2
+	NV015	Phan Minh Quân	Dự án Tích hợp ERP	Tổng quát	2
+	NV016	Trần Văn Khanh	Dự án Kho dữ liệu doanh nghiệp	Tổng quát	1
+	NV017	Vũ Bảo Dũng	Dự án Trải nghiệm người dùng	Tổng quát	1
+	NV018	Trần Khánh Uyên	Dự án Hạ tầng đám mây	Tổng quát	1
+	NV019	Ngô Anh Uyên	Dự án Tích hợp ERP	Tổng quát	1
+	NV020	Đỗ Khánh Lan	Dự án Trải nghiệm người dùng	Tổng quát	1
+	NV021	Lê Bảo Khanh	Dự án Trợ lý ảo nội bộ	Tổng quát	1
+	NV022	Vũ Gia Huy	Dự án Phân tích kinh doanh	Tổng quát	2
+	NV023	Tạ Bảo Thảo	Dự án Bảo mật và tuân thủ	Tổng quát	1
+	NV024	Trần Minh Giang	Dự án Ứng dụng di động	Tổng quát	1
+	NV025	Trần Anh Vy	Dự án Hạ tầng đám mây	Tổng quát	1
+	NV026	Bùi Bảo Yến	Dự án Trải nghiệm người dùng	Tổng quát	1
+	NV027	Dương Hoài Lan	Dự án Bảo mật và tuân thủ	Tổng quát	1
+	NV028	Vũ Quốc Tuấn	Dự án Ứng dụng di động	Tổng quát	1
+	NV029	Đặng Thanh Bình	Dự án Tích hợp ERP	Tổng quát	1
+	NV030	Ngô Thanh Giang	Dự án Tự động hoá kiểm thử	Tổng quát	1
+	NV031	Phạm Minh Sương	Dự án Trải nghiệm người dùng	Tổng quát	1
+	NV032	Chu Bảo An	Dự án Quản lý kho vận	Tổng quát	1
+	NV033	Bùi Anh Nhi	Dự án Hạ tầng đám mây	Tổng quát	1
+	NV034	Trịnh Thị Tuấn	Dự án Trợ lý ảo nội bộ	Tổng quát	1
+	NV035	Đặng Khánh Yến	Dự án Trợ lý ảo nội bộ	Tổng quát	1
+	NV036	Trần Khánh Bình	Dự án Tích hợp ERP	Tổng quát	1
+	NV037	Ngô Quốc Lan	Dự án Tự động hoá kiểm thử	Tổng quát	1
+	NV038	Hồ Anh Mai	Dự án Tích hợp ERP	Tổng quát	1
+	NV039	Bùi Anh Ngân	Dự án Tích hợp ERP	Tổng quát	1
+	NV040	Phan Minh Huy	Dự án Hạ tầng đám mây	Tổng quát	1
+	NV041	Lê Minh Khanh	Dự án Kho dữ liệu doanh nghiệp	Tổng quát	2
+	NV042	Bùi Quốc An	Dự án Báo cáo quản trị	Tổng quát	1
+	NV043	Bùi Thanh Giang	Dự án Báo cáo quản trị	Tổng quát	2
+	NV044	Bùi Khánh Dũng	Dự án Phân tích kinh doanh	Tổng quát	1
+	NV045	Lý Gia Giang	Dự án Hạ tầng đám mây	Tổng quát	1
+	NV046	Nguyễn Minh An	Dự án Kho dữ liệu doanh nghiệp	Tổng quát	1
+	NV047	Trần Thanh Mai	Dự án Trợ lý ảo nội bộ	Tổng quát	1
+	NV048	Chu Bảo Quân	Dự án Bảo mật và tuân thủ	Tổng quát	1
+	NV049	Phạm Khánh Phúc	Dự án Bảo mật và tuân thủ	Tổng quát	1
+	NV050	Hồ Hoài Vy	Dự án Quản lý kho vận	Tổng quát	1
+	NV051	Tạ Anh Xuân	Dự án Phân tích kinh doanh	Tổng quát	1
+	NV052	Nguyễn Thị Vy	Dự án Cổng tuyển dụng nội bộ	Tổng quát	1
+	NV053	Phan Quốc Xuân	Dự án Kho dữ liệu doanh nghiệp	Tổng quát	1
+	NV054	Ngô Bảo Nam	Dự án Quản lý kho vận	Tổng quát	1
+	NV055	Lý Anh Phúc	Dự án Trợ lý ảo nội bộ	Tổng quát	2
+	NV056	Dương Khánh Khanh	Dự án Tích hợp ERP	Tổng quát	1
+	NV057	Hoàng Thị Hà	Dự án Cổng tuyển dụng nội bộ	Tổng quát	1
+	NV058	Ngô Anh Bình	Dự án Quản lý kho vận	Tổng quát	1
+	NV059	Trần Quốc Việt	Dự án Quản lý kho vận	Tổng quát	1
+	NV060	Hồ Khánh Mai	Dự án Kho dữ liệu doanh nghiệp	Tổng quát	1
+	NV061	Lê Anh Linh	Dự án Quản lý kho vận	Tổng quát	1
+	NV062	Lê Hoài Tuấn	Dự án Trợ lý ảo nội bộ	Tổng quát	1
+	NV063	Chu Văn Linh	Dự án Trợ lý ảo nội bộ	Tổng quát	1
+	NV064	Trịnh Gia Uyên	Dự án Tự động hoá kiểm thử	Tổng quát	1
+	NV065	Ngô Văn Yến	Dự án Báo cáo quản trị	Tổng quát	1
+	NV066	Nguyễn Hoài Bình	Dự án Phân tích kinh doanh	Tổng quát	1
+	NV067	Hoàng Quốc Quân	Dự án Trải nghiệm người dùng	Tổng quát	1
+	NV068	Mai Anh Uyên	Dự án Báo cáo quản trị	Tổng quát	1
+	NV069	Chu Thanh An	Dự án Báo cáo quản trị	Tổng quát	1
+	NV070	Vũ Quốc Thảo	Dự án Báo cáo quản trị	Tổng quát	1
+	NV071	Ngô Văn Yến	Dự án Ứng dụng di động	Tổng quát	1
+	NV072	Ngô Thị Vy	Dự án Phân tích kinh doanh	Tổng quát	1
+	NV073	Hồ Anh Phúc	Dự án Trợ lý ảo nội bộ	Tổng quát	1
+	NV074	Trần Anh Giang	Dự án Phân tích kinh doanh	Tổng quát	1
+	NV075	Ngô Bảo Thảo	Dự án Phân tích kinh doanh	Tổng quát	1
+	NV076	Tạ Bảo Mai	Dự án Trợ lý ảo nội bộ	Tổng quát	1
+	NV077	Tạ Minh Xuân	Dự án Phân tích kinh doanh	Tổng quát	1
+	NV078	Vũ Minh Phúc	Không xếp được	—	—
+	NV079	Ngô Minh Yến	Dự án Tích hợp ERP	Tổng quát	1
+	NV080	Ngô Gia Việt	Dự án Phân tích kinh doanh	Tổng quát	1
+	NV081	Trịnh Gia Nam	Dự án Bảo mật và tuân thủ	Tổng quát	1
+	NV082	Phan Gia Hà	Dự án Trải nghiệm người dùng	Tổng quát	1
+	NV083	Trần Văn Mai	Dự án Tự động hoá kiểm thử	Tổng quát	1
+	NV084	Trịnh Thanh Lan	Dự án Bảo mật và tuân thủ	Tổng quát	1
+	NV085	Hoàng Khánh Sương	Dự án Trợ lý ảo nội bộ	Tổng quát	1
+	NV086	Hồ Khánh Linh	Dự án Tích hợp ERP	Tổng quát	1
+	NV087	Vũ Thanh Yến	Dự án Trải nghiệm người dùng	Tổng quát	2
+	NV088	Trần Minh Tuấn	Không xếp được	—	—
+	NV089	Mai Gia Khanh	Dự án Phân tích kinh doanh	Tổng quát	1
+	NV090	Đặng Khánh Giang	Dự án Tự động hoá kiểm thử	Tổng quát	1
+	NV091	Bùi Gia Bình	Dự án Ứng dụng di động	Tổng quát	1
+	NV092	Dương Khánh Mai	Dự án Trợ lý ảo nội bộ	Tổng quát	1
+	NV093	Vũ Bảo Bình	Dự án Phân tích kinh doanh	Tổng quát	1
+	NV094	Vũ Văn Vy	Dự án Cổng tuyển dụng nội bộ	Tổng quát	1
+	NV095	Bùi Văn Lan	Dự án Phân tích kinh doanh	Tổng quát	1
+	NV096	Dương Thị Yến	Dự án Trợ lý ảo nội bộ	Tổng quát	1
+	NV097	Bùi Anh Chi	Dự án Tự động hoá kiểm thử	Tổng quát	1
+	NV098	Chu Quốc Bình	Dự án Bảo mật và tuân thủ	Tổng quát	2
+	NV099	Tạ Văn Chi	Dự án Hạ tầng đám mây	Tổng quát	1
+	NV100	Tạ Minh Yến	Dự án Quản lý kho vận	Tổng quát	1
+	NV101	Bùi Quốc Ngân	Dự án Tự động hoá kiểm thử	Tổng quát	1
+	NV102	Trần Hoài Quân	Dự án Trải nghiệm người dùng	Tổng quát	1
+	NV103	Chu Gia Phúc	Dự án Bảo mật và tuân thủ	Tổng quát	1
+	NV104	Vũ Thanh Sương	Dự án Trợ lý ảo nội bộ	Tổng quát	1
+	NV105	Hồ Thị Uyên	Dự án Báo cáo quản trị	Tổng quát	1
+	NV106	Đỗ Thị Vy	Dự án Tự động hoá kiểm thử	Tổng quát	2
+	NV107	Trịnh Thị Vy	Dự án Hạ tầng đám mây	Tổng quát	1
+	NV108	Mai Thanh Yến	Dự án Bảo mật và tuân thủ	Tổng quát	1
+	NV109	Trần Thanh Bình	Dự án Tự động hoá kiểm thử	Tổng quát	1
+	NV110	Mai Văn An	Dự án Ứng dụng di động	Tổng quát	2
+	NV111	Đỗ Anh Tuấn	Dự án Trợ lý ảo nội bộ	Tổng quát	1
+	NV112	Tạ Quốc Bình	Dự án Quản lý kho vận	Tổng quát	1
+	NV113	Mai Bảo Bình	Dự án Tích hợp ERP	Tổng quát	1
+	NV114	Đặng Thanh Nam	Dự án Phân tích kinh doanh	Tổng quát	1
+	NV115	Lý Văn Yến	Dự án Bảo mật và tuân thủ	Tổng quát	1
+	NV116	Đặng Khánh Ngân	Không xếp được	—	—
+	NV117	Lý Hoài An	Dự án Trải nghiệm người dùng	Tổng quát	1
+	NV118	Lê Khánh Lan	Dự án Trợ lý ảo nội bộ	Tổng quát	1
+	NV119	Hoàng Bảo Nam	Dự án Bảo mật và tuân thủ	Tổng quát	1
+	NV120	Tạ Minh Linh	Dự án Tự động hoá kiểm thử	Tổng quát	1
+	NV121	Hoàng Hoài Nhi	Dự án Trải nghiệm người dùng	Tổng quát	1
+	NV122	Hồ Minh Yến	Dự án Cổng tuyển dụng nội bộ	Tổng quát	2
+	NV123	Trịnh Khánh Nhi	Dự án Tích hợp ERP	Tổng quát	1
+	NV124	Mai Thị Quân	Dự án Ứng dụng di động	Tổng quát	1
+	NV125	Tạ Hoài Quân	Dự án Trợ lý ảo nội bộ	Tổng quát	1
+	NV126	Tạ Minh Ngân	Dự án Trải nghiệm người dùng	Tổng quát	1
+	NV127	Dương Anh Việt	Dự án Quản lý kho vận	Tổng quát	1
+	NV128	Vũ Quốc Mai	Dự án Trải nghiệm người dùng	Tổng quát	1
+	NV129	Trịnh Quốc Hà	Dự án Trợ lý ảo nội bộ	Tổng quát	1
+	NV130	Tạ Văn Vy	Dự án Trợ lý ảo nội bộ	Tổng quát	1
+	NV131	Bùi Gia Vy	Dự án Tự động hoá kiểm thử	Tổng quát	2
+	NV132	Chu Thị Giang	Dự án Phân tích kinh doanh	Tổng quát	1
+	NV133	Ngô Hoài Nhi	Dự án Kho dữ liệu doanh nghiệp	Tổng quát	1
+	NV134	Hồ Thị Uyên	Dự án Tích hợp ERP	Tổng quát	1
+	NV135	Trịnh Văn Dũng	Không xếp được	—	—
+	NV136	Vũ Văn Nhi	Dự án Quản lý kho vận	Tổng quát	1
+	NV137	Phan Minh Sương	Dự án Hạ tầng đám mây	Tổng quát	1
+	NV138	Hồ Gia Yến	Dự án Kho dữ liệu doanh nghiệp	Tổng quát	2
+	NV139	Bùi Thanh Xuân	Dự án Phân tích kinh doanh	Tổng quát	1
+	NV140	Bùi Quốc Yến	Dự án Báo cáo quản trị	Tổng quát	1
+	NV141	Lê Văn Lan	Dự án Tự động hoá kiểm thử	Tổng quát	1
+	NV142	Hoàng Thanh Nam	Dự án Trợ lý ảo nội bộ	Tổng quát	1
+	NV143	Vũ Thị An	Dự án Cổng tuyển dụng nội bộ	Tổng quát	2
+	NV144	Chu Thị Lan	Dự án Cổng tuyển dụng nội bộ	Tổng quát	1
+	NV145	Nguyễn Văn An	Dự án Trải nghiệm người dùng	Tổng quát	1
+	NV146	Phạm Thanh Linh	Dự án Cổng tuyển dụng nội bộ	Tổng quát	1
+	NV147	Dương Anh Khanh	Dự án Phân tích kinh doanh	Tổng quát	1
+	NV148	Đặng Bảo Dũng	Dự án Bảo mật và tuân thủ	Tổng quát	1
+	NV149	Phạm Thanh Giang	Dự án Trải nghiệm người dùng	Tổng quát	1
+	NV150	Phạm Minh Dũng	Dự án Tích hợp ERP	Tổng quát	1
+	NV151	Đỗ Khánh Giang	Dự án Tự động hoá kiểm thử	Tổng quát	1
+	NV152	Trần Gia Giang	Dự án Quản lý kho vận	Tổng quát	1
+	NV153	Lý Thị Bình	Không xếp được	—	—
+	NV154	Dương Quốc Phúc	Dự án Kho dữ liệu doanh nghiệp	Tổng quát	1
+	NV155	Tạ Quốc Ngân	Dự án Trợ lý ảo nội bộ	Tổng quát	1
+	NV156	Bùi Bảo Uyên	Dự án Phân tích kinh doanh	Tổng quát	1
+	NV157	Nguyễn Khánh Việt	Dự án Trải nghiệm người dùng	Tổng quát	1
+	NV158	Lý Minh Nam	Dự án Trợ lý ảo nội bộ	Tổng quát	1
+	NV159	Vũ Hoài Yến	Dự án Trải nghiệm người dùng	Tổng quát	1
+	NV160	Đặng Anh Bình	Dự án Ứng dụng di động	Tổng quát	1
+	NV161	Lý Quốc An	Dự án Kho dữ liệu doanh nghiệp	Tổng quát	1
+	NV162	Bùi Minh Quân	Dự án Bảo mật và tuân thủ	Tổng quát	1
+	NV163	Mai Văn Phúc	Dự án Cổng tuyển dụng nội bộ	Tổng quát	1
+	NV164	Mai Minh Bình	Dự án Hạ tầng đám mây	Tổng quát	1
+	NV165	Ngô Thị Yến	Dự án Tích hợp ERP	Tổng quát	1
+	NV166	Bùi Thanh Bình	Dự án Hạ tầng đám mây	Tổng quát	2
+	NV167	Hoàng Thị Quân	Dự án Tích hợp ERP	Tổng quát	1
+	NV168	Đặng Thanh Nam	Dự án Quản lý kho vận	Tổng quát	1
+	NV169	Phạm Bảo Uyên	Dự án Báo cáo quản trị	Tổng quát	1
+	NV170	Ngô Khánh An	Dự án Cổng tuyển dụng nội bộ	Tổng quát	1
+	NV171	Lê Gia Quân	Dự án Bảo mật và tuân thủ	Tổng quát	1
+	NV172	Trần Gia Bình	Dự án Bảo mật và tuân thủ	Tổng quát	1
+	NV173	Hồ Khánh Hà	Dự án Tích hợp ERP	Tổng quát	1
+	NV174	Nguyễn Quốc Giang	Dự án Trải nghiệm người dùng	Tổng quát	1
+	NV175	Chu Anh Nhi	Dự án Kho dữ liệu doanh nghiệp	Tổng quát	1
+	NV176	Dương Gia Giang	Dự án Ứng dụng di động	Tổng quát	1
+	NV177	Trần Anh Thảo	Dự án Trợ lý ảo nội bộ	Tổng quát	1
+	NV178	Tạ Minh Linh	Dự án Báo cáo quản trị	Tổng quát	1
+	NV179	Lê Quốc Huy	Dự án Ứng dụng di động	Tổng quát	1
+	NV180	Vũ Khánh Yến	Dự án Báo cáo quản trị	Tổng quát	1
+	NV181	Trần Thanh Huy	Dự án Tự động hoá kiểm thử	Tổng quát	1
+	NV182	Dương Quốc Vy	Dự án Bảo mật và tuân thủ	Tổng quát	1
+	NV183	Hoàng Gia Vy	Dự án Ứng dụng di động	Tổng quát	1
+	NV184	Đặng Thị Uyên	Dự án Kho dữ liệu doanh nghiệp	Tổng quát	1
+	NV185	Phạm Bảo Dũng	Dự án Báo cáo quản trị	Tổng quát	1
+	NV186	Phạm Anh Linh	Dự án Tích hợp ERP	Tổng quát	1
+	NV187	Hồ Khánh Phúc	Dự án Hạ tầng đám mây	Tổng quát	1
+	NV188	Trịnh Bảo Nhi	Dự án Tích hợp ERP	Tổng quát	1
+	NV189	Vũ Anh Nhi	Dự án Trải nghiệm người dùng	Tổng quát	1
+	NV190	Bùi Khánh Tuấn	Dự án Quản lý kho vận	Tổng quát	1
+	NV191	Chu Quốc Sương	Dự án Hạ tầng đám mây	Tổng quát	1
+	NV192	Mai Văn Dũng	Dự án Kho dữ liệu doanh nghiệp	Tổng quát	1
+	NV193	Bùi Quốc Nam	Dự án Kho dữ liệu doanh nghiệp	Tổng quát	1
+	NV194	Mai Minh Thảo	Dự án Trải nghiệm người dùng	Tổng quát	1
+	NV195	Phạm Quốc Quân	Dự án Cổng tuyển dụng nội bộ	Tổng quát	1
+	NV196	Lý Thanh Nhi	Dự án Cổng tuyển dụng nội bộ	Tổng quát	1
+	NV197	Lý Thanh Yến	Dự án Cổng tuyển dụng nội bộ	Tổng quát	1
+	NV198	Phan Thanh Mai	Dự án Tự động hoá kiểm thử	Tổng quát	2
+	NV199	Dương Gia Uyên	Dự án Phân tích kinh doanh	Tổng quát	2
+	NV200	Lý Thanh Bình	Dự án Bảo mật và tuân thủ	Tổng quát	1
+	NV201	Đỗ Bảo Quân	Dự án Quản lý kho vận	Tổng quát	1
+	NV202	Trần Anh Linh	Dự án Cổng tuyển dụng nội bộ	Tổng quát	1
+	NV203	Lý Khánh Ngân	Dự án Phân tích kinh doanh	Tổng quát	1
+	NV204	Phạm Hoài Lan	Dự án Quản lý kho vận	Tổng quát	1
+	NV205	Tạ Thanh An	Dự án Hạ tầng đám mây	Tổng quát	1
+	NV206	Lý Văn Chi	Dự án Tự động hoá kiểm thử	Tổng quát	1
+	NV207	Lê Anh Bình	Dự án Tích hợp ERP	Tổng quát	1
+	NV208	Tạ Bảo Yến	Dự án Phân tích kinh doanh	Tổng quát	1
+	NV209	Lê Bảo Huy	Dự án Quản lý kho vận	Tổng quát	1
+	NV210	Trịnh Thanh Chi	Dự án Trải nghiệm người dùng	Tổng quát	1
+	NV211	Dương Anh Giang	Dự án Phân tích kinh doanh	Tổng quát	1
+	NV212	Mai Thanh Dũng	Dự án Quản lý kho vận	Tổng quát	1
+	NV213	Đặng Anh Huy	Dự án Tích hợp ERP	Tổng quát	1
+	NV214	Bùi Anh Linh	Dự án Hạ tầng đám mây	Tổng quát	1
+	NV215	Bùi Văn Linh	Dự án Tích hợp ERP	Tổng quát	1
+	NV216	Lê Thanh Lan	Dự án Bảo mật và tuân thủ	Tổng quát	1
+	NV217	Vũ Minh Ngân	Dự án Quản lý kho vận	Tổng quát	1
+	NV218	Hoàng Văn Hà	Dự án Bảo mật và tuân thủ	Tổng quát	1
+	NV219	Bùi Hoài Xuân	Dự án Tự động hoá kiểm thử	Tổng quát	1
+	NV220	Phan Minh Xuân	Dự án Báo cáo quản trị	Tổng quát	1
+	NV221	Phan Thanh Phúc	Dự án Bảo mật và tuân thủ	Tổng quát	1
+	NV222	Lê Bảo Xuân	Dự án Ứng dụng di động	Tổng quát	2
+	NV223	Ngô Bảo Uyên	Dự án Phân tích kinh doanh	Tổng quát	1
+	NV224	Phạm Gia Quân	Dự án Bảo mật và tuân thủ	Tổng quát	1
+	NV225	Phan Thị Chi	Dự án Trải nghiệm người dùng	Tổng quát	1
+	NV226	Chu Bảo Huy	Dự án Tích hợp ERP	Tổng quát	1
+	NV227	Đỗ Thanh An	Dự án Ứng dụng di động	Tổng quát	1
+	NV228	Tạ Thị Tuấn	Dự án Tích hợp ERP	Tổng quát	1
+	NV229	Trịnh Anh An	Dự án Bảo mật và tuân thủ	Tổng quát	1
+	NV230	Lê Thanh Hà	Dự án Cổng tuyển dụng nội bộ	Tổng quát	1
+	NV231	Hồ Minh Dũng	Dự án Kho dữ liệu doanh nghiệp	Tổng quát	1
+	NV232	Chu Bảo Nhi	Dự án Trải nghiệm người dùng	Tổng quát	1
+	NV233	Nguyễn Văn Linh	Dự án Tích hợp ERP	Tổng quát	1
+	NV234	Trịnh Minh Việt	Dự án Trợ lý ảo nội bộ	Tổng quát	1
+	NV235	Hoàng Thanh Uyên	Dự án Cổng tuyển dụng nội bộ	Tổng quát	2
+	NV236	Ngô Khánh An	Dự án Phân tích kinh doanh	Tổng quát	1
+	NV237	Đặng Anh Mai	Dự án Bảo mật và tuân thủ	Tổng quát	1
+	NV238	Trịnh Khánh Vy	Dự án Trợ lý ảo nội bộ	Tổng quát	1
+	NV239	Tạ Văn An	Dự án Trợ lý ảo nội bộ	Tổng quát	2
+	NV240	Lý Quốc Quân	Dự án Tự động hoá kiểm thử	Tổng quát	1
+	NV241	Hồ Quốc Uyên	Không xếp được	—	—
+	NV242	Phan Bảo Xuân	Dự án Bảo mật và tuân thủ	Tổng quát	1
+	NV243	Ngô Bảo Yến	Dự án Phân tích kinh doanh	Tổng quát	1
+	NV244	Ngô Minh Thảo	Dự án Tích hợp ERP	Tổng quát	1
+	NV245	Trần Bảo Nhi	Dự án Báo cáo quản trị	Tổng quát	1
+	NV246	Đỗ Quốc Nhi	Dự án Tự động hoá kiểm thử	Tổng quát	2
+	NV247	Bùi Hoài Nam	Không xếp được	—	—
+	NV248	Trần Văn Ngân	Dự án Hạ tầng đám mây	Tổng quát	1
+	NV249	Ngô Văn Sương	Dự án Ứng dụng di động	Tổng quát	1
+	NV250	Hồ Quốc An	Dự án Trải nghiệm người dùng	Tổng quát	1
+	NV251	Tạ Minh Xuân	Dự án Quản lý kho vận	Tổng quát	1
+	NV252	Ngô Văn Ngân	Dự án Kho dữ liệu doanh nghiệp	Tổng quát	1
+	NV253	Trần Anh Lan	Dự án Bảo mật và tuân thủ	Tổng quát	1
+	NV254	Phạm Anh Ngân	Dự án Hạ tầng đám mây	Tổng quát	1
+	NV255	Lý Khánh Phúc	Dự án Kho dữ liệu doanh nghiệp	Tổng quát	1
+	NV256	Hoàng Bảo An	Dự án Trải nghiệm người dùng	Tổng quát	1
+	NV257	Ngô Khánh Việt	Dự án Quản lý kho vận	Tổng quát	1
+	NV258	Đặng Thị Bình	Dự án Cổng tuyển dụng nội bộ	Tổng quát	1
+	NV259	Trần Khánh Uyên	Dự án Trải nghiệm người dùng	Tổng quát	1
+	NV260	Trần Thanh Nhi	Dự án Kho dữ liệu doanh nghiệp	Tổng quát	1
+	NV261	Phan Khánh Linh	Dự án Kho dữ liệu doanh nghiệp	Tổng quát	1
+	NV262	Bùi Gia Linh	Dự án Cổng tuyển dụng nội bộ	Tổng quát	1
+	NV263	Đỗ Thanh Huy	Dự án Trải nghiệm người dùng	Tổng quát	1
+	NV264	Trịnh Văn Chi	Dự án Hạ tầng đám mây	Tổng quát	1
+	NV265	Tạ Thị Hà	Dự án Trải nghiệm người dùng	Tổng quát	2
+	NV266	Trần Bảo Nhi	Dự án Phân tích kinh doanh	Tổng quát	1
+	NV267	Hoàng Hoài Mai	Dự án Kho dữ liệu doanh nghiệp	Tổng quát	2
+	NV268	Vũ Khánh Chi	Dự án Quản lý kho vận	Tổng quát	1
+	NV269	Ngô Minh Huy	Dự án Phân tích kinh doanh	Tổng quát	1
+	NV270	Vũ Hoài Sương	Không xếp được	—	—
+	NV271	Mai Khánh Quân	Dự án Kho dữ liệu doanh nghiệp	Tổng quát	1
+	NV272	Trần Gia Tuấn	Dự án Trải nghiệm người dùng	Tổng quát	2
+	NV273	Chu Minh Quân	Dự án Cổng tuyển dụng nội bộ	Tổng quát	2
+	NV274	Lý Minh Thảo	Dự án Quản lý kho vận	Tổng quát	1
+	NV275	Hoàng Minh Giang	Dự án Hạ tầng đám mây	Tổng quát	1
+	NV276	Mai Gia Huy	Dự án Cổng tuyển dụng nội bộ	Tổng quát	1
+	NV277	Hoàng Văn Linh	Dự án Phân tích kinh doanh	Tổng quát	1
+	NV278	Lê Bảo Nam	Không xếp được	—	—
+	NV279	Chu Thị Sương	Dự án Tích hợp ERP	Tổng quát	1
+	NV280	Bùi Bảo Huy	Dự án Bảo mật và tuân thủ	Tổng quát	1
+	NV281	Ngô Thị Mai	Dự án Quản lý kho vận	Tổng quát	1
+	NV282	Mai Minh Yến	Không xếp được	—	—
+	NV283	Hồ Thị Giang	Dự án Kho dữ liệu doanh nghiệp	Tổng quát	1
+	NV284	Hồ Quốc Mai	Dự án Hạ tầng đám mây	Tổng quát	2
+	NV285	Dương Khánh Giang	Dự án Kho dữ liệu doanh nghiệp	Tổng quát	1
+	NV286	Trần Thị Tuấn	Dự án Trải nghiệm người dùng	Tổng quát	1
+	NV287	Nguyễn Anh Uyên	Dự án Trải nghiệm người dùng	Tổng quát	1
+	NV288	Đặng Văn Chi	Không xếp được	—	—
+	NV289	Trịnh Anh Giang	Dự án Kho dữ liệu doanh nghiệp	Tổng quát	1
+	NV290	Lý Quốc Sương	Dự án Bảo mật và tuân thủ	Tổng quát	1
+	NV291	Dương Thanh Quân	Dự án Ứng dụng di động	Tổng quát	1
+	NV292	Mai Thị Việt	Dự án Trải nghiệm người dùng	Tổng quát	1
+	NV293	Hoàng Anh Yến	Dự án Quản lý kho vận	Tổng quát	1
+	NV294	Lê Anh An	Dự án Kho dữ liệu doanh nghiệp	Tổng quát	1
+	NV295	Đặng Khánh Thảo	Dự án Kho dữ liệu doanh nghiệp	Tổng quát	1
+	NV296	Mai Hoài Giang	Dự án Cổng tuyển dụng nội bộ	Tổng quát	1
+	NV297	Nguyễn Anh Sương	Dự án Kho dữ liệu doanh nghiệp	Tổng quát	1
+	NV298	Ngô Quốc Tuấn	Dự án Trải nghiệm người dùng	Tổng quát	1
+	NV299	Chu Quốc Việt	Dự án Phân tích kinh doanh	Tổng quát	1
+	NV300	Nguyễn Bảo Sương	Dự án Ứng dụng di động	Tổng quát	1

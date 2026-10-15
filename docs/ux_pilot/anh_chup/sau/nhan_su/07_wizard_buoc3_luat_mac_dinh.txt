@@ -1,0 +1,76 @@
+Vận hành sắp xếp
+
+Kiểm tra dữ liệu, bốc thăm, xếp học sinh vào CLB và xuất kết quả.
+
+0
+học sinh
+0
+CLB
+0
+đã nộp nguyện vọng
+0
+đã xếp CLB
+Nhập dữ liệu
+Tải sổ nhập mẫu
+
+Toàn bộ dữ liệu nằm trong một tệp Excel duy nhất: Sổ nhập CLB. Chưa có sổ thì bấm "Tải sổ nhập mẫu", điền danh sách CLB và học sinh, lưu lại rồi kéo sổ vào ô bên dưới.
+
+Kéo Sổ nhập CLB vào đây
+Một tệp Excel (.xlsx). Bấm để chọn tệp.
+Nhập sổ
+Bỏ tệp
+Cảnh báo dữ liệu
+Kiểm tra lại
+
+Những điểm dưới đây không chặn việc sắp xếp nhưng có thể làm kết quả sai lệch. Nên xem trước khi chạy.
+
+Chưa có dữ liệu để kiểm tra. Bấm "Tải sổ nhập mẫu", điền sổ rồi nạp vào ô phía trên.
+Các bước xử lý
+Số khởi tạo bốc thăm
+Kiểm tra dữ liệu
+Chạy sắp xếp
+Chưa bốc thăm lần nào. Lần sắp xếp đầu tiên sẽ bốc thăm và tự khoá kết quả.
+Sao lưu dữ liệu
+Chưa chạy
+Kiểm tra dữ liệu
+Chưa chạy
+Bốc thăm
+Chưa chạy
+Xếp học sinh vào CLB
+Chưa chạy
+Lưu kết quả
+Chưa chạy
+Xuất kết quả
+Chưa chạy
+Lịch sử sắp xếp
+Hiện/ẩn
+----
+Tạo workspace mới
+1. Thông tin chung
+2. Từ vựng
+3. Luật xếp
+4. Xem lại
+
+Bước 3/4 — Luật xếp
+
+Số lựa chọn tối đa mỗi đợt (1–20)
+Số chỗ mỗi người được chọn dự thi, tối đa mỗi đợt (0–20)
+Không giới hạn
+Chỉ dùng khi mỗi chỗ có một điểm riêng (ví dụ bài thi đầu vào của từng chỗ). Mục này ẩn khi mỗi người chỉ có một điểm hay khi chỉ xếp theo nhóm.
+Cách xếp ưu tiên
+Theo điểm
+Chỉ theo nhóm (không chấm điểm)
+Nhóm trước, rồi đến điểm
+Cách dùng nhóm ưu tiên
+Suất dự trữ mềm
+Thứ hạng nhóm nghiêm ngặt
+Mỗi nhóm được giữ sẵn một số chỗ; chỗ nào không ai trong nhóm dùng thì nhường lại cho người khác.
+Phạm vi của điểm
+Mỗi chỗ một điểm riêng
+Mỗi người một điểm duy nhất
+Một người có thể có điểm khác nhau ở từng chỗ (ví dụ bài thi đầu vào của từng chỗ).
+Thứ tự các nhóm: tốt nhất ở trên cùng, mỗi dòng một nhóm
+Dùng khi chọn "Thứ hạng nhóm nghiêm ngặt" hoặc ưu tiên "Chỉ theo nhóm". Người không thuộc nhóm nào đứng sau cùng.
+Quay lại
+Tiếp
+Huỷ

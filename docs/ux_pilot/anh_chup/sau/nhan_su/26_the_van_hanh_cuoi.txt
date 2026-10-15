@@ -1,0 +1,52 @@
+Chưa có dữ liệu để sắp xếp: cần ít nhất một nhân viên và một dự án. Hãy nạp Sổ nhập dự án ở phần "Nhập dữ liệu" trước.
+×
+----
+Vận hành sắp xếp
+
+Kiểm tra dữ liệu, bốc thăm, xếp nhân viên vào dự án và xuất kết quả.
+
+300
+nhân viên
+12
+dự án
+300
+đã nộp nguyện vọng
+289
+đã xếp dự án
+Nhập dữ liệu
+Tải sổ nhập mẫu
+
+Toàn bộ dữ liệu nằm trong một tệp Excel duy nhất: Sổ nhập dự án. Chưa có sổ thì bấm "Tải sổ nhập mẫu", điền danh sách dự án và nhân viên, lưu lại rồi kéo sổ vào ô bên dưới.
+
+Kéo Sổ nhập dự án vào đây
+Một tệp Excel (.xlsx). Bấm để chọn tệp.
+SO_NHAP.xlsx
+Xong: 12 dự án, 300 nhân viên (300 nhân viên mới, 0 bỏ qua)
+Bỏ tệp
+Cảnh báo dữ liệu
+Kiểm tra lại
+
+Những điểm dưới đây không chặn việc sắp xếp nhưng có thể làm kết quả sai lệch. Nên xem trước khi chạy.
+
+Không thấy vấn đề nào. Dữ liệu đã sẵn sàng.
+Các bước xử lý
+Số khởi tạo bốc thăm
+Kiểm tra dữ liệu
+Chạy sắp xếp
+Số bốc thăm đã khoá từ 2026-10-15T01:26:20. Các lần sắp xếp sau giữ nguyên thứ tự cũ, nhân viên mới được xếp ngẫu nhiên vào.
+Bốc thăm lại…
+Số khởi tạo 42 được khoá cùng số bốc thăm. Muốn đổi, bấm "Bốc thăm lại…".
+Sao lưu dữ liệu
+Đã sao lưu dữ liệu trước khi sắp xếp: app.db.bak-20261015_012620_907353
+Kiểm tra dữ liệu
+Hoàn tất
+Bốc thăm
+Đã bốc thăm cho 300 nhân viên và khoá kết quả bốc thăm.
+Xếp nhân viên vào dự án
+Hoàn tất sau 3 vòng, không có lỗi.
+Lưu kết quả
+Hoàn tất
+Xuất kết quả
+/tmp/pilot__fo0078p/app/workspaces/nhan-su-chia-nhan-vien-vao-du-an/match_results.csv
+Lịch sử sắp xếp
+Hiện/ẩn

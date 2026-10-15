@@ -15,18 +15,42 @@ let currentScoringClub = null;
 
 /* Luật chấm điểm của workspace đang mở (đặt bởi wsApDungCauHinh):
    theoNguoi = MỘT điểm cho cả người (không chấm từng CLB);
-   an        = luật chỉ xếp theo nhóm, không dùng điểm, nên ẩn cả thẻ Nhập điểm. */
-let LUAT_CHAM_DIEM = { theoNguoi: false, an: false };
+   an        = luật chỉ xếp theo nhóm, không dùng điểm, nên ẩn cả thẻ Nhập điểm;
+   nhomCung  = nhóm xếp CỨNG (tier_mode strict hay chỉ theo nhóm): suất dự trữ bị bỏ qua, nên
+               mọi chỗ nói về suất dự trữ ẩn đi (cùng điều kiện nhom_xep_cung của backend);
+   khongThi  = không có bước "chọn chỗ dự thi" (điểm một người một số, hay không có điểm). */
+let LUAT_CHAM_DIEM = { theoNguoi: false, an: false, nhomCung: false, khongThi: false };
 
 function apDungLuatChamDiem(luat) {
   LUAT_CHAM_DIEM = {
     an: luat.priority === "tier",
     theoNguoi: luat.score_scope === "per_person" && luat.priority !== "tier",
+    nhomCung: luat.tier_mode === "strict" || luat.priority === "tier",
+    khongThi: luat.priority === "tier" || luat.score_scope === "per_person",
   };
+  document.body.classList.toggle("nhom-cung", LUAT_CHAM_DIEM.nhomCung);
+  document.body.classList.toggle("khong-thi", LUAT_CHAM_DIEM.khongThi);
+  doiKhoaChuTheoLuat("cung", LUAT_CHAM_DIEM.nhomCung);
+  doiKhoaChuTheoLuat("khong-thi", LUAT_CHAM_DIEM.khongThi);
+  doiKhoaChuTheoLuat("khong-diem", LUAT_CHAM_DIEM.an);
   const nut = document.querySelector('.nav-item[data-tab="scoring"]');
   if (nut) nut.hidden = LUAT_CHAM_DIEM.an;
   const moTa = el("scoringDesc");
   if (moTa) moTa.setAttribute("data-i18n", LUAT_CHAM_DIEM.theoNguoi ? "scoring_desc_person" : "scoring_desc");
+}
+
+/* Đổi khoá chữ của mọi phần tử có `data-i18n-<hau>` (hay `data-i18n-placeholder-<hau>`) sang
+   khoá thay thế khi `bat`, và trả lại khoá gốc khi tắt. Khoá gốc cất ở `data-goc-…` nên gọi lặp
+   (đổi workspace) vẫn an toàn. Chữ được dịch ở lần applyStaticText kế tiếp (wsApDungCauHinh). */
+function doiKhoaChuTheoLuat(hau, bat) {
+  [["data-i18n", "data-i18n-" + hau], ["data-i18n-placeholder", "data-i18n-placeholder-" + hau]]
+    .forEach(([thuocTinh, thayThe]) => {
+      document.querySelectorAll("[" + thayThe + "]").forEach((e) => {
+        const luuGoc = "data-goc-" + thuocTinh.slice(5) + "-" + hau;
+        if (!e.hasAttribute(luuGoc)) e.setAttribute(luuGoc, e.getAttribute(thuocTinh) || "");
+        e.setAttribute(thuocTinh, bat ? e.getAttribute(thayThe) : e.getAttribute(luuGoc));
+      });
+    });
 }
 
 function loadScoringTab() {

@@ -34,7 +34,7 @@ import re
 import unicodedata
 
 from i18n_errors import err
-from nhan_ws import dang_chu
+from nhan_ws import dang_chu, ten_buoi
 
 # ---------------------------------------------------------------------------
 # Tên sheet, tiêu đề cột
@@ -87,6 +87,10 @@ def _cfg(cfg) -> dict:
         "max_tests": mt if (mt is None or (isinstance(mt, int) and not isinstance(mt, bool)))
         else TRAN_THI_MOI_BUOI,
         "per_person": luat.get("score_scope") == "per_person",
+        # Chỉ theo nhóm: không có điểm, nên mẫu không có cột điểm nào (đọc vẫn nhận nếu có).
+        "khong_diem": luat.get("priority") == "tier",
+        # Nhóm xếp CỨNG bỏ qua suất dự trữ (cùng điều kiện nhom_xep_cung của thuật toán).
+        "nhom_cung": luat.get("tier_mode") == "strict" or luat.get("priority") == "tier",
     }
 
 
@@ -689,7 +693,8 @@ def _doc_sheet_hs(ws, clubs, loi, cfg=None, ten_sheet=SHEET_HS) -> list:
             for b, n in dem.items():
                 if n > tran:
                     loi.append(err(ma_loi, sheet=ten_sheet, dong=so_dong, student_id=sid,
-                                   buoi=nhan_buoi(b) or "-", n=n, tran=tran))
+                                   buoi=ten_buoi(nhan_buoi(b), cau_hinh["nhan"]) or "-",
+                                   n=n, tran=tran))
         students.append({
             "student_id": sid,
             "name": lay(o, cot.get("name")),
@@ -820,7 +825,7 @@ def huong_dan(cfg=None) -> list:
     nhan = n["nhan"]
     if not cfg or (ten_sheet_clb(cfg) == SHEET_CLB and ten_sheet_hs(cfg) == SHEET_HS
                    and nhan_nhom(cfg) == "Nhóm ưu tiên" and nhan_diem(cfg) == "Điểm"
-                   and not n["per_person"]
+                   and not n["per_person"] and not n["khong_diem"] and not n["nhom_cung"]
                    and dang_chu(nhan, "slot", "l", "vi") == "câu lạc bộ"
                    and dang_chu(nhan, "person", "l", "vi") == "học sinh"):
         return list(HUONG_DAN)
@@ -831,54 +836,77 @@ def huong_dan(cfg=None) -> list:
     clb, hs = ten_sheet_clb(cfg), ten_sheet_hs(cfg)
     slot_l, slot_u = d("slot", "l", "vi"), d("slot", "su", "vi")
     nguoi_l, nhom = d("person", "l", "vi"), nhan_nhom(cfg)
+    buoi_l = d("session", "l", "vi")
     diem, diem_l = nhan_diem(cfg), d("score", "l", "vi")
     ra = [
         "SỔ NHẬP %s — một tệp duy nhất để nạp vào phần mềm" % slot_u,
         "",
         "Bước 1. Sheet \"%s\": mỗi %s một dòng." % (clb, slot_l),
-        "        Tên CLB và Chỉ tiêu là bắt buộc. Buổi chọn trong danh sách thả xuống",
-        "        (chỉ có một buổi thì để trống cả cột).",
-        "        Suất ưu tiên / %s: chỉ điền nếu %s giữ chỗ cho một nhóm" % (nhom, slot_l),
-        "        %s (ví dụ nhóm chinh_sach). Mã CLB để trống, phần mềm tự tạo." % nguoi_l,
+        "        Cột \"Tên CLB\" (tên %s) và \"Chỉ tiêu\" (số chỗ) là bắt buộc." % slot_l,
+        "        Cột \"Buổi\" (%s) chọn trong danh sách thả xuống;" % buoi_l,
+        "        chỉ có một %s thì để trống cả cột." % buoi_l,
+    ]
+    if n["nhom_cung"]:
+        ra += [
+            "        Workspace này xếp theo thứ hạng %s, nên cột \"Suất ưu tiên\" và cột %s ở sheet này" % (nhom, nhom),
+            "        không có tác dụng: cứ để trống. Cột \"Mã CLB\" (mã %s) cũng để trống, phần mềm tự tạo." % slot_l,
+        ]
+    else:
+        ra += [
+            "        Suất ưu tiên / %s: chỉ điền nếu %s giữ sẵn chỗ cho một nhóm %s." % (nhom, slot_l, nguoi_l),
+            "        Cột \"Mã CLB\" (mã %s) để trống, phần mềm tự tạo." % slot_l,
+        ]
+    ra += [
         "",
         "Bước 2. Sheet \"%s\": mỗi %s một dòng." % (hs, nguoi_l),
-        "        Mã HS là bắt buộc và không được trùng.",
-        "        %s: chỉ điền với %s thuộc nhóm đó." % (nhom, nguoi_l),
+        "        Cột \"Mã HS\" (mã %s) là bắt buộc và không được trùng." % nguoi_l,
+        "        Cột %s: chỉ điền với %s thuộc nhóm đó." % (nhom, nguoi_l),
         "",
-        "Bước 3. NV1, NV2, NV3…: chọn tên %s trong danh sách thả xuống," % slot_l,
+        "Bước 3. Các cột NV1, NV2, NV3… (NV = nguyện vọng): chọn tên %s trong danh sách thả xuống," % slot_l,
         "        theo thứ tự thích nhất trước. Không cần điền kín.",
-        "        Nhiều buổi: cứ điền chung một danh sách — phần mềm tự chia",
-        "        theo buổi của từng %s." % slot_l,
+        "        Nhiều %s: cứ điền chung một danh sách — phần mềm tự chia" % buoi_l,
+        "        theo %s của từng %s." % (buoi_l, slot_l),
         "",
     ]
-    if n["per_person"]:
+    mau_a, mau_b = d("slot", "c", "vi") + " A", d("slot", "c", "vi") + " B"
+    ma_vd = "001"
+    buoc = 4
+    if n["khong_diem"]:
+        # Chỉ theo nhóm: không có điểm, nên mẫu không có cột điểm và hướng dẫn không nhắc tới.
+        tiers = ((cfg or {}).get("rules") or {}).get("tiers") if isinstance(cfg, dict) else None
+        nhom_vd = str(tiers[0]) if tiers else "…"
+        vd = ["  Mã HS   Họ tên          %s   NV1          NV2" % nhom,
+              "  %s   Nguyễn Văn An   %s    %s    %s" % (ma_vd, nhom_vd, mau_a, mau_b),
+              "  → Nguyện vọng 1 của An là %s, nguyện vọng 2 là %s." % (mau_a, mau_b)]
+    elif n["per_person"]:
         ra += [
             "Bước 4. Cột \"%s\" (đứng sau cột %s): %s của cả người đó, MỘT ô cho cả dòng." % (diem, nhom, diem_l),
-            "        Có %s = đã thi, và %s ấy áp cho mọi nguyện vọng của dòng. Để trống = không thi." % (diem_l, diem_l),
-            "        Thi rồi mà chưa có %s: gõ chữ  thi  rồi chấm sau trong phần mềm." % diem_l,
+            "        Có %s thì %s ấy áp cho mọi nguyện vọng của dòng. Để trống = chưa có %s." % (diem_l, diem_l, diem_l),
+            "        Sẽ có %s nhưng chưa nhập: gõ chữ  thi  rồi nhập %s sau trong phần mềm." % (diem_l, diem_l),
         ]
+        buoc = 5
         vd = ["  Mã HS   Họ tên          %s   NV1          NV2" % diem,
-              "  HS001   Nguyễn Văn An   9,5      Tin học      Bóng rổ",
-              "  → An có %s 9,5 cho cả hai nguyện vọng: Tin học rồi Bóng rổ." % diem_l]
+              "  %s   Nguyễn Văn An   9,5      %s    %s" % (ma_vd, mau_a, mau_b),
+              "  → An có %s 9,5 cho cả hai nguyện vọng: %s rồi %s." % (diem_l, mau_a, mau_b)]
     else:
         ra += [
             "Bước 4. %s 1, %s 2…: %s của %s ngay bên trái." % (diem, diem, diem_l, slot_l),
-            "        Có %s = đã thi %s đó. Để trống = không thi." % (diem_l, slot_l),
-            "        Thi rồi mà chưa có %s: gõ chữ  thi  rồi chấm sau trong phần mềm." % diem_l,
+            "        Có %s = đã có %s ở %s đó. Để trống = chưa có." % (diem_l, diem_l, slot_l),
+            "        Sẽ có %s nhưng chưa nhập: gõ chữ  thi  rồi nhập %s sau trong phần mềm." % (diem_l, diem_l),
         ]
+        buoc = 5
         vd = ["  Mã HS   Họ tên          NV1          %s 1   NV2           %s 2" % (diem, diem),
-              "  HS001   Nguyễn Văn An   Tin học      9,5      Bóng rổ",
-              "  → Nguyện vọng 1 là Tin học, đã thi được 9,5; nguyện vọng 2 là Bóng rổ,",
-              "    không thi tuyển."]
+              "  %s   Nguyễn Văn An   %s    9,5      %s" % (ma_vd, mau_a, mau_b),
+              "  → Nguyện vọng 1 là %s, có %s 9,5; nguyện vọng 2 là %s, chưa có %s." % (mau_a, diem_l, mau_b, diem_l)]
     ra += [
+        "Bước %d. Lưu tệp (giữ định dạng .xlsx)." % buoc,
         "",
-        "Bước 5. Lưu tệp (giữ định dạng .xlsx).",
-        "",
-        "Bước 6. Mở phần mềm → màn hình Vận hành → kéo tệp này vào ô nạp",
+        "Bước %d. Mở phần mềm → màn hình Vận hành → kéo tệp này vào ô nạp" % (buoc + 1),
         "        → xem lại phần tóm tắt → bấm Nhập.",
         "",
-        "Sổ có lỗi (%s trùng tên, NV ghi tên %s không có, %s không phải số…)" % (slot_l, slot_l, diem_l),
-        "thì phần mềm KHÔNG nạp gì cả và chỉ rõ sheet, dòng cần sửa.",
+        "Sổ có lỗi (%s trùng tên, NV ghi tên %s không có%s) thì phần mềm KHÔNG nạp gì cả" % (
+            slot_l, slot_l, "" if n["khong_diem"] else ", %s không phải số" % diem_l),
+        "và chỉ rõ sheet, dòng cần sửa.",
         "Nạp lại sổ đã sửa là cập nhật — không tạo trùng.",
         "",
         "Ví dụ một dòng:",
@@ -947,7 +975,9 @@ def ghi_so_nhap(duong_dan_hoac_tep, clubs=(), students=(), so_nv=None, co_nhom=T
     ten_khong_trung(clubs)
     so_buoi = len({c.get("buoi") or "" for c in clubs}) or 1
     n_cfg = _cfg(cfg)
-    ca_nhan = n_cfg["per_person"]
+    khong_diem = n_cfg["khong_diem"]
+    ca_nhan = n_cfg["per_person"] and not khong_diem
+    chi_nv = ca_nhan or khong_diem            # mỗi NV một cột, không cặp NV/Điểm
     max_choices = n_cfg["max_choices"] if cfg else 0
     dai_nhat = [len(s.get("nv") or []) for s in students]
     if so_nv:
@@ -1017,8 +1047,8 @@ def ghi_so_nhap(duong_dan_hoac_tep, clubs=(), students=(), so_nv=None, co_nhom=T
     if ca_nhan:
         cot_dau = cot_dau + [ten_diem]        # MỘT cột điểm chung, ngay sau cột nhóm
     nv1 = len(cot_dau) + 1                    # số thứ tự cột NV1 (tính từ 1)
-    buoc = 1 if ca_nhan else 2                # khoảng cách giữa hai cột NV liên tiếp
-    if ca_nhan:
+    buoc = 1 if chi_nv else 2                 # khoảng cách giữa hai cột NV liên tiếp
+    if chi_nv:
         tieu_de = cot_dau + [f"NV{k}" for k in range(1, so_nv + 1)]
     else:
         tieu_de = cot_dau + [c for k in range(1, so_nv + 1)
@@ -1041,15 +1071,16 @@ def ghi_so_nhap(duong_dan_hoac_tep, clubs=(), students=(), so_nv=None, co_nhom=T
         hang = [s.get("student_id", ""), s.get("name", "")]
         if co_nhom:
             hang.append(s.get("reserve_group") or None)
-        if ca_nhan:
-            # Điểm theo người: lấy `diem_ca_nhan` nếu có, không thì điểm đầu tiên của
-            # các nguyện vọng (cả dòng chung một điểm).
-            if s.get("diem_ca_nhan") is not None:
-                hang.append(diem_o({"diem": s["diem_ca_nhan"], "thi": bool(s["diem_ca_nhan"])}))
-            else:
-                co = next((x for x in (s.get("nv") or []) if x.get("diem") not in (None, "")
-                           or x.get("thi")), None)
-                hang.append(diem_o(co) if co else None)
+        if chi_nv:
+            if ca_nhan:
+                # Điểm theo người: lấy `diem_ca_nhan` nếu có, không thì điểm đầu tiên của
+                # các nguyện vọng (cả dòng chung một điểm).
+                if s.get("diem_ca_nhan") is not None:
+                    hang.append(diem_o({"diem": s["diem_ca_nhan"], "thi": bool(s["diem_ca_nhan"])}))
+                else:
+                    co = next((x for x in (s.get("nv") or []) if x.get("diem") not in (None, "")
+                               or x.get("thi")), None)
+                    hang.append(diem_o(co) if co else None)
             for x in (s.get("nv") or [])[:so_nv]:
                 hang.append(next((c["name"] for c in clubs if c.get("club_id") == x["club_id"]),
                                  x["club_id"]))
@@ -1070,14 +1101,15 @@ def ghi_so_nhap(duong_dan_hoac_tep, clubs=(), students=(), so_nv=None, co_nhom=T
         wh.column_dimensions[get_column_letter(nv1 - 1)].width = 10   # cột điểm chung
     for col in range(nv1, cot_cuoi + 1):
         wh.column_dimensions[get_column_letter(col)].width = (
-            22 if (ca_nhan or (col - nv1) % 2 == 0) else 8)
+            22 if (chi_nv or (col - nv1) % 2 == 0) else 8)
     for o in wh[1]:
         o.fill, o.font, o.alignment = NEN_TIEU_DE, CHU_TIEU_DE, GIUA
     wh.row_dimensions[1].height = 30
     for r in range(2, so_dong_hs + 1):
         for col in range(1, cot_cuoi + 1):
             o = wh.cell(row=r, column=col)
-            la_cot_diem = (col == nv1 - 1) if ca_nhan else (col >= nv1 and (col - nv1) % 2 == 1)
+            la_cot_diem = ((col == nv1 - 1) if ca_nhan
+                           else False if khong_diem else (col >= nv1 and (col - nv1) % 2 == 1))
             o.fill = NEN_DIEM if la_cot_diem else NEN_NHAP
             o.border = VIEN
         # Mã HS là CHỮ: để Excel tự nhận thì 0012345 thành 12345.
@@ -1111,7 +1143,7 @@ def ghi_so_nhap(duong_dan_hoac_tep, clubs=(), students=(), so_nv=None, co_nhom=T
     for k in range(so_nv):
         c_nv = get_column_letter(nv1 + buoc * k)
         dv_nv.add(f"{c_nv}2:{c_nv}{so_dong_hs}")
-        if not ca_nhan:
+        if not chi_nv:
             them_kiem_diem(get_column_letter(nv1 + 1 + 2 * k), so_dong_hs)
     # Cùng một CLB chọn hai lần trên một dòng -> tô đỏ.
     for k in range(so_nv):

@@ -420,6 +420,12 @@ function wsDungThuTuNhom(w) {
   return w.tierMode === "strict" || w.priority === "tier";
 }
 
+/* Có bước "chọn chỗ dự thi" không? Chỉ khi mỗi chỗ có điểm riêng (cùng điều kiện với
+   LUAT_CHAM_DIEM.khongThi ở js/06_cham_diem.js). */
+function wsCoBuocThi(w) {
+  return w.priority !== "tier" && w.scoreScope !== "per_person";
+}
+
 function wsTiers(w) {
   return wsDungThuTuNhom(w)
     ? w.tiersText.split("\n").map((s) => s.trim()).filter(Boolean) : [];
@@ -440,7 +446,7 @@ function wsLoiBuoc(w, buoc) {
     if (w.maxChoices.trim() === "" || !Number.isInteger(mc) || mc < 1 || mc > 20) {
       loi.push(t("ws_v_max_choices"));
     }
-    if (!w.khongGioiHan) {
+    if (!w.khongGioiHan && wsCoBuocThi(w)) {
       const mt = Number(w.maxTests);
       if (w.maxTests.trim() === "" || !Number.isInteger(mt) || mt < 0 || mt > 20) {
         loi.push(t("ws_v_max_tests"));
@@ -494,7 +500,8 @@ function wsTruong(id, nhanKhoa, oNhap, goiY) {
   return wsEl("div", { class: "ws-truong" },
     wsEl("label", { for: id, class: "ws-truong-nhan", text: t(nhanKhoa) }),
     oNhap,
-    goiY ? wsEl("div", { class: "ws-truong-goi-y", text: goiY }) : null);
+    goiY && goiY.nodeType ? goiY
+      : (goiY ? wsEl("div", { class: "ws-truong-goi-y", text: goiY }) : null));
 }
 
 function wsChon(id, giaTri, luaChon) {
@@ -596,23 +603,43 @@ function wsBuoc3(hop) {
   const oPriority = wsChon("wzPriority", w.priority, [
     ["score", t("ws_r_priority_score")], ["tier", t("ws_r_priority_tier")],
     ["score+tier", t("ws_r_priority_both")]]);
-  const capNhatODanhSachNhom = () => {
-    oTiers.disabled = !(oTierMode.value === "strict" || oPriority.value === "tier");
+  const oScoreScope = wsChon("wzScoreScope", w.scoreScope, [
+    ["per_slot", t("ws_r_ss_per_slot")], ["per_person", t("ws_r_ss_per_person")]]);
+  /* Nhãn lựa chọn để NGẮN (hộp chọn cắt chữ dài); lời giải thích nằm ngay dưới, đổi theo lựa chọn. */
+  const goiYTheoChon = (oChon, tienTo, id) => {
+    const e = wsEl("div", { class: "ws-truong-goi-y", id });
+    const cap = () => { e.textContent = t(tienTo + oChon.value + "_goi_y"); };
+    oChon.addEventListener("change", cap);
+    cap();
+    return e;
   };
-  oTierMode.addEventListener("change", capNhatODanhSachNhom);
-  oPriority.addEventListener("change", capNhatODanhSachNhom);
+  const truongMaxTests = wsTruong("wzMaxTests", "ws_r_max_tests", wsEl("div", { class: "ws-hang" }, oMaxTests,
+    wsEl("label", { class: "ws-kem" }, oKhong, " ", t("ws_r_khong_gioi_han"))), t("ws_r_max_tests_goi_y"));
+  const ghiChuChiNhom = wsEl("p", { class: "hint-text", id: "wzGhiChuChiNhom", hidden: true,
+    text: t("ws_r_chi_nhom_ghi_chu") });
+  /* Chỉ theo nhóm thì cách dùng nhóm và phạm vi điểm bị bỏ qua (luat_xep_hieu_luc ở backend): vẫn
+     cho chọn (có test giữ hành vi đó) nhưng nói rõ để người mới khỏi đoán. Ô "số chỗ dự thi" chỉ
+     có nghĩa khi mỗi chỗ có điểm riêng, nên ẩn khi không có điểm hay điểm một người một số. */
+  const capNhatTheoLuat = () => {
+    const chiNhom = oPriority.value === "tier";
+    oTiers.disabled = !(oTierMode.value === "strict" || chiNhom);
+    ghiChuChiNhom.hidden = !chiNhom;
+    truongMaxTests.hidden = chiNhom || oScoreScope.value === "per_person";
+  };
+  [oTierMode, oPriority, oScoreScope].forEach((o) => o.addEventListener("change", capNhatTheoLuat));
 
   hop.append(
     wsTruong("wzMaxChoices", "ws_r_max_choices", wsEl("input", { type: "number", id: "wzMaxChoices",
       class: "text-input ws-so", min: "1", max: "20", step: "1", value: w.maxChoices })),
-    wsTruong("wzMaxTests", "ws_r_max_tests", wsEl("div", { class: "ws-hang" }, oMaxTests,
-      wsEl("label", { class: "ws-kem" }, oKhong, " ", t("ws_r_khong_gioi_han")))),
+    truongMaxTests,
     wsTruong("wzPriority", "ws_r_priority", oPriority),
-    wsTruong("wzTierMode", "ws_r_tier_mode", oTierMode),
-    wsTruong("wzScoreScope", "ws_r_score_scope", wsChon("wzScoreScope", w.scoreScope, [
-      ["per_slot", t("ws_r_ss_per_slot")], ["per_person", t("ws_r_ss_per_person")]])),
+    wsTruong("wzTierMode", "ws_r_tier_mode", oTierMode, goiYTheoChon(oTierMode, "ws_r_tm_", "wzTierModeGoiY")),
+    wsTruong("wzScoreScope", "ws_r_score_scope", oScoreScope,
+      goiYTheoChon(oScoreScope, "ws_r_ss_", "wzScoreScopeGoiY")),
+    ghiChuChiNhom,
     wsTruong("wzTiers", "ws_r_tiers", oTiers, t("ws_r_tiers_chi_strict")),
   );
+  capNhatTheoLuat();
 }
 
 /* --- Bước 4: xem lại --- */
@@ -627,11 +654,16 @@ function wsBuoc4(hop) {
     hang(t("ws_wz_loai"), wsTenNganh(cfg.industry), "rvLoai"),
     ...WS_DANH_TU.map((dt) => hang(t("ws_dt_" + dt), nhanHienThi(dt), "rvNhan_" + dt)),
     hang(t("ws_r_max_choices"), String(r.max_choices), "rvMaxChoices"),
-    hang(t("ws_r_max_tests"), r.max_tests === null ? t("ws_r_khong_gioi_han") : String(r.max_tests), "rvMaxTests"),
+    ...(wsCoBuocThi(wsWizard)
+      ? [hang(t("ws_r_max_tests"), r.max_tests === null ? t("ws_r_khong_gioi_han") : String(r.max_tests), "rvMaxTests")]
+      : []),
     hang(t("ws_r_priority"), t({ score: "ws_r_priority_score", tier: "ws_r_priority_tier",
       "score+tier": "ws_r_priority_both" }[r.priority]), "rvPriority"),
-    hang(t("ws_r_tier_mode"), t(r.tier_mode === "strict" ? "ws_r_tm_strict" : "ws_r_tm_reserve"), "rvTierMode"),
-    hang(t("ws_r_score_scope"), t(r.score_scope === "per_person" ? "ws_r_ss_per_person" : "ws_r_ss_per_slot"), "rvScoreScope"),
+    /* Chỉ theo nhóm: cách dùng nhóm (luôn cứng) và phạm vi điểm không có tác dụng, khỏi hiện. */
+    ...(r.priority === "tier" ? [] : [
+      hang(t("ws_r_tier_mode"), t(r.tier_mode === "strict" ? "ws_r_tm_strict" : "ws_r_tm_reserve"), "rvTierMode"),
+      hang(t("ws_r_score_scope"), t(r.score_scope === "per_person" ? "ws_r_ss_per_person" : "ws_r_ss_per_slot"), "rvScoreScope"),
+    ]),
     hang(t("ws_r_tiers"), r.tiers.length ? r.tiers.join(" › ") : "—", "rvTiers"),
   ];
   hop.append(

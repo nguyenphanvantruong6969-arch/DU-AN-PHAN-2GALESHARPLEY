@@ -1,0 +1,95 @@
+Đã xuất kết quả của 300 nhân viên ra một tệp Excel: /tmp/pilot_nmunr024/tai_xuong/ket_qua_phan_bo.xlsx
+Gồm 6 trang: Hướng dẫn, Danh sách nhân viên, Theo dự án, Chưa có chỗ, Thống kê, Dấu vết (kỹ thuật).
+----
+Nhập tại chỗ
+
+Tìm hoặc tạo nhân viên, rồi làm hai bước: chọn dự án dự thi và xếp hạng nguyện vọng. Hai bước này không phụ thuộc nhau.
+
+Tìm hoặc tạo nhân viên
+Tìm
+Tạ Bảo Linh
+NV001
+Thiếu dự án dự thi
+DỰ ÁN DỰ THI
+Chưa chọn
+NGUYỆN VỌNG
+1
+Dự án Quản lý kho vận
+Ngô Văn An
+NV002
+Thiếu dự án dự thi
+DỰ ÁN DỰ THI
+Chưa chọn
+NGUYỆN VỌNG
+1
+Dự án Hạ tầng đám mây
+Hoàng Hoài Giang
+NV003
+Thiếu dự án dự thi
+DỰ ÁN DỰ THI
+Chưa chọn
+NGUYỆN VỌNG
+1
+Dự án Bảo mật và tuân thủ
+2
+Dự án Tự động hoá kiểm thử
+Vũ Hoài An
+NV004
+Thiếu dự án dự thi
+DỰ ÁN DỰ THI
+Chưa chọn
+NGUYỆN VỌNG
+1
+Dự án Quản lý kho vận
+2
+Dự án Tự động hoá kiểm thử
+Hồ Bảo Khanh
+NV005
+Thiếu dự án dự thi
+DỰ ÁN DỰ THI
+Chưa chọn
+NGUYỆN VỌNG
+1
+Dự án Quản lý kho vận
+2
+Dự án Hạ tầng đám mây
+3
+Dự án Trải nghiệm người dùng
+Ngô Văn Dũng
+NV006
+Thiếu dự án dự thi
+DỰ ÁN DỰ THI
+Chưa chọn
+NGUYỆN VỌNG
+1
+Dự án Kho dữ liệu doanh nghiệp
+2
+Dự án Quản lý kho vận
+Đỗ Khánh Phúc
+NV007
+Thiếu dự án dự thi
+DỰ ÁN DỰ THI
+Chưa chọn
+NGUYỆN VỌNG
+1
+Dự án Tự động hoá kiểm thử
+2
+Dự án Cổng tuyển dụng nội bộ
+3
+Dự án Quản lý kho vận
+Vũ Anh Việt
+NV008
+Thiếu dự án dự thi
+DỰ ÁN DỰ THI
+Chưa chọn
+NGUYỆN VỌNG
+1
+Dự án Báo cáo quản trị
+2
+Dự án Quản lý kho vận
+3
+Dự án Tự động hoá kiểm thử
+‹ Trước
+Trang 1/38 · 300 nhân viên
+Sau ›
+Tạo nhân viên mới

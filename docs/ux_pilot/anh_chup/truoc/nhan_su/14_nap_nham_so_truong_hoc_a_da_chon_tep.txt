@@ -1,0 +1,65 @@
+Đã tạo sổ nhập (0 dự án điền sẵn) → /tmp/pilot_nmunr024/tai_xuong/SO_NHAP_CLB.xlsx
+Sắp xếp xong: 0/0 nhân viên có dự án, sau 0 vòng.
+----
+Vận hành sắp xếp
+
+Kiểm tra dữ liệu, bốc thăm, xếp nhân viên vào dự án và xuất kết quả.
+
+0
+nhân viên
+0
+dự án
+0
+đã nộp nguyện vọng
+0
+đã xếp dự án
+Nhập dữ liệu
+Tải sổ nhập mẫu
+
+Toàn bộ dữ liệu nằm trong một tệp Excel duy nhất: Sổ nhập CLB. Chưa có sổ thì bấm "Tải sổ nhập mẫu", điền danh sách dự án và nhân viên, lưu lại rồi kéo sổ vào ô bên dưới.
+
+Kéo Sổ nhập CLB vào đây
+Một tệp Excel (.xlsx). Bấm để chọn tệp.
+SO_NHAP_TEST.xlsx
+Sổ có 168 lỗi cần sửa. Chưa nạp gì cả. Hãy sửa trong Excel, lưu lại rồi kéo sổ vào lần nữa.
+Sheet "2. Nhân viên", dòng 2 (HS001): có KPI ở cột "Điểm 1", nhưng cột này không đúng cách chấm của workspace (một KPI cho cả nhân viên, hoặc một KPI cho mỗi dự án). Nạp vào sẽ mất KPI mà không báo. Hãy tải sổ mẫu của workspace này và điền lại vào đúng cột.
+Sheet "2. Nhân viên", dòng 3 (HS002): có KPI ở cột "Điểm 1", nhưng cột này không đúng cách chấm của workspace (một KPI cho cả nhân viên, hoặc một KPI cho mỗi dự án). Nạp vào sẽ mất KPI mà không báo. Hãy tải sổ mẫu của workspace này và điền lại vào đúng cột.
+Sheet "2. Nhân viên", dòng 3 (HS002): 4 nguyện vọng ở quý -, tối đa 3 mỗi quý. Bớt nguyện vọng của quý này.
+Sheet "2. Nhân viên", dòng 4 (HS003): có KPI ở cột "Điểm 1", nhưng cột này không đúng cách chấm của workspace (một KPI cho cả nhân viên, hoặc một KPI cho mỗi dự án). Nạp vào sẽ mất KPI mà không báo. Hãy tải sổ mẫu của workspace này và điền lại vào đúng cột.
+Sheet "2. Nhân viên", dòng 5 (HS004): có KPI ở cột "Điểm 1", nhưng cột này không đúng cách chấm của workspace (một KPI cho cả nhân viên, hoặc một KPI cho mỗi dự án). Nạp vào sẽ mất KPI mà không báo. Hãy tải sổ mẫu của workspace này và điền lại vào đúng cột.
+Sheet "2. Nhân viên", dòng 5 (HS004): 5 nguyện vọng ở quý -, tối đa 3 mỗi quý. Bớt nguyện vọng của quý này.
+Sheet "2. Nhân viên", dòng 6 (HS005): có KPI ở cột "Điểm 1", nhưng cột này không đúng cách chấm của workspace (một KPI cho cả nhân viên, hoặc một KPI cho mỗi dự án). Nạp vào sẽ mất KPI mà không báo. Hãy tải sổ mẫu của workspace này và điền lại vào đúng cột.
+Sheet "2. Nhân viên", dòng 7 (HS006): có KPI ở cột "Điểm 1", nhưng cột này không đúng cách chấm của workspace (một KPI cho cả nhân viên, hoặc một KPI cho mỗi dự án). Nạp vào sẽ mất KPI mà không báo. Hãy tải sổ mẫu của workspace này và điền lại vào đúng cột.
+Sheet "2. Nhân viên", dòng 8 (HS007): có KPI ở cột "Điểm 1", nhưng cột này không đúng cách chấm của workspace (một KPI cho cả nhân viên, hoặc một KPI cho mỗi dự án). Nạp vào sẽ mất KPI mà không báo. Hãy tải sổ mẫu của workspace này và điền lại vào đúng cột.
+Sheet "2. Nhân viên", dòng 8 (HS007): 5 nguyện vọng ở quý -, tối đa 3 mỗi quý. Bớt nguyện vọng của quý này.
+Sheet "2. Nhân viên", dòng 9 (HS008): có KPI ở cột "Điểm 1", nhưng cột này không đúng cách chấm của workspace (một KPI cho cả nhân viên, hoặc một KPI cho mỗi dự án). Nạp vào sẽ mất KPI mà không báo. Hãy tải sổ mẫu của workspace này và điền lại vào đúng cột.
+Sheet "2. Nhân viên", dòng 10 (HS009): có KPI ở cột "Điểm 1", nhưng cột này không đúng cách chấm của workspace (một KPI cho cả nhân viên, hoặc một KPI cho mỗi dự án). Nạp vào sẽ mất KPI mà không báo. Hãy tải sổ mẫu của workspace này và điền lại vào đúng cột.
+… và 156 lỗi khác.
+Bỏ tệp
+Cảnh báo dữ liệu
+Kiểm tra lại
+
+Những điểm dưới đây không chặn việc sắp xếp nhưng có thể làm kết quả sai lệch. Nên xem trước khi chạy.
+
+Không thấy vấn đề nào. Dữ liệu đã sẵn sàng.
+Các bước xử lý
+Số khởi tạo bốc thăm
+Kiểm tra dữ liệu
+Chạy sắp xếp
+Số bốc thăm đã khoá từ 2026-10-15T00:17:05. Các lần sắp xếp sau giữ nguyên thứ tự cũ, nhân viên mới được xếp ngẫu nhiên vào.
+Bốc thăm lại…
+Số khởi tạo 42 được khoá cùng số bốc thăm. Muốn đổi, bấm "Bốc thăm lại…".
+Sao lưu dữ liệu
+Đã sao lưu dữ liệu trước khi sắp xếp: app.db.bak-20261015_001705_821318
+Kiểm tra dữ liệu
+Hoàn tất
+Bốc thăm
+Đã bốc thăm cho 0 nhân viên và khoá kết quả bốc thăm.
+Xếp nhân viên vào dự án
+Hoàn tất sau 0 vòng, không có lỗi.
+Lưu kết quả
+Hoàn tất
+Xuất kết quả
+/tmp/pilot_nmunr024/app/workspaces/nhan-su-chia-nhan-vien-vao-du-an/match_results.csv
+Lịch sử sắp xếp
+Hiện/ẩn

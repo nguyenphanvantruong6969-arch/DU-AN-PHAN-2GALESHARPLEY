@@ -1,0 +1,68 @@
+Chưa có dữ liệu để sắp xếp: cần ít nhất một khách tham dự và một workshop. Hãy nạp Sổ nhập workshop ở phần "Nhập dữ liệu" trước.
+×
+Xong: 24 workshop, 800 khách tham dự (800 khách tham dự mới, 0 bỏ qua)
+----
+Vận hành sắp xếp
+
+Kiểm tra dữ liệu, bốc thăm, xếp khách tham dự vào workshop và xuất kết quả.
+
+800
+khách tham dự
+24
+workshop
+800
+đã nộp nguyện vọng
+0
+đã xếp workshop
+Nhập dữ liệu
+Tải sổ nhập mẫu
+
+Toàn bộ dữ liệu nằm trong một tệp Excel duy nhất: Sổ nhập workshop. Chưa có sổ thì bấm "Tải sổ nhập mẫu", điền danh sách workshop và khách tham dự, lưu lại rồi kéo sổ vào ô bên dưới.
+
+Kéo Sổ nhập workshop vào đây
+Một tệp Excel (.xlsx). Bấm để chọn tệp.
+SO_NHAP.xlsx
+Xong: 24 workshop, 800 khách tham dự (800 khách tham dự mới, 0 bỏ qua)
+Bỏ tệp
+Xong: 24 workshop, 800 khách tham dự (800 khách tham dự mới, 0 bỏ qua)
+Cảnh báo dữ liệu
+Kiểm tra lại
+
+Những điểm dưới đây không chặn việc sắp xếp nhưng có thể làm kết quả sai lệch. Nên xem trước khi chạy.
+
+Không thấy vấn đề nào. Dữ liệu đã sẵn sàng.
+Các bước xử lý
+Số khởi tạo bốc thăm
+Kiểm tra dữ liệu
+Chạy sắp xếp
+Chưa bốc thăm lần nào. Lần sắp xếp đầu tiên sẽ bốc thăm và tự khoá kết quả.
+Phiên sẽ xếp
+Từ
+Phiên 1
+Phiên 2
+Phiên 3
+đến
+Phiên 1
+Phiên 2
+Phiên 3
+Chọn tất cả
+Phiên 1
+Phiên 2
+Phiên 3
+
+Sắp xếp lại tất cả các phiên trong đợt xếp.
+
+Sao lưu dữ liệu
+Chưa chạy
+Kiểm tra dữ liệu
+Chưa chạy
+Bốc thăm
+Chưa chạy
+Xếp khách tham dự vào workshop
+Chưa chạy
+Lưu kết quả
+Chưa chạy
+Xuất kết quả
+Chưa chạy
+Lịch sử sắp xếp
+Hiện/ẩn

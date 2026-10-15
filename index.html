@@ -41,7 +41,7 @@
         <span class="nav-icon">03</span> <span data-i18n="nav_fallback">Nhập tại chỗ</span>
       </button>
       <button class="nav-item" data-tab="admin">
-        <span class="nav-icon">04</span> <span data-i18n="nav_admin">Quản lý CLB &amp; dự trữ</span>
+        <span class="nav-icon">04</span> <span data-i18n="nav_admin" data-i18n-cung="nav_admin_cung">Quản lý CLB &amp; dự trữ</span>
       </button>
       <button class="nav-item" data-tab="scoring">
         <span class="nav-icon">05</span> <span data-i18n="nav_scoring">Nhập điểm</span>
@@ -277,7 +277,7 @@
         </div>
         <div class="save-feedback xuat-ket-qua" id="xuatFeedback"></div>
         <p class="hint-text" data-i18n="xuat_hint_hoc_sinh">Hồ sơ học sinh: bấm "Chọn học sinh…" rồi đánh dấu các em ở bảng bên dưới. Đang mở một em ở thẻ 03 thì bấm "Xuất CSV em này" ngay tại đó.</p>
-        <p class="hint-text xuat-canh-bao" data-i18n="xuat_canh_bao_diem">Tệp xuất có điểm chấm và số bốc thăm — không gửi cho giáo viên chấm điểm.</p>
+        <p class="hint-text xuat-canh-bao" data-i18n="xuat_canh_bao_diem" data-i18n-khong-diem="xuat_canh_bao_khong_diem">Tệp xuất có điểm chấm và số bốc thăm — không gửi cho giáo viên chấm điểm.</p>
       </div>
 
       <div class="panel" id="fillPanel">
@@ -301,8 +301,8 @@
           <p class="hint-text" data-i18n="fill_hint">Rê chuột (hoặc dùng bàn phím di tới) một dòng để xem chi tiết. Nhãn bên phải chỉ ra CLB cần để ý.</p>
           <div id="clubFillList" class="fill-list"></div>
           <div class="fill-legend">
-            <span class="legend-swatch is-general"></span><span data-i18n="legend_general">Suất thường</span>
-            <span class="legend-swatch is-reserve"></span><span data-i18n="legend_reserve">Vào bằng suất dự trữ</span>
+            <span class="legend-swatch is-general"></span><span data-i18n="legend_general" data-i18n-cung="legend_general_cung">Suất thường</span>
+            <span class="legend-swatch is-reserve chi-du-tru"></span><span class="chi-du-tru" data-i18n="legend_reserve">Vào bằng suất dự trữ</span>
             <span class="legend-swatch is-trong"></span><span data-i18n="legend_trong">Còn trống</span>
           </div>
         </div>
@@ -343,8 +343,8 @@
                   <th data-i18n="th_student_id">Mã học sinh</th>
                   <th data-i18n="th_name">Họ tên</th>
                   <th data-i18n="th_pref_rank">Hạng nguyện vọng</th>
-                  <th data-i18n="th_tier">Loại chỗ</th>
-                  <th data-i18n="th_reserve_group">Nhãn dự trữ</th>
+                  <th class="chi-du-tru" data-i18n="th_tier">Loại chỗ</th>
+                  <th data-i18n="th_reserve_group" data-i18n-cung="th_reserve_group_cung">Nhãn dự trữ</th>
                 </tr></thead>
                 <tbody id="clbDsBody"></tbody>
               </table>
@@ -353,7 +353,7 @@
         </div>
       </div>
 
-      <div class="panel" id="duTruPanel" hidden>
+      <div class="panel chi-du-tru" id="duTruPanel" hidden>
         <div class="panel-head">
           <div class="panel-head-trai">
             <button class="panel-toggle" type="button" aria-expanded="true" aria-controls="duTruPanelBody" data-i18n-aria-label="aria_thu_gon_muc"></button>
@@ -538,7 +538,7 @@
     <section class="view" id="view-fallback">
       <header class="view-header">
         <h1 data-i18n="fallback_title">Nhập tại chỗ</h1>
-        <p class="view-desc" data-i18n="fallback_desc">Tìm hoặc tạo học sinh, rồi làm hai bước: chọn CLB dự thi và xếp hạng nguyện vọng. Hai bước này không phụ thuộc nhau.</p>
+        <p class="view-desc" data-i18n="fallback_desc" data-i18n-khong-thi="fallback_desc_khong_thi">Tìm hoặc tạo học sinh, rồi làm hai bước: chọn CLB dự thi và xếp hạng nguyện vọng. Hai bước này không phụ thuộc nhau.</p>
       </header>
 
       <div class="panel">
@@ -573,7 +573,7 @@
 
         <div class="save-feedback xuat-ket-qua" id="fallbackXuatFeedback"></div>
         <div class="fallback-steps">
-          <div class="fallback-step">
+          <div class="fallback-step chi-thi" id="fallbackBuocThi">
             <h3 data-i18n="fallback_step1_title">Bước 1. Chọn CLB dự thi</h3>
             <p class="hint-text" id="fallbackStep1Hint" data-i18n="fallback_step1_hint">Mỗi buổi chọn tối đa 5 CLB. Bỏ chọn một CLB đã chấm điểm thì điểm đó bị xoá khi bấm Lưu.</p>
             <div id="testSelectionGrid" class="option-list"></div>
@@ -583,8 +583,8 @@
           </div>
 
           <div class="fallback-step">
-            <h3 data-i18n="fallback_step2_title">Bước 2. Xếp hạng nguyện vọng</h3>
-            <p class="hint-text" data-i18n="fallback_step2_hint">Bấm vào CLB theo thứ tự muốn vào nhất trước, mỗi buổi tối đa 10 CLB. Có thể chọn cả CLB không có ở Bước 1.</p>
+            <h3 data-i18n="fallback_step2_title" data-i18n-khong-thi="fallback_step2_title_khong_thi">Bước 2. Xếp hạng nguyện vọng</h3>
+            <p class="hint-text" data-i18n="fallback_step2_hint" data-i18n-khong-thi="fallback_step2_hint_khong_thi">Bấm vào CLB theo thứ tự muốn vào nhất trước, mỗi buổi tối đa 10 CLB. Có thể chọn cả CLB không có ở Bước 1.</p>
             <p class="hint-text" id="fallbackBuoiHint" hidden data-i18n="fallback_buoi_hint">Mỗi buổi chỉ nhận được tối đa một CLB. Chọn CLB ở nhiều buổi để có lịch cả tuần.</p>
             <div class="phu-buoi" id="fallbackPhuBuoi" hidden></div>
             <div id="rankingSourceGrid" class="option-list"></div>
@@ -604,8 +604,8 @@
     <!-- ---------- TAB 4: QUẢN LÝ CLUB & DỰ TRỮ ---------- -->
     <section class="view" id="view-admin">
       <header class="view-header">
-        <h1 data-i18n="admin_title">Quản lý CLB &amp; dự trữ</h1>
-        <p class="view-desc" data-i18n="admin_desc">Thêm, sửa CLB và gán nhãn dự trữ cho học sinh. Trường tự quyết định ai được dự trữ. Phần mềm chỉ ghép học sinh và CLB có cùng nhãn.</p>
+        <h1 data-i18n="admin_title" data-i18n-cung="admin_title_cung">Quản lý CLB &amp; dự trữ</h1>
+        <p class="view-desc" data-i18n="admin_desc" data-i18n-cung="admin_desc_cung">Thêm, sửa CLB và gán nhãn dự trữ cho học sinh. Trường tự quyết định ai được dự trữ. Phần mềm chỉ ghép học sinh và CLB có cùng nhãn.</p>
       </header>
 
       <div class="panel">
@@ -614,8 +614,8 @@
           <input type="text" id="clubFormId" class="text-input text-input-sm" data-i18n-placeholder="placeholder_club_id" placeholder="Mã CLB (ví dụ: clb_01)">
           <input type="text" id="clubFormName" class="text-input" data-i18n-placeholder="placeholder_club_name" placeholder="Tên CLB">
           <input type="number" id="clubFormCapacity" class="text-input text-input-sm" data-i18n-placeholder="placeholder_capacity" placeholder="Tổng chỗ" min="1">
-          <input type="number" id="clubFormReserveCapacity" class="text-input text-input-sm" data-i18n-placeholder="placeholder_reserve_capacity" placeholder="Suất dự trữ" min="0" value="0">
-          <input type="text" id="clubFormReserveGroup" class="text-input text-input-sm" data-i18n-placeholder="placeholder_reserve_group" placeholder="Nhãn dự trữ (để trống nếu không có)" list="reserveGroupOptions">
+          <input type="number" id="clubFormReserveCapacity" class="text-input text-input-sm chi-du-tru" data-i18n-placeholder="placeholder_reserve_capacity" placeholder="Suất dự trữ" min="0" value="0">
+          <input type="text" id="clubFormReserveGroup" class="text-input text-input-sm chi-du-tru" data-i18n-placeholder="placeholder_reserve_group" placeholder="Nhãn dự trữ (để trống nếu không có)" list="reserveGroupOptions">
           <datalist id="reserveGroupOptions"></datalist>
           <input type="text" id="clubFormBuoi" class="text-input" data-i18n-placeholder="placeholder_buoi" placeholder="Buổi sinh hoạt (ví dụ: thu_3)" list="buoiOptions">
           <datalist id="buoiOptions"></datalist>
@@ -628,8 +628,8 @@
             <th data-i18n="th_club_id">Mã CLB</th>
             <th data-i18n="th_name_short">Tên</th>
             <th data-i18n="th_capacity">Tổng chỗ</th>
-            <th data-i18n="th_reserve_capacity">Suất dự trữ</th>
-            <th data-i18n="th_reserve_group">Nhãn dự trữ</th>
+            <th class="chi-du-tru" data-i18n="th_reserve_capacity">Suất dự trữ</th>
+            <th class="chi-du-tru" data-i18n="th_reserve_group">Nhãn dự trữ</th>
             <th class="cot-buoi" data-i18n="th_buoi">Buổi</th>
             <th><span class="sr-only" data-i18n="th_thao_tac"></span></th>
           </tr></thead>
@@ -665,22 +665,22 @@
       </div>
 
       <div class="panel">
-        <div class="panel-head"><h2 data-i18n="admin_reserve_assign_title">Gán nhãn dự trữ và xuất hồ sơ học sinh</h2></div>
+        <div class="panel-head"><h2 data-i18n="admin_reserve_assign_title" data-i18n-cung="admin_reserve_assign_title_cung">Gán nhãn dự trữ và xuất hồ sơ học sinh</h2></div>
         <div class="search-row">
           <input type="text" id="adminStudentSearch" class="text-input" data-i18n-placeholder="placeholder_admin_student_search" placeholder="Tìm học sinh theo mã hoặc tên…">
-          <input type="text" id="bulkReserveGroupInput" class="text-input text-input-sm" data-i18n-placeholder="placeholder_reserve_group_apply" placeholder="Nhãn dự trữ cần gán" list="reserveGroupOptions">
+          <input type="text" id="bulkReserveGroupInput" class="text-input text-input-sm" data-i18n-placeholder="placeholder_reserve_group_apply" data-i18n-placeholder-cung="placeholder_reserve_group_apply_cung" placeholder="Nhãn dự trữ cần gán" list="reserveGroupOptions">
           <button class="btn btn-secondary" id="btnBulkAssign" data-i18n="btn_bulk_assign">Gán cho học sinh đã đánh dấu</button>
           <button class="btn btn-secondary" id="btnAdminXuatHs" data-i18n="btn_admin_xuat_hs">Xuất CSV học sinh đã đánh dấu</button>
           <span class="chon-hs-dem" id="adminDemDanhDau"></span>
         </div>
         <div class="save-feedback xuat-ket-qua" id="adminXuatFeedback"></div>
-        <p class="hint-text xuat-canh-bao" data-i18n="xuat_canh_bao_diem">Tệp xuất có điểm chấm và số bốc thăm — không gửi cho giáo viên chấm điểm.</p>
+        <p class="hint-text xuat-canh-bao" data-i18n="xuat_canh_bao_diem" data-i18n-khong-diem="xuat_canh_bao_khong_diem">Tệp xuất có điểm chấm và số bốc thăm — không gửi cho giáo viên chấm điểm.</p>
         <table class="data-table">
           <thead><tr>
             <th><input type="checkbox" id="adminChonTatCa" data-i18n-aria-label="aria_chon_tat_ca_trang"></th>
             <th data-i18n="th_student_id">Mã học sinh</th>
             <th data-i18n="th_name">Họ tên</th>
-            <th data-i18n="th_current_reserve_group">Nhãn dự trữ hiện tại</th>
+            <th data-i18n="th_current_reserve_group" data-i18n-cung="th_current_reserve_group_cung">Nhãn dự trữ hiện tại</th>
           </tr></thead>
           <tbody id="adminStudentTableBody"></tbody>
         </table>

@@ -73,7 +73,9 @@ function loadHealthReport() {
     const d = res.data;
     if (!d.n_warnings) {
       summary.className = "health-summary is-clean";
-      summary.textContent = t("health_clean");
+      /* "Dữ liệu đã sẵn sàng" khi chưa nạp gì là nói sai. */
+      const chuaCo = el("statStudents").textContent === "0" || el("statClubs").textContent === "0";
+      summary.textContent = t(chuaCo ? "health_chua_co_du_lieu" : "health_clean");
       return;
     }
 
@@ -425,7 +427,17 @@ function runPipelineFlow() {
 
   datKhoa("dangHoiChay", true);
 
-  callApi("get_pipeline_run_warning").then((warn) => {
+  /* Chưa có ai hoặc chưa có chỗ nào thì chạy chỉ cho ra "0/0 ... sau 0 vòng" và một dòng lịch sử
+     vô nghĩa; báo luôn việc cần làm. */
+  callApi("get_dashboard_status").then((st) => {
+    if (st.ok && (!st.data.n_students || !st.data.n_clubs)) {
+      datKhoa("dangHoiChay", false);
+      showToast(t("chay_chua_co_du_lieu"), "error");
+      return null;
+    }
+    return callApi("get_pipeline_run_warning");
+  }).then((warn) => {
+    if (!warn) return;
     khoa.dangHoiChay = false;
     const wantsRedraw = forceRedrawArmed;
     const needsConfirm = (warn.ok && warn.data.has_existing_results) || wantsRedraw;
@@ -737,7 +749,7 @@ function veCanhBaoNhap() {
 const SO_LOI_HIEN = 12;
 
 function tomTatSo(d) {
-  return t("so_nhap_tom_tat", {
+  return t(LUAT_CHAM_DIEM.khongThi ? "so_nhap_tom_tat_khong_thi" : "so_nhap_tom_tat", {
     n_clb: d.n_clb, n_hoc_sinh: d.n_hoc_sinh, n_buoi: d.n_buoi,
     n_nguyen_vong: d.n_nguyen_vong, n_thi: d.n_thi,
   });

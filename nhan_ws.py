@@ -50,7 +50,47 @@ NHAN_MAC_DINH = {
 # Dạng viết tắt đã quen dùng (vi). Chỉ áp cho ĐÚNG nhãn này.
 _VIET_TAT = {("slot", "Câu lạc bộ"): "CLB"}
 
-_RE_CHO_GIU = re.compile(r"\{(person|slot|session|group|score)(?:_([lpsacuv]+))?\}")
+# Bảy TỪ CỦA TRƯỜNG HỌC không phải danh từ nghiệp vụ nhưng cũng sai chỗ ở công ty hay sự kiện:
+# "em" (gọi học sinh), "giáo viên", "Nhà trường", "trường", "tuần", "thời khoá biểu". Trường học mặc định (nhãn `person`
+# vẫn là "Học sinh") giữ ĐÚNG từ cũ — mọi chuỗi mặc định giống hệt trước khi có chỗ giữ này —
+# còn workspace khác nhận từ trung tính: "em" -> nhãn người (chữ thường), "giáo viên" ->
+# "người" ("người phụ trách", "người chấm KPI"), "Nhà trường" -> "Bộ phận phụ trách".
+# Đối xứng ở phía giao diện: TU_TRUONG_HOC trong i18n.js.
+TU_TRUONG_HOC = {
+    # từ: (vi trường học, vi khác, en trường học, en khác); None = lấy nhãn `person` chữ thường.
+    # Từ "khác" được phép chứa chỗ giữ danh từ (vd. {session_l}); nó được điền tiếp một lượt.
+    "em": ("em", None, None, None),
+    "gv": ("giáo viên", "người", "teachers", "staff"),
+    "nt": ("Nhà trường", "Bộ phận phụ trách", "The school", "The organiser"),
+    "truong": ("trường", "đơn vị", "school", "organisation"),
+    "tuan": ("tuần", "đợt xếp", "week", "round"),
+    "tkb": ("Thời khoá biểu", "Lịch xếp", "Timetable", "Schedule"),
+    "tkbt": ("Thời khoá biểu tuần", "Lịch xếp theo {session_l}",
+             "The week each {person_l} gets", "The {session_l} schedule each {person_l} gets"),
+}
+
+_RE_CHO_GIU = re.compile(
+    r"\{(?:(person|slot|session|group|score)(?:_([lpsacuv]+))?|(em|gv|nt|truong|tuan|tkb|tkbt)(_[cu])?)\}")
+
+
+def la_truong_hoc(nhan: dict | None) -> bool:
+    """Nhãn người còn là "Học sinh" mặc định? Từ của trường học chỉ dùng khi đúng vậy."""
+    return nhan_ngon_ngu(nhan, "person", "vi") == NHAN_MAC_DINH["person"]["vi"]
+
+
+def tu_phu(tu: str, nhan: dict | None = None, lang: str = "vi") -> str:
+    """Một trong `TU_TRUONG_HOC`: từ trường học nếu workspace còn là trường học, không thì từ trung tính."""
+    vi_t, vi_k, en_t, en_k = TU_TRUONG_HOC[tu]
+    truong = la_truong_hoc(nhan)
+    if lang == "vi":
+        chu, khac = vi_t, vi_k
+    else:
+        chu, khac = (en_t, en_k) if en_t is not None else (None, None)
+    if truong and chu is not None:
+        return dien(chu, nhan, lang)
+    if not truong and khac is not None:
+        return dien(khac, nhan, lang)               # có thể chứa {session_l}…
+    return dang_chu(nhan, "person", "l", lang)      # "em" -> nhãn người
 
 
 def nhan_ngon_ngu(nhan: dict | None, danh_tu: str, lang: str = "vi") -> str:
@@ -124,7 +164,8 @@ def dang_chu(nhan: dict | None, danh_tu: str, co: str = "", lang: str = "vi") ->
 
 def dien(mau: str, nhan: dict | None = None, lang: str = "vi",
          thoat_ngoac: bool = False) -> str:
-    """Thay mọi `{person}`, `{slot_l}`… trong `mau` bằng nhãn.
+    """Thay mọi `{person}`, `{slot_l}`… trong `mau` bằng nhãn, và `{em}` `{gv}` `{nt}` `{truong}`
+    bằng từ của trường học hay từ trung tính (xem `TU_TRUONG_HOC`).
 
     Chỉ chạm tới chỗ giữ danh từ: mọi `{tham_so}` khác để nguyên cho `str.format`
     hay bộ điền của giao diện. `nhan` None = mặc định trường học.
@@ -137,7 +178,14 @@ def dien(mau: str, nhan: dict | None = None, lang: str = "vi",
         return mau
 
     def doi(m):
-        chu = dang_chu(nhan, m.group(1), m.group(2) or "", lang)
+        if m.group(3):
+            chu = tu_phu(m.group(3), nhan, lang)
+            if m.group(4) == "_c" and chu:          # _c: viết hoa chữ đầu
+                chu = chu[0].upper() + chu[1:]
+            elif m.group(4) == "_u":                # _u: VIẾT HOA TOÀN BỘ
+                chu = chu.upper()
+        else:
+            chu = dang_chu(nhan, m.group(1), m.group(2) or "", lang)
         return chu.replace("{", "{{").replace("}", "}}") if thoat_ngoac else chu
 
     return _RE_CHO_GIU.sub(doi, mau)
@@ -145,3 +193,41 @@ def dien(mau: str, nhan: dict | None = None, lang: str = "vi",
 
 def sao_nhan_mac_dinh() -> dict:
     return copy.deepcopy(NHAN_MAC_DINH)
+
+
+def _khong_dau_gon(chu: str) -> str:
+    """'Phiên' -> 'phien' (chỉ chữ và số, hạ thường) — để so nhãn với tiền tố của mã buổi."""
+    import unicodedata
+    s = unicodedata.normalize("NFD", str(chu or "").replace("đ", "d").replace("Đ", "D"))
+    return re.sub(r"[^a-z0-9]+", "", "".join(c for c in s if not unicodedata.combining(c)).lower())
+
+
+def ten_tep_so_nhap(nhan: dict | None = None) -> str:
+    """Tên tệp (không đuôi) của Sổ nhập: `SO_NHAP_CLB` với nhãn chỗ xếp mặc định, còn lại
+    `SO_NHAP_<NHÃN CHỖ XẾP KHÔNG DẤU>` ("Dự án" -> `SO_NHAP_DU_AN`). Tên tệp là thứ người dùng
+    mới nhìn thấy đầu tiên, nên không để chữ "CLB" nằm trong sổ của công ty hay sự kiện."""
+    if nhan_ngon_ngu(nhan, "slot", "vi") == NHAN_MAC_DINH["slot"]["vi"]:
+        return "SO_NHAP_CLB"
+    import unicodedata
+    goc = unicodedata.normalize(
+        "NFD", nhan_ngon_ngu(nhan, "slot", "vi").replace("đ", "d").replace("Đ", "D"))
+    khong_dau = "".join(c for c in goc if not unicodedata.combining(c))
+    tu = re.sub(r"[^A-Za-z0-9]+", "_", khong_dau).strip("_").upper()
+    return "SO_NHAP_" + tu if tu else "SO_NHAP"
+
+
+def ten_buoi(ma: str, nhan: dict | None = None, lang: str = "vi") -> str:
+    """Tên buổi cho người đọc: mã `phien_1` -> "Phiên 1" khi tiền tố trùng nhãn của danh từ `session`.
+
+    Chỉ đổi mã dạng `<chữ>_<số>` mà `<chữ>` trùng (không dấu, hoa/thường) với nhãn vi HOẶC en của
+    `session`, rồi viết bằng nhãn của ngôn ngữ đang dùng ("Track 1" trong giao diện tiếng Anh).
+    Mã khác (`thu_2`, `chu_nhat`, tên tự đặt) giữ nguyên. Mã trống / buổi mặc định do bên gọi
+    xử lý trước. Đối xứng với `tenBuoi` trong js/05_quan_ly.js.
+    """
+    m = re.fullmatch(r"([a-z0-9]+)_(\d+)", ma or "")
+    if not m:
+        return ma
+    for ngon in ("vi", "en"):
+        if _khong_dau_gon(nhan_ngon_ngu(nhan, "session", ngon)) == m.group(1):
+            return "%s %s" % (nhan_ngon_ngu(nhan, "session", lang), m.group(2))
+    return ma

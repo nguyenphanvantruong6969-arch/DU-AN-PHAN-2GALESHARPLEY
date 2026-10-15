@@ -1,0 +1,58 @@
+Sắp xếp xong: 799/800 khách tham dự có workshop, sau 3 vòng.
+----
+Kết quả
+
+Khách tham dự đã được xếp vào workshop nào và mỗi workshop đã đủ chỗ chưa.
+
+Mở rộng tất cả
+Tóm tắt lần xếp
+Lần chạy gần nhất: 2026-10-15T00:17:59 · số khởi tạo 42
+Khách tham dự đã có chỗ
+799/800
+99,9% khách tham dự
+Được nguyện vọng 1
+97,2%
+100% trong 3 nguyện vọng đầu
+Chỗ còn trống
+307
+trên tổng 2488 chỗ
+Khách tham dự chưa có chỗ nào
+1
+⚠ Cần xử lý
+Xuất dữ liệu
+Kết quả sắp xếp: một tệp Excel (danh sách khách tham dự, từng workshop, khách tham dự chưa có chỗ, thống kê)
+Kèm các tệp CSV rời (chỉ cần khi đổ số liệu vào phần mềm khác)
+Dữ liệu đầu vào hiện tại: một Sổ nhập CLB nạp lại được
+Thay đổi so với lần chạy trước
+(chưa có lần chạy trước để so sánh)
+Hồ sơ khách tham dự đã chọn
+(chưa chọn khách tham dự nào)
+Chọn khách tham dự…
+Xuất các mục đã chọn
+
+Hồ sơ khách tham dự: bấm "Chọn khách tham dự…" rồi đánh dấu khách tham dự ở bảng bên dưới. Đang mở một khách tham dự ở thẻ 03 thì bấm "Xuất CSV khách tham dự này" ngay tại đó.
+
+Tệp xuất có điểm chấm và số bốc thăm. Không gửi các tệp này cho giáo viên chấm điểm.
+
+Mức lấp đầy của từng workshop
+24 workshop
+Sắp xếp
+Theo phiên
+Đầy nhất
+Vắng nhất
+Chọi cao nhất
+Theo từng workshop
+24 workshop
+Số workshop của mỗi khách tham dự
+800 khách tham dự
+Mức đáp ứng nguyện vọng
+2181 chỗ đã xếp
+Khách tham dự chưa có workshop nào
+1 khách tham dự
+Thời khoá biểu tuần
+800 khách tham dự
+Số bốc thăm theo phiên
+800 khách tham dự
+Danh sách xếp workshop
+2181 dòng
+1 khách tham dự chưa có workshop

@@ -15,7 +15,10 @@ file is stale; tests/test_api.py asserts every code the API can emit has an
 entry here with both "vi" and "en".
 """
 
+import re
+
 from nhan_ws import dien as dien_nhan
+from nhan_ws import nhan_ngon_ngu, ten_buoi
 
 DEFAULT_LANG = "vi"
 
@@ -135,8 +138,8 @@ MESSAGES = {
         "en": "Couldn't open this Excel file. Check that it's an .xlsx file, or save it again and retry.",
     },
     "file_too_large": {
-        "vi": "Tệp quá lớn ({size_mb} MB, tối đa {max_mb} MB). Tệp danh sách của một trường không lớn cỡ này. Hãy kiểm tra xem có chọn nhầm tệp không.",
-        "en": "The file is too large ({size_mb} MB, maximum {max_mb} MB). A school's list is never this big. Check that the right file was chosen.",
+        "vi": "Tệp quá lớn ({size_mb} MB, tối đa {max_mb} MB). Tệp danh sách của một {truong} không lớn cỡ này. Hãy kiểm tra xem có chọn nhầm tệp không.",
+        "en": "The file is too large ({size_mb} MB, maximum {max_mb} MB). A {truong}'s list is never this big. Check that the right file was chosen.",
     },
     "xlsx_empty": {
         "vi": "Tệp Excel này không có dữ liệu.",
@@ -678,12 +681,12 @@ MESSAGES = {
     },
     # ---- Sổ nhập CLB (so_nhap.py) -------------------------------------
     "so_nhap_khong_phai_so": {
-        "vi": "Đây không phải Sổ nhập CLB (cần có hai sheet \"1. {slot_s}\" và \"2. {person}\"). Hãy bấm \"Tải sổ nhập mẫu\", điền vào sổ đó rồi nạp lại.",
-        "en": "This isn't a Club Input Workbook (it needs the sheets \"1. {slot_sv}\" and \"2. {person_v}\"). Click \"Download the input workbook\", fill it in and import it again.",
+        "vi": "Đây không phải Sổ nhập {slot_sl} (cần có hai sheet \"1. {slot_s}\" và \"2. {person}\"). Hãy bấm \"Tải sổ nhập mẫu\", điền vào sổ đó rồi nạp lại.",
+        "en": "This isn't a {slot} Input Workbook (it needs the sheets \"1. {slot_sv}\" and \"2. {person_v}\"). Click \"Download the input workbook\", fill it in and import it again.",
     },
     "so_nhap_chi_nhan_xlsx": {
-        "vi": "Phần mềm chỉ nhận Sổ nhập CLB (tệp .xlsx). Hãy bấm \"Tải sổ nhập mẫu\", điền vào sổ đó rồi nạp lại.",
-        "en": "Only the Club Input Workbook (.xlsx) can be imported. Click \"Download the input workbook\", fill it in and import it again.",
+        "vi": "Phần mềm chỉ nhận Sổ nhập {slot_sl} (tệp .xlsx). Hãy bấm \"Tải sổ nhập mẫu\", điền vào sổ đó rồi nạp lại.",
+        "en": "Only the {slot} Input Workbook (.xlsx) can be imported. Click \"Download the input workbook\", fill it in and import it again.",
     },
     "so_nhap_thieu_sheet": {
         "vi": "Sổ nhập thiếu sheet \"{sheet}\".",
@@ -757,6 +760,16 @@ MESSAGES = {
         "vi": "Sheet \"{sheet}\", dòng {dong} ({student_id}): {n} nguyện vọng ở {session_l} {buoi}, tối đa {tran} mỗi {session_l}. Bớt nguyện vọng của {session_l} này.",
         "en": "Sheet \"{sheet}\", row {dong} ({student_id}): {n} preferences in {session_l} {buoi}, at most {tran} per {session_l}. Remove some for this {session_l}.",
     },
+    # Biến thể khi KHÔNG có buổi (workspace một buổi): `format_message` / `translateError` chọn
+    # "<mã>__khong_buoi" nếu có và tham số `buoi` rỗng hay "-" — khỏi nói "ở quý -".
+    "so_nhap_qua_tran_nv__khong_buoi": {
+        "vi": "Sheet \"{sheet}\", dòng {dong} ({student_id}): {n} nguyện vọng, tối đa {tran}. Bớt nguyện vọng cho đủ.",
+        "en": "Sheet \"{sheet}\", row {dong} ({student_id}): {n} preferences, at most {tran}. Remove some.",
+    },
+    "so_nhap_qua_tran_thi__khong_buoi": {
+        "vi": "Sheet \"{sheet}\", dòng {dong} ({student_id}): thi {n} {slot_sl}, tối đa {tran}. Xoá bớt ô {score} cho đủ.",
+        "en": "Sheet \"{sheet}\", row {dong} ({student_id}): {n} tested {slot_pl}, at most {tran}. Clear some {score_v} cells.",
+    },
     "so_nhap_qua_tran_thi": {
         "vi": "Sheet \"{sheet}\", dòng {dong} ({student_id}): thi {n} {slot_sl} ở {session_l} {buoi}, tối đa {tran} mỗi {session_l}. Xoá bớt ô {score} của {session_l} này.",
         "en": "Sheet \"{sheet}\", row {dong} ({student_id}): {n} tested {slot_pl} in {session_l} {buoi}, at most {tran} per {session_l}. Clear some {score_v} cells for this {session_l}.",
@@ -813,6 +826,10 @@ MESSAGES = {
 }
 
 
+# Hậu tố của biến thể "không có buổi" (xem so_nhap_qua_tran_nv__khong_buoi). Đối xứng ở i18n.js.
+HAU_TO_KHONG_BUOI = "__khong_buoi"
+
+
 def err(code: str, **params) -> dict:
     """Build one structured, translatable error/info entry."""
     return {"code": code, "params": params}
@@ -848,16 +865,28 @@ def format_message(code: str, params: dict | None = None, lang: str = DEFAULT_LA
     Nhãn được truyền VÀO, không đọc từ trạng thái toàn cục."""
     params = params or {}
     entry = MESSAGES.get(code)
+    if entry and str(params.get("buoi", "x")) in ("", "-") and (code + HAU_TO_KHONG_BUOI) in MESSAGES:
+        entry = MESSAGES[code + HAU_TO_KHONG_BUOI]
     if not entry:
         return code
     template = entry.get(lang) or entry.get(DEFAULT_LANG) or code
     template = dien_nhan(template, nhan, lang, thoat_ngoac=True)
+    # Mã buổi nội bộ (`phien_2`) hiện thành tên người đọc ("Phiên 2"); câu lỡ có sẵn chữ
+    # "phiên" đứng trước thì gộp ("ở phiên Phiên 2" -> "ở phiên 2"). Đối xứng ở i18n.js.
+    dep = False
+    buoi = params.get("buoi")
+    if isinstance(buoi, str) and buoi not in ("", "-") and ten_buoi(buoi, nhan, lang) != buoi:
+        params = dict(params, buoi=ten_buoi(buoi, nhan, lang))
+        dep = True
     try:
         text = template.format(**params)
     except Exception:
         # Không format được: trả câu mẫu, nhưng "{{" do chính ta gấp đôi phải
         # trả về một ngoặc, không để lộ ra màn hình.
         text = template.replace("{{", "{").replace("}}", "}")
+    if dep:
+        goc = re.escape(nhan_ngon_ngu(nhan, "session", lang))
+        text = re.sub(r"(%s)\s+%s\s+(\d+)" % (goc, goc), r"\1 \2", text, flags=re.IGNORECASE)
     # Log/CLI la cho nguoi sua loi doc: giu chi tiet ky thuat o cuoi.
     detail = params.get("detail")
     if detail:

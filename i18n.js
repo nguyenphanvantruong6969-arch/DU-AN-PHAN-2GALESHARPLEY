@@ -31,6 +31,7 @@
       nav_results: "Kết quả",
       nav_fallback: "Nhập tại chỗ",
       nav_admin: "Quản lý {slot_sl} & dự trữ",
+      nav_admin_cung: "Quản lý {slot_sl} & {group_l}",
       nav_scoring: "Nhập {score_l}",
       db_status_loading: "Đang tải…",
       db_connected: "Đã kết nối dữ liệu",
@@ -52,8 +53,8 @@
       label_submitted_prefs: "đã nộp nguyện vọng",
       label_matched: "đã xếp {slot_sl}",
       import_panel_title: "Nhập dữ liệu",
-      import_hint: "Toàn bộ dữ liệu nằm trong một tệp Excel duy nhất: Sổ nhập CLB. Chưa có sổ thì bấm \"Tải sổ nhập mẫu\", điền danh sách {slot_sl} và {person_l}, lưu lại rồi kéo sổ vào ô bên dưới.",
-      drop_zone_main: "Kéo Sổ nhập CLB vào đây",
+      import_hint: "Toàn bộ dữ liệu nằm trong một tệp Excel duy nhất: Sổ nhập {slot_sl}. Chưa có sổ thì bấm \"Tải sổ nhập mẫu\", điền danh sách {slot_sl} và {person_l}, lưu lại rồi kéo sổ vào ô bên dưới.",
+      drop_zone_main: "Kéo Sổ nhập {slot_sl} vào đây",
       drop_zone_sub: "Một tệp Excel (.xlsx). Bấm để chọn tệp.",
       btn_import_all: "Nhập sổ",
       btn_clear_queue: "Bỏ tệp",
@@ -61,6 +62,7 @@
       so_mau_da_tao: "Đã tạo sổ nhập ({n} {slot_sl} điền sẵn) → {path}",
       so_nhap_dang_doc: "Đang đọc sổ…",
       so_nhap_tom_tat: "Sẵn sàng nhập: {n_clb} {slot_sl} · {n_buoi} {session_l} · {n_hoc_sinh} {person_l} · {n_nguyen_vong} nguyện vọng · {n_thi} lượt thi",
+      so_nhap_tom_tat_khong_thi: "Sẵn sàng nhập: {n_clb} {slot_sl} · {n_buoi} {session_l} · {n_hoc_sinh} {person_l} · {n_nguyen_vong} nguyện vọng",
       so_nhap_co_loi: "Sổ có {n} lỗi cần sửa. Chưa nạp gì cả. Hãy sửa trong Excel, lưu lại rồi kéo sổ vào lần nữa.",
       so_nhap_loi_con_lai: "… và {n} lỗi khác.",
       so_nhap_xong: "Xong: {n_clb} {slot_sl}, {n_hoc_sinh} {person_l} ({n_moi} {person_l} mới, {n_bo} bỏ qua)",
@@ -177,13 +179,14 @@
       nv_tieu_diem: "{p1}% chỗ đã xếp là nguyện vọng 1 · {p3}% nằm trong 3 nguyện vọng đầu",
       legend_general: "Suất thường",
       legend_reserve: "Vào bằng suất dự trữ",
+      legend_general_cung: "Đã xếp",
       results_list_title: "Danh sách xếp {slot_sl}",
       placeholder_results_search: "Tìm theo mã hoặc tên {person_l}…",
       ket_qua_cu_banner: "Dữ liệu đã được sửa sau lần chạy gần nhất, nên kết quả bên dưới có thể đã cũ. Hãy chạy lại ở thẻ \"Vận hành sắp xếp\" trước khi xuất hoặc công bố.",
       xuat_title: "Xuất dữ liệu",
       xuat_opt_ket_qua: "Kết quả sắp xếp: một tệp Excel (danh sách {person_l}, từng {slot_sl}, {person_l} chưa có chỗ, thống kê)",
       xuat_opt_kem_csv: "Kèm các tệp CSV rời (chỉ cần khi đổ số liệu vào phần mềm khác)",
-      xuat_opt_dau_vao: "Dữ liệu đầu vào hiện tại: một Sổ nhập CLB nạp lại được",
+      xuat_opt_dau_vao: "Dữ liệu đầu vào hiện tại: một Sổ nhập {slot_sl} nạp lại được",
       xuat_opt_thay_doi: "Thay đổi so với lần chạy trước",
       xuat_thay_doi_dem: "({n} thay đổi)",
       xuat_thay_doi_chua_co: "(chưa có lần chạy trước để so sánh)",
@@ -194,7 +197,7 @@
       xuat_hoc_sinh_chua_chon: "(chưa chọn {person_l} nào)",
       btn_chon_hoc_sinh: "Chọn {person_l}…",
       hien_ca_em_chua_xep: "Hiện cả {person_l} chưa được xếp",
-      ca_tuan: "Cả tuần",
+      ca_tuan: "Cả {tuan}",
       btn_di_toi_chay: "Đi tới Vận hành sắp xếp",
       btn_mo_thu_muc: "Mở thư mục",
       btn_xuat_em_nay: "Xuất CSV {person_l} này",
@@ -202,7 +205,8 @@
       fallback_chua_luu: "• Chưa lưu",
       fallback_chua_luu_canh_bao: "{person} {student_id} còn thay đổi chưa lưu. Bấm Lưu, hoặc bấm lại để bỏ thay đổi.",
       admin_dem_danh_dau: "Đã đánh dấu {n} {person_l}",
-      xuat_canh_bao_diem: "Tệp xuất có {score_l} chấm và số bốc thăm. Không gửi các tệp này cho giáo viên chấm {score_l}.",
+      xuat_canh_bao_diem: "Tệp xuất có {score_l} chấm và số bốc thăm. Không gửi các tệp này cho {gv} chấm {score_l}.",
+      xuat_canh_bao_khong_diem: "Tệp xuất có số bốc thăm của từng {person_l}. Chỉ chia sẻ cho người phụ trách sắp xếp.",
       btn_xuat_hs_da_chon: "Xuất CSV {person_l} đã chọn",
       btn_bo_chon_hs: "Bỏ chọn",
       btn_admin_xuat_hs: "Xuất CSV {person_l} đã đánh dấu",
@@ -211,7 +215,7 @@
       hs_da_chon_dem: "Đã chọn {n} {person_l}",
       hs_chua_chon: "Chưa chọn {person_l} nào. Đánh dấu ở cột đầu bảng.",
       toast_xuat_chua_chon_muc: "Chưa chọn mục nào để xuất.",
-      xuat_kq_dau_vao: "Dữ liệu đầu vào (Sổ nhập CLB) → {path}",
+      xuat_kq_dau_vao: "Dữ liệu đầu vào (Sổ nhập {slot_sl}) → {path}",
       xuat_kq_dau_vao_thieu: "  {n} lượt thi là {slot_sl} {person_l} không xếp nguyện vọng nên không có trong sổ (không ảnh hưởng kết quả).",
       xuat_kq_thay_doi: "Thay đổi so với lần trước: {n} dòng → {path}",
       xuat_kq_hoc_sinh: "Hồ sơ {n} {person_l} ({n_dong} dòng) → {path}",
@@ -250,6 +254,9 @@
       fallback_step1_hint_khong_gioi_han: "Mỗi {session_l} chọn bao nhiêu {slot_sl} dự thi cũng được. Bỏ chọn một {slot_sl} đã chấm {score_l} thì {score_l} đó bị xoá khi bấm Lưu.",
       btn_save_test_selection: "Lưu {slot_sl} dự thi",
       fallback_step2_title: "Bước 2. Xếp hạng nguyện vọng",
+      fallback_step2_title_khong_thi: "Xếp hạng nguyện vọng",
+      fallback_step2_hint_khong_thi: "Bấm vào {slot_sl} theo thứ tự muốn vào nhất trước, mỗi {session_l} tối đa {max_choices} {slot_sl}.",
+      fallback_desc_khong_thi: "Tìm hoặc tạo {person_l}, rồi xếp hạng nguyện vọng.",
       fallback_step2_hint: "Bấm vào {slot_sl} theo thứ tự muốn vào nhất trước, mỗi {session_l} tối đa {max_choices} {slot_sl}. Có thể chọn cả {slot_sl} không có ở Bước 1.",
       ranking_current_label: "Thứ tự nguyện vọng",
       btn_clear_all: "Xoá hết",
@@ -274,7 +281,9 @@
       toast_student_deleted: "Đã xoá {person_l} {student_id}.",
 
       admin_title: "Quản lý {slot_sl} & dự trữ",
-      admin_desc: "Thêm, sửa {slot_sl} và gán nhãn dự trữ cho {person_l}. Trường tự quyết định ai được dự trữ. Phần mềm chỉ ghép {person_l} và {slot_sl} có cùng nhãn.",
+      admin_title_cung: "Quản lý {slot_sl} & {group_l}",
+      admin_desc_cung: "Thêm, sửa {slot_sl} và gán {group_l} cho {person_l}. {group_c} cao hơn luôn được xếp trước; thứ tự các {group_l} đã đặt lúc tạo workspace.",
+      admin_desc: "Thêm, sửa {slot_sl} và gán nhãn dự trữ cho {person_l}. {truong_c} tự quyết định ai được dự trữ. Phần mềm chỉ ghép {person_l} và {slot_sl} có cùng nhãn.",
       admin_club_form_title: "Thêm hoặc sửa {slot_sl}",
       placeholder_club_id: "Mã {slot_sl} (ví dụ: clb_01)",
       placeholder_club_name: "Tên {slot_sl}",
@@ -287,12 +296,16 @@
       th_capacity: "Tổng chỗ",
       th_reserve_capacity: "Suất dự trữ",
       th_reserve_group: "Nhãn dự trữ",
+      th_reserve_group_cung: "{group_c}",
       admin_club_empty: "Chưa có {slot_sl} nào. Thêm {slot_sl} đầu tiên bằng biểu mẫu ở trên.",
       admin_reserve_assign_title: "Gán nhãn dự trữ và xuất hồ sơ {person_l}",
+      admin_reserve_assign_title_cung: "Gán {group_l} và xuất hồ sơ {person_l}",
       placeholder_admin_student_search: "Tìm {person_l} theo mã hoặc tên…",
       placeholder_reserve_group_apply: "Nhãn dự trữ cần gán",
+      placeholder_reserve_group_apply_cung: "{group_c} cần gán",
       btn_bulk_assign: "Gán cho {person_l} đã đánh dấu",
       th_current_reserve_group: "Nhãn dự trữ hiện tại",
+      th_current_reserve_group_cung: "{group_c} hiện tại",
       admin_student_empty: "Chưa có {person_l} nào. Thêm ở thẻ \"Nhập tại chỗ\" hoặc nạp tệp từ Microsoft Forms.",
       btn_prev_page: "‹ Trước",
       btn_next_page: "Sau ›",
@@ -341,6 +354,8 @@
       health_panel_title: "Cảnh báo dữ liệu",
       health_panel_hint: "Những điểm dưới đây không chặn việc sắp xếp nhưng có thể làm kết quả sai lệch. Nên xem trước khi chạy.",
       health_clean: "Không thấy vấn đề nào. Dữ liệu đã sẵn sàng.",
+      health_chua_co_du_lieu: "Chưa có dữ liệu để kiểm tra. Bấm \"Tải sổ nhập mẫu\", điền sổ rồi nạp vào ô phía trên.",
+      chay_chua_co_du_lieu: "Chưa có dữ liệu để sắp xếp: cần ít nhất một {person_l} và một {slot_l}. Hãy nạp Sổ nhập {slot_sl} ở phần \"Nhập dữ liệu\" trước.",
       health_summary: "{n} cảnh báo, {n_high} cảnh báo nghiêm trọng.",
       health_sev_high: "Nghiêm trọng",
       health_sev_medium: "Cần lưu ý",
@@ -390,8 +405,8 @@
       buoi_chua_chia: "Chưa chia {session_l}",
       th_buoi: "{session}",
       placeholder_buoi: "{session} sinh hoạt (ví dụ: thu_3)",
-      buoi_hint_form: "Hai {slot_sl} cùng {session_l} là trùng giờ, mỗi {person_l} chỉ vào được một. Để trống nếu trường chỉ có một {session_l}.",
-      admin_lich_tuan_title: "Lịch tuần",
+      buoi_hint_form: "Hai {slot_sl} cùng {session_l} là trùng giờ, mỗi {person_l} chỉ vào được một. Để trống nếu {truong} chỉ có một {session_l}.",
+      admin_lich_tuan_title: "Lịch {tuan}",
       admin_lich_tuan_desc: "Mỗi cột là một {session_l}. Thanh dưới mỗi {slot_sl} là mức lấp đầy của lần sắp xếp gần nhất.",
       admin_tai_buoi_title: "Tải theo {session_l}",
       admin_tai_buoi_desc: "Nên xem trước khi sắp xếp. Nếu một {session_l} quá đông trong khi {session_l} khác còn chỗ, hãy chuyển bớt {slot_sl} sang {session_l} vắng hơn.",
@@ -409,29 +424,29 @@
       chon_buoi_den: "đến",
       chon_buoi_tat_ca: "Chọn tất cả",
       chon_buoi_nhac_giu: "Giữ nguyên kết quả của: {buoi}. Chỉ các {session_l} đang chọn được sắp xếp lại.",
-      chon_buoi_nhac_het: "Sắp xếp lại tất cả các {session_l} trong tuần.",
+      chon_buoi_nhac_het: "Sắp xếp lại tất cả các {session_l} trong {tuan}.",
       tham_title: "Số bốc thăm theo {session_l}",
       tham_desc: "Mỗi {session_l} có thứ tự riêng, được xáo từ bộ số đã khoá, nên không {person_l} nào bị xếp cuối ở mọi {session_l}.",
       tham_tai_lap: "Chỉ cần công bố bộ số đã khoá và số khởi tạo. Ai tính lại cũng ra đúng bảng này.",
-      tham_cach_cu: "Lần sắp xếp gần nhất dùng cách bốc thăm cũ, một thứ tự chung cho cả tuần, nên các cột bên dưới giống nhau. Chạy sắp xếp lại để mỗi {session_l} có thứ tự riêng.",
-      results_xem_tkb: "Thời khoá biểu",
+      tham_cach_cu: "Lần sắp xếp gần nhất dùng cách bốc thăm cũ, một thứ tự chung cho cả {tuan}, nên các cột bên dưới giống nhau. Chạy sắp xếp lại để mỗi {session_l} có thứ tự riêng.",
+      results_xem_tkb: "{tkb}",
       results_xem_danh_sach: "Danh sách",
-      tkb_title: "Thời khoá biểu tuần",
+      tkb_title: "{tkbt}",
       tkb_desc: "Mỗi {person_l} một dòng, mỗi {session_l} một ô. Ô trống là {session_l} đó chưa có {slot_sl}.",
       tkb_so_clb: "Số {slot_sl}",
       do_phu_title: "Số {slot_sl} của mỗi {person_l}",
-      do_phu_desc: "Con số quan trọng nhất là số {person_l} không có {slot_sl} nào trong cả tuần.",
+      do_phu_desc: "Con số quan trọng nhất là số {person_l} không có {slot_sl} nào trong cả {tuan}.",
       do_phu_tb: "{slot_s} trung bình mỗi {person_l}",
-      do_phu_trang_tay: "{person} không có {slot_sl} nào cả tuần",
+      do_phu_trang_tay: "{person} không có {slot_sl} nào cả {tuan}",
       do_phu_x_clb: "{n} {slot_sl}",
       do_phu_0_clb: "Không {slot_sl} nào",
       do_phu_1_clb: "1 {slot_sl}",
       do_phu_danh_sach: "{person} chưa có {slot_sl}",
-      fallback_buoi_hint: "Mỗi {session_l} chỉ nhận được tối đa một {slot_sl}. Chọn {slot_sl} ở nhiều {session_l} để có lịch cả tuần.",
+      fallback_buoi_hint: "Mỗi {session_l} chỉ nhận được tối đa một {slot_sl}. Chọn {slot_sl} ở nhiều {session_l} để có lịch cả {tuan}.",
       fallback_phu_buoi: "Đã xếp hạng ở {n}/{tong} {session_l}",
       chi_tiet_ky_thuat: "Chi tiết kỹ thuật",
       btn_dong_thong_bao: "Đóng",
-      ws_switcher_nhan: "Workspace",
+      ws_switcher_nhan: "Workspace · bấm để đổi/tạo",
       ws_switcher_aria: "Đổi workspace",
       ws_chon_title: "Chọn workspace",
       ws_chon_hint: "Mỗi workspace có dữ liệu và luật xếp riêng, nằm trong một thư mục riêng.",
@@ -482,7 +497,7 @@
       ws_wz_b3: "Luật xếp",
       ws_wz_b4: "Xem lại",
       ws_wz_ten: "Tên workspace",
-      ws_wz_ten_ph: "Ví dụ: Trường Trung học A, năm học 2026",
+      ws_wz_ten_ph: "Ví dụ: Công ty A, dự án năm 2026",
       ws_wz_loai: "Loại",
       ws_wz_mau: "Bắt đầu từ mẫu",
       ws_wz_mau_hint: "Chọn mẫu sẽ điền sẵn cả bốn bước, và vẫn sửa được từng ô.",
@@ -502,26 +517,32 @@
       ws_dt_score: "Điểm",
       ws_dt_score_mo_ta: "Con số dùng để xếp hạng người tham gia (vd. điểm thi tuyển).",
       ws_r_max_choices: "Số lựa chọn tối đa mỗi đợt (1–20)",
-      ws_r_max_tests: "Số mục dự thi tối đa mỗi đợt (0–20)",
+      ws_r_max_tests: "Số chỗ mỗi người được chọn dự thi, tối đa mỗi đợt (0–20)",
+      ws_r_max_tests_goi_y: "Chỉ dùng khi mỗi chỗ có một điểm riêng (ví dụ bài thi đầu vào của từng chỗ). Mục này ẩn khi mỗi người chỉ có một điểm hay khi chỉ xếp theo nhóm.",
       ws_r_khong_gioi_han: "Không giới hạn",
       ws_r_priority: "Cách xếp ưu tiên",
       ws_r_priority_score: "Theo điểm",
       ws_r_priority_tier: "Chỉ theo nhóm (không chấm điểm)",
       ws_r_priority_both: "Nhóm trước, rồi đến điểm",
       ws_r_tier_mode: "Cách dùng nhóm ưu tiên",
-      ws_r_tm_reserve: "Suất dự trữ mềm (như trường học)",
+      ws_r_tm_reserve: "Suất dự trữ mềm",
+      ws_r_tm_reserve_goi_y: "Mỗi nhóm được giữ sẵn một số chỗ; chỗ nào không ai trong nhóm dùng thì nhường lại cho người khác.",
+      ws_r_tm_strict_goi_y: "Nhóm cao hơn luôn được xếp trước nhóm thấp hơn, bất kể điểm.",
       ws_r_tm_strict: "Thứ hạng nhóm nghiêm ngặt",
       ws_r_score_scope: "Phạm vi của điểm",
-      ws_r_ss_per_slot: "Mỗi chỗ một điểm riêng (như trường học)",
+      ws_r_ss_per_slot: "Mỗi chỗ một điểm riêng",
+      ws_r_ss_per_slot_goi_y: "Một người có thể có điểm khác nhau ở từng chỗ (ví dụ bài thi đầu vào của từng chỗ).",
+      ws_r_ss_per_person_goi_y: "Một con số cho cả người, dùng cho mọi chỗ người đó chọn (ví dụ điểm xét tuyển, điểm đánh giá).",
       ws_r_ss_per_person: "Mỗi người một điểm duy nhất",
+      ws_r_chi_nhom_ghi_chu: "Đang xếp chỉ theo nhóm, không có điểm: hai mục \"Cách dùng nhóm ưu tiên\" và \"Phạm vi của điểm\" bị bỏ qua, chọn gì cũng không đổi kết quả.",
       ws_r_tiers: "Thứ tự các nhóm: tốt nhất ở trên cùng, mỗi dòng một nhóm",
-      ws_r_tiers_ph: "Khối 12\nKhối 11\nKhối 10",
+      ws_r_tiers_ph: "Nhóm 1\nNhóm 2\nNhóm 3",
       ws_r_tiers_chi_strict: "Dùng khi chọn \"Thứ hạng nhóm nghiêm ngặt\" hoặc ưu tiên \"Chỉ theo nhóm\". Người không thuộc nhóm nào đứng sau cùng.",
       ws_r_canh_bao_nhom: "Lưu ý: ưu tiên \"Nhóm trước, rồi đến điểm\" nhưng chưa chọn \"Thứ hạng nhóm nghiêm ngặt\", nên thứ tự các nhóm sẽ không được dùng.",
       ws_v_ten: "Hãy nhập tên.",
       ws_v_vi: "Ô tiếng Việt của \"{muc}\" không được để trống.",
       ws_v_max_choices: "Số lựa chọn tối đa phải là số nguyên từ 1 đến 20.",
-      ws_v_max_tests: "Số mục dự thi tối đa phải là số nguyên từ 0 đến 20, hoặc tích \"Không giới hạn\".",
+      ws_v_max_tests: "Số chỗ dự thi tối đa mỗi đợt phải là số nguyên từ 0 đến 20, hoặc tích \"Không giới hạn\".",
       ws_v_tiers: "Danh sách nhóm có hai dòng trùng nhau.",
     },
 
@@ -537,6 +558,7 @@
       nav_results: "Results",
       nav_fallback: "Kiosk entry",
       nav_admin: "{slot_p} & reserves",
+      nav_admin_cung: "{slot_p} & {group_pl}",
       nav_scoring: "{score} entry",
       db_status_loading: "Loading…",
       db_connected: "Data connected",
@@ -558,8 +580,8 @@
       label_submitted_prefs: "submitted preferences",
       label_matched: "matched to {slot_la}",
       import_panel_title: "Import data",
-      import_hint: "All input lives in a single Excel file: the Club Input Workbook. No workbook yet? Click \"Download the input workbook\", fill in the {slot_pl} and {person_pl}, save it, then drop it below.",
-      drop_zone_main: "Drop the Club Input Workbook here",
+      import_hint: "All input lives in a single Excel file: the {slot} Input Workbook. No workbook yet? Click \"Download the input workbook\", fill in the {slot_pl} and {person_pl}, save it, then drop it below.",
+      drop_zone_main: "Drop the {slot} Input Workbook here",
       drop_zone_sub: "One Excel file (.xlsx). Click to choose it.",
       btn_import_all: "Import workbook",
       btn_clear_queue: "Remove file",
@@ -567,6 +589,7 @@
       so_mau_da_tao: "Input workbook created ({n} {slot_l}(s) filled in) → {path}",
       so_nhap_dang_doc: "Reading the workbook…",
       so_nhap_tom_tat: "Ready to import: {n_clb} {slot_l}(s) · {n_buoi} {session_l}(s) · {n_hoc_sinh} {person_l}(s) · {n_nguyen_vong} preference(s) · {n_thi} test entry(ies)",
+      so_nhap_tom_tat_khong_thi: "Ready to import: {n_clb} {slot_l}(s) · {n_buoi} {session_l}(s) · {n_hoc_sinh} {person_l}(s) · {n_nguyen_vong} preference(s)",
       so_nhap_co_loi: "The workbook has {n} problem(s) to fix. Nothing was imported. Fix them in Excel, save, and drop the workbook again.",
       so_nhap_loi_con_lai: "… and {n} more.",
       so_nhap_xong: "Done: {n_clb} {slot_l}(s), {n_hoc_sinh} {person_l}(s) ({n_moi} new, {n_bo} skipped)",
@@ -683,13 +706,14 @@
       nv_tieu_diem: "{p1}% of placements are a first choice · {p3}% are within the top 3",
       legend_general: "Regular seats",
       legend_reserve: "Admitted on a reserved seat",
+      legend_general_cung: "Placed",
       results_list_title: "{slot} assignments",
       placeholder_results_search: "Search by {person_l} ID or name…",
       ket_qua_cu_banner: "Data was edited after the last run, so the results below may be out of date. Run again in the \"Allocation\" tab before exporting or publishing.",
       xuat_title: "Export data",
       xuat_opt_ket_qua: "Placement results: one Excel file ({person_l} list, each {slot_l}, {person_pl} without a place, statistics)",
       xuat_opt_kem_csv: "Also write separate CSV files (only needed to load the data into other software)",
-      xuat_opt_dau_vao: "Current input data: one Club Input Workbook that can be imported again",
+      xuat_opt_dau_vao: "Current input data: one {slot} Input Workbook that can be imported again",
       xuat_opt_thay_doi: "Changes since the previous run",
       xuat_thay_doi_dem: "({n} change(s))",
       xuat_thay_doi_chua_co: "(no previous run to compare with)",
@@ -708,7 +732,8 @@
       fallback_chua_luu: "• Unsaved",
       fallback_chua_luu_canh_bao: "{person} {student_id} has unsaved changes. Press Save, or click again to discard them.",
       admin_dem_danh_dau: "{n} {person_l}(s) ticked",
-      xuat_canh_bao_diem: "Exported files contain {score_pl} and lottery numbers. Do not send them to the scoring teachers.",
+      xuat_canh_bao_diem: "Exported files contain {score_pl} and lottery numbers. Do not send them to the scoring {gv}.",
+      xuat_canh_bao_khong_diem: "Exported files contain each {person_l}'s lottery number. Share them only with whoever runs the allocation.",
       btn_xuat_hs_da_chon: "Export selected {person_pl} as CSV",
       btn_bo_chon_hs: "Clear selection",
       btn_admin_xuat_hs: "Export ticked {person_pl} as CSV",
@@ -717,7 +742,7 @@
       hs_da_chon_dem: "{n} {person_l}(s) selected",
       hs_chua_chon: "No {person_pl} selected. Tick them in the first column.",
       toast_xuat_chua_chon_muc: "Nothing selected to export.",
-      xuat_kq_dau_vao: "Input data (Club Input Workbook) → {path}",
+      xuat_kq_dau_vao: "Input data ({slot} Input Workbook) → {path}",
       xuat_kq_dau_vao_thieu: "  {n} test entry(ies) for {slot_pl} the {person_l} didn't rank are not in the workbook (they can't affect the result).",
       xuat_kq_thay_doi: "Changes since the previous run: {n} row(s) → {path}",
       xuat_kq_hoc_sinh: "{n} {person_l} profile(s) ({n_dong} row(s)) → {path}",
@@ -756,6 +781,9 @@
       fallback_step1_hint_khong_gioi_han: "Any number of {slot_pl} per {session_l} can be tested. Unticking {slot_la} that has already been scored deletes that {score_l} on save.",
       btn_save_test_selection: "Save test {slot_pl}",
       fallback_step2_title: "Step 2. Rank preferences",
+      fallback_step2_title_khong_thi: "Rank preferences",
+      fallback_step2_hint_khong_thi: "Click {slot_pl} in order, most wanted first, up to {max_choices} per {session_l}.",
+      fallback_desc_khong_thi: "Find or add {person_la}, then rank preferences.",
       fallback_step2_hint: "Click {slot_pl} in order, most wanted first, up to {max_choices} per {session_l}. {slot_p} not picked in Step 1 can be ranked too.",
       ranking_current_label: "Preference order",
       btn_clear_all: "Clear all",
@@ -780,7 +808,9 @@
       toast_student_deleted: "Deleted {person_l} {student_id}.",
 
       admin_title: "{slot_p} & reserves",
-      admin_desc: "Add or edit {slot_pl} and give {person_pl} reserve labels. The school decides who gets reserve seats. The app only matches {person_pl} and {slot_pl} that share a label.",
+      admin_title_cung: "{slot_p} & {group_pl}",
+      admin_desc_cung: "Add or edit {slot_pl} and set the {group_l} of each {person_l}. A higher {group_l} is always placed first, in the order chosen when the workspace was created.",
+      admin_desc: "Add or edit {slot_pl} and give {person_pl} reserve labels. {nt} decides who gets reserve seats. The app only matches {person_pl} and {slot_pl} that share a label.",
       admin_club_form_title: "Add or edit {slot_la}",
       placeholder_club_id: "{slot} ID (e.g. club_01)",
       placeholder_club_name: "{slot} name",
@@ -793,12 +823,16 @@
       th_capacity: "Total seats",
       th_reserve_capacity: "Reserved seats",
       th_reserve_group: "Reserve label",
+      th_reserve_group_cung: "{group_c}",
       admin_club_empty: "No {slot_pl} yet. Add the first one with the form above.",
       admin_reserve_assign_title: "Reserve labels and {person_l} profile export",
+      admin_reserve_assign_title_cung: "Set {group_l} and export {person_l} profiles",
       placeholder_admin_student_search: "Search {person_pl} by ID or name…",
       placeholder_reserve_group_apply: "Reserve label to apply",
+      placeholder_reserve_group_apply_cung: "{group_c} to apply",
       btn_bulk_assign: "Assign to ticked {person_pl}",
       th_current_reserve_group: "Current reserve label",
+      th_current_reserve_group_cung: "Current {group_l}",
       admin_student_empty: "No {person_pl} yet. Add them on the \"Kiosk entry\" tab or import a Microsoft Forms file.",
       btn_prev_page: "‹ Prev",
       btn_next_page: "Next ›",
@@ -847,6 +881,8 @@
       health_panel_title: "Data warnings",
       health_panel_hint: "These don't stop the allocation, but they can skew the results. Check them before running.",
       health_clean: "No problems found. The data is ready.",
+      health_chua_co_du_lieu: "There is no data to check yet. Click \"Download the input workbook\", fill it in, then drop it in the box above.",
+      chay_chua_co_du_lieu: "There is nothing to allocate yet: at least one {person_l} and one {slot_l} are needed. Import the {slot} Input Workbook under \"Import data\" first.",
       health_summary: "{n} warning(s), {n_high} serious.",
       health_sev_high: "Serious",
       health_sev_medium: "Worth checking",
@@ -896,7 +932,7 @@
       buoi_chua_chia: "No {session_l} set",
       th_buoi: "{session}",
       placeholder_buoi: "{session} (e.g. thu_3)",
-      buoi_hint_form: "Two {slot_pl} in the same {session_l} clash, so {person_la} can join only one. Leave it blank if the school has a single {session_l}.",
+      buoi_hint_form: "Two {slot_pl} in the same {session_l} clash, so {person_la} can join only one. Leave it blank if the {truong} has a single {session_l}.",
       admin_lich_tuan_title: "The week at a glance",
       admin_lich_tuan_desc: "Each column is one {session_l}. The bar under each {slot_l} shows how full it was on the latest run.",
       admin_tai_buoi_title: "Demand by {session_l}",
@@ -915,14 +951,14 @@
       chon_buoi_den: "to",
       chon_buoi_tat_ca: "Select all",
       chon_buoi_nhac_giu: "Keeping the existing results for {buoi}. Only the selected {session_pl} are allocated again.",
-      chon_buoi_nhac_het: "Every {session_l} in the week will be allocated again.",
+      chon_buoi_nhac_het: "Every {session_l} in the {tuan} will be allocated again.",
       tham_title: "Lottery order by {session_l}",
       tham_desc: "Each {session_l} has its own order, shuffled from the locked numbers, so no {person_l} ends up last in every {session_l}.",
       tham_tai_lap: "Publishing the locked numbers and the starting number is enough. Anyone who recalculates gets this exact table.",
       tham_cach_cu: "The last allocation used the old lottery, one order for the whole week, so the columns below match. Run the allocation again to give each {session_l} its own order.",
-      results_xem_tkb: "Timetable",
+      results_xem_tkb: "{tkb}",
       results_xem_danh_sach: "List",
-      tkb_title: "The week each {person_l} gets",
+      tkb_title: "{tkbt}",
       tkb_desc: "One row per {person_l}, one cell per {session_l}. An empty cell means no {slot_l} for that {person_l} in that {session_l}.",
       tkb_so_clb: "{slot_p}",
       do_phu_title: "How many {slot_pl} each {person_l} got",
@@ -937,7 +973,7 @@
       fallback_phu_buoi: "Ranked in {n} of {tong} {session_pl}",
       chi_tiet_ky_thuat: "Technical details",
       btn_dong_thong_bao: "Close",
-      ws_switcher_nhan: "Workspace",
+      ws_switcher_nhan: "Workspace · click to switch/create",
       ws_switcher_aria: "Switch workspace",
       ws_chon_title: "Choose a workspace",
       ws_chon_hint: "Each workspace has its own data and allocation rules, kept in its own folder.",
@@ -1008,18 +1044,24 @@
       ws_dt_score: "Score",
       ws_dt_score_mo_ta: "The number used to rank participants (e.g. entrance test score).",
       ws_r_max_choices: "Most choices per round (1–20)",
-      ws_r_max_tests: "Most tested places per round (0–20)",
+      ws_r_max_tests: "Most places each person can sit a test for, per round (0–20)",
+      ws_r_max_tests_goi_y: "Only used when each place has its own score (for example an entry test for each place). Hidden when each person has a single score or when ranking by group only.",
       ws_r_khong_gioi_han: "No limit",
       ws_r_priority: "Priority order",
       ws_r_priority_score: "By score",
       ws_r_priority_tier: "By group only (no scores)",
       ws_r_priority_both: "Group first, then score",
       ws_r_tier_mode: "How groups are used",
-      ws_r_tm_reserve: "Soft reserved seats (as in schools)",
+      ws_r_tm_reserve: "Soft reserved seats",
+      ws_r_tm_reserve_goi_y: "Each group keeps some places for itself; places nobody in the group takes are released to others.",
+      ws_r_tm_strict_goi_y: "A higher group is always placed before a lower one, whatever the score.",
       ws_r_tm_strict: "Strict group ranking",
       ws_r_score_scope: "Scope of the score",
-      ws_r_ss_per_slot: "A separate score for each place (as in schools)",
+      ws_r_ss_per_slot: "A separate score for each place",
+      ws_r_ss_per_slot_goi_y: "One person can score differently at each place (for example an entry test for each place).",
+      ws_r_ss_per_person_goi_y: "A single number for the whole person, used for every place they choose (for example a selection score or a rating).",
       ws_r_ss_per_person: "One score per person",
+      ws_r_chi_nhom_ghi_chu: "Ranking by group only, with no scores: \"How groups are used\" and \"Scope of the score\" are ignored, so either choice gives the same result.",
       ws_r_tiers: "Group order: best first, one group per line",
       ws_r_tiers_ph: "Senior\nMiddle\nJunior",
       ws_r_tiers_chi_strict: "Used with \"Strict group ranking\" or the \"By group only\" priority. People in no listed group come last.",
@@ -1027,7 +1069,7 @@
       ws_v_ten: "Enter a name.",
       ws_v_vi: "The Vietnamese box for \"{muc}\" can't be empty.",
       ws_v_max_choices: "Most choices must be a whole number from 1 to 20.",
-      ws_v_max_tests: "Most tested places must be a whole number from 0 to 20, or tick \"No limit\".",
+      ws_v_max_tests: "Most test places per round must be a whole number from 0 to 20, or tick \"No limit\".",
       ws_v_tiers: "The group list has two identical lines.",
     },
   };
@@ -1063,6 +1105,19 @@
   };
   const VIET_TAT = { "slot|Câu lạc bộ": "CLB" };
   const CHO_GIU_DANH_TU = /^(person|slot|session|group|score)(?:_([lpsacuv]+))?$/;
+  /* Bốn từ của trường học ({em} {gv} {nt} {truong}) — đối xứng với TU_TRUONG_HOC trong nhan_ws.py.
+     Nhãn người còn là "Học sinh" thì giữ từ cũ; workspace khác nhận từ trung tính. [vi trường học,
+     vi khác, en trường học, en khác]; null = nhãn người chữ thường. */
+  const TU_TRUONG_HOC = {
+    em: ["em", null, null, null],
+    gv: ["giáo viên", "người", "teachers", "staff"],
+    nt: ["Nhà trường", "Bộ phận phụ trách", "The school", "The organiser"],
+    truong: ["trường", "đơn vị", "school", "organisation"],
+    tuan: ["tuần", "đợt xếp", "week", "round"],
+    tkb: ["Thời khoá biểu", "Lịch xếp", "Timetable", "Schedule"],
+    tkbt: ["Thời khoá biểu tuần", "Lịch xếp theo {session_l}",
+           "The week each {person_l} gets", "The {session_l} schedule each {person_l} gets"],
+  };
   let currentLabels = NHAN_MAC_DINH;
   /* Hai con số luật của workspace hiện trong chữ: {max_choices}, {max_tests}. Mặc định
      trường học (10 và 5) cho ra đúng chữ từng ghi cứng. max_tests null = không giới hạn:
@@ -1124,6 +1179,32 @@
     return /^[A-Za-z][A-Za-z '\-]*$/.test(chu);
   }
 
+  function tuPhu(tu, lang) {
+    const r = TU_TRUONG_HOC[tu];
+    const truong = currentLabels.person.vi === NHAN_MAC_DINH.person.vi;
+    const chu = lang === "vi" ? r[0] : r[2];
+    const khac = lang === "vi" ? r[1] : r[3];
+    if (truong && chu !== null) return interpolate(chu, null);
+    if (!truong && khac !== null) return interpolate(khac, null);   // có thể chứa {session_l}…
+    return nounText("person", "l", lang);          // "em" -> nhãn người
+  }
+
+  /* Mã buổi -> tên cho người đọc, đối xứng nhan_ws.ten_buoi: `phien_1` -> "Phiên 1" khi tiền tố
+     trùng (không dấu, hoa/thường) nhãn vi HOẶC en của danh từ session. Mã khác (thu_2, tên tự đặt)
+     giữ nguyên. */
+  function khongDauGon(chu) {
+    return String(chu || "").replace(/đ/g, "d").replace(/Đ/g, "D").normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "");
+  }
+
+  function tenBuoi(ma, lang) {
+    const m = /^([a-z0-9]+)_(\d+)$/.exec(String(ma || ""));
+    if (!m) return ma;
+    const cap = currentLabels.session;
+    const khop = [cap.vi, cap.en || cap.vi].some((nhan) => khongDauGon(nhan) === m[1]);
+    return khop ? nounText("session", "", lang || currentLang) + " " + m[2] : ma;
+  }
+
   function nounText(noun, flags, lang) {
     if (flags.indexOf("v") !== -1) lang = "vi";   // chữ có thật trên tệp tiếng Việt
     const cap = currentLabels[noun];
@@ -1153,6 +1234,11 @@
       }
       const dt = CHO_GIU_DANH_TU.exec(key);
       if (dt) return nounText(dt[1], dt[2] || "", currentLang);
+      const tp = /^([a-z]+)(_c)?$/.exec(key);
+      if (tp && Object.prototype.hasOwnProperty.call(TU_TRUONG_HOC, tp[1])) {
+        const chu = tuPhu(tp[1], currentLang);
+        return tp[2] && chu ? chu.charAt(0).toUpperCase() + chu.slice(1) : chu;
+      }
       if ((key === "max_choices" || key === "max_tests") && currentRules[key] !== null) {
         return String(currentRules[key]);
       }
@@ -1170,9 +1256,29 @@
     if (entry === null || entry === undefined) return "";
     if (typeof entry === "string") return entry;
     if (typeof entry === "object" && entry.code) {
-      const table = ERROR_MESSAGES[entry.code];
+      /* Biến thể "không có buổi" (HAU_TO_KHONG_BUOI trong i18n_errors.py): tham số buoi rỗng hay "-". */
+      const bien = entry.code + "__khong_buoi";
+      const khongBuoi = entry.params && ["", "-"].indexOf(String(entry.params.buoi === undefined
+        ? "x" : entry.params.buoi)) !== -1 && ERROR_MESSAGES[bien];
+      const table = khongBuoi ? ERROR_MESSAGES[bien] : ERROR_MESSAGES[entry.code];
       const template = table ? (table[currentLang] || table.vi) : entry.code;
-      return interpolate(template, entry.params);
+      /* Mã buổi nội bộ (`phien_2`) hiện thành "Phiên 2"; câu có sẵn chữ "phiên" đứng trước thì gộp
+         ("ở phiên Phiên 2" -> "ở phiên 2"). Đối xứng format_message ở i18n_errors.py. */
+      let params = entry.params;
+      let dep = false;
+      if (params && typeof params.buoi === "string" && ["", "-"].indexOf(params.buoi) === -1) {
+        const ten = tenBuoi(params.buoi);
+        if (ten !== params.buoi) {
+          params = Object.assign({}, params, { buoi: ten });
+          dep = true;
+        }
+      }
+      let chu = interpolate(template, params);
+      if (dep) {
+        const goc = nounText("session", "", currentLang).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        chu = chu.replace(new RegExp("(" + goc + ")\\s+" + goc + "\\s+(\\d+)", "gi"), "$1 $2");
+      }
+      return chu;
     }
     try {
       return JSON.stringify(entry);
@@ -1279,6 +1385,6 @@
   global.I18N = {
     t, translateError, translateErrors, errorDetails, getLang, setLang, applyStaticText,
     setLabels, getLabels, applyLabels, setRules, getRules, applyConfig,
-    fill: interpolate, nounText,
+    fill: interpolate, nounText, tuPhu, tenBuoi,
   };
 })(window);

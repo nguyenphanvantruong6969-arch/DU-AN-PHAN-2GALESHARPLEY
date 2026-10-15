@@ -1,0 +1,49 @@
+Đã tạo sổ nhập (0 dự án điền sẵn) → /tmp/pilot_nmunr024/tai_xuong/SO_NHAP_CLB.xlsx
+----
+Vận hành sắp xếp
+
+Kiểm tra dữ liệu, bốc thăm, xếp nhân viên vào dự án và xuất kết quả.
+
+0
+nhân viên
+0
+dự án
+0
+đã nộp nguyện vọng
+0
+đã xếp dự án
+Nhập dữ liệu
+Tải sổ nhập mẫu
+
+Toàn bộ dữ liệu nằm trong một tệp Excel duy nhất: Sổ nhập CLB. Chưa có sổ thì bấm "Tải sổ nhập mẫu", điền danh sách dự án và nhân viên, lưu lại rồi kéo sổ vào ô bên dưới.
+
+Kéo Sổ nhập CLB vào đây
+Một tệp Excel (.xlsx). Bấm để chọn tệp.
+Nhập sổ
+Bỏ tệp
+Đã tạo sổ nhập (0 dự án điền sẵn) → /tmp/pilot_nmunr024/tai_xuong/SO_NHAP_CLB.xlsx
+Cảnh báo dữ liệu
+Kiểm tra lại
+
+Những điểm dưới đây không chặn việc sắp xếp nhưng có thể làm kết quả sai lệch. Nên xem trước khi chạy.
+
+Không thấy vấn đề nào. Dữ liệu đã sẵn sàng.
+Các bước xử lý
+Số khởi tạo bốc thăm
+Kiểm tra dữ liệu
+Chạy sắp xếp
+Chưa bốc thăm lần nào. Lần sắp xếp đầu tiên sẽ bốc thăm và tự khoá kết quả.
+Sao lưu dữ liệu
+Chưa chạy
+Kiểm tra dữ liệu
+Chưa chạy
+Bốc thăm
+Chưa chạy
+Xếp nhân viên vào dự án
+Chưa chạy
+Lưu kết quả
+Chưa chạy
+Xuất kết quả
+Chưa chạy
+Lịch sử sắp xếp
+Hiện/ẩn

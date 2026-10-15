@@ -1,0 +1,46 @@
+Vận hành sắp xếp
+
+Kiểm tra dữ liệu, bốc thăm, xếp học sinh vào CLB và xuất kết quả.
+
+0
+học sinh
+0
+CLB
+0
+đã nộp nguyện vọng
+0
+đã xếp CLB
+Nhập dữ liệu
+Tải sổ nhập mẫu
+
+Toàn bộ dữ liệu nằm trong một tệp Excel duy nhất: Sổ nhập CLB. Chưa có sổ thì bấm "Tải sổ nhập mẫu", điền danh sách CLB và học sinh, lưu lại rồi kéo sổ vào ô bên dưới.
+
+Kéo Sổ nhập CLB vào đây
+Một tệp Excel (.xlsx). Bấm để chọn tệp.
+Nhập sổ
+Bỏ tệp
+Cảnh báo dữ liệu
+Kiểm tra lại
+
+Những điểm dưới đây không chặn việc sắp xếp nhưng có thể làm kết quả sai lệch. Nên xem trước khi chạy.
+
+Chưa có dữ liệu để kiểm tra. Bấm "Tải sổ nhập mẫu", điền sổ rồi nạp vào ô phía trên.
+Các bước xử lý
+Số khởi tạo bốc thăm
+Kiểm tra dữ liệu
+Chạy sắp xếp
+Chưa bốc thăm lần nào. Lần sắp xếp đầu tiên sẽ bốc thăm và tự khoá kết quả.
+Sao lưu dữ liệu
+Chưa chạy
+Kiểm tra dữ liệu
+Chưa chạy
+Bốc thăm
+Chưa chạy
+Xếp học sinh vào CLB
+Chưa chạy
+Lưu kết quả
+Chưa chạy
+Xuất kết quả
+Chưa chạy
+Lịch sử sắp xếp
+Hiện/ẩn

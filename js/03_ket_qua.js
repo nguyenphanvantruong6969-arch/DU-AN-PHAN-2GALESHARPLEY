@@ -311,7 +311,7 @@ function loadTomTatKetQua() {
       phu: trangTay > 0 ? t("kpi_can_xu_ly") : t("kpi_on"),
     });
 
-    if (duTru.ok && duTru.data.length) {
+    if (duTru.ok && duTru.data.length && !LUAT_CHAM_DIEM.nhomCung) {
       const thua = duTru.data.reduce((s, c) => s + (c.con_thua || 0), 0);
       const tongDt = duTru.data.reduce((s, c) => s + (c.reserve_capacity || 0), 0);
       o.push({
@@ -503,8 +503,8 @@ function veDongLapDay(c, hienChipBuoi, nhieuBuoi) {
     const dong = [];
     if (nhieuBuoi) dong.push([t("th_buoi"), nhanBuoi(c.buoi)]);
     dong.push([t("tt_da_xep"), `${c.matched}/${c.capacity} · ${phanTramTron(c.matched, suc)}%`]);
-    dong.push(["· " + t("legend_general"), String(chung)]);
-    if (c.reserve_capacity > 0 || duTru > 0) {
+    dong.push(["· " + t(LUAT_CHAM_DIEM.nhomCung ? "legend_general_cung" : "legend_general"), String(chung)]);
+    if (!LUAT_CHAM_DIEM.nhomCung && (c.reserve_capacity > 0 || duTru > 0)) {
       dong.push(["· " + t("legend_reserve"), `${duTru}/${c.reserve_capacity || 0}`]);
     }
     dong.push([t("legend_trong"), String(Math.max(0, suc - c.matched))]);
@@ -630,7 +630,7 @@ function moDanhSachCLB(club_id) {
         `<td>${esc(em.student_id)}</td>` +
         `<td>${esc(em.name || "")}</td>` +
         `<td class="num">${esc(em.rank_in_student_pref ?? "—")}</td>` +
-        `<td>${esc(dien)}</td>` +
+        `<td class="chi-du-tru">${esc(dien)}</td>` +
         `<td>${esc(em.reserve_group || "")}</td>`;
       body.appendChild(tr);
     });

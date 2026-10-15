@@ -1,0 +1,150 @@
+Nhập tại chỗ
+
+Tìm hoặc tạo khách tham dự, rồi làm hai bước: chọn workshop dự thi và xếp hạng nguyện vọng. Hai bước này không phụ thuộc nhau.
+
+Tìm hoặc tạo khách tham dự
+Tìm
+Trịnh Quốc Mai
+KH001
+Thiếu workshop dự thi
+WORKSHOP DỰ THI
+Chưa chọn
+NGUYỆN VỌNG
+phien_1
+1
+Văn hoá doanh nghiệp
+2
+Đàm phán và thuyết phục
+phien_2
+3
+Nhập môn học máy
+phien_3
+4
+Thương mại điện tử xuyên biên giới
+Hoàng Bảo Giang
+KH002
+Thiếu workshop dự thi
+WORKSHOP DỰ THI
+Chưa chọn
+NGUYỆN VỌNG
+phien_1
+1
+Cân bằng công việc và cuộc sống
+phien_2
+2
+Chuyển đổi số ngành bán lẻ
+3
+Quản lý thời gian
+phien_3
+4
+Khởi nghiệp tinh gọn
+Vũ Anh Phúc
+KH003
+Thiếu workshop dự thi
+WORKSHOP DỰ THI
+Chưa chọn
+NGUYỆN VỌNG
+phien_1
+1
+Xây dựng cộng đồng
+2
+Đàm phán và thuyết phục
+phien_2
+3
+Bán hàng B2B
+4
+Tự động hoá quy trình
+phien_3
+5
+Kể chuyện bằng dữ liệu
+6
+Thương mại điện tử xuyên biên giới
+Dương Quốc Thảo
+KH004
+Thiếu workshop dự thi
+WORKSHOP DỰ THI
+Chưa chọn
+NGUYỆN VỌNG
+phien_1
+1
+Đàm phán và thuyết phục
+phien_2
+2
+Tự động hoá quy trình
+3
+Nhập môn học máy
+phien_3
+4
+Thuyết trình tự tin
+5
+Podcast và video ngắn
+Phan Khánh Tuấn
+KH005
+Thiếu workshop dự thi
+WORKSHOP DỰ THI
+Chưa chọn
+NGUYỆN VỌNG
+phien_1
+1
+Cân bằng công việc và cuộc sống
+phien_2
+2
+Quản trị rủi ro
+3
+Quản lý thời gian
+phien_3
+4
+Kể chuyện bằng dữ liệu
+5
+Thuyết trình tự tin
+Phạm Quốc Dũng
+KH006
+Thiếu workshop dự thi
+WORKSHOP DỰ THI
+Chưa chọn
+NGUYỆN VỌNG
+phien_1
+1
+Cân bằng công việc và cuộc sống
+2
+Lãnh đạo từ xa
+phien_2
+3
+Kinh tế tuần hoàn
+Lê Gia Yến
+KH007
+Thiếu workshop dự thi
+WORKSHOP DỰ THI
+Chưa chọn
+NGUYỆN VỌNG
+phien_1
+1
+Xây dựng cộng đồng
+2
+Quản lý dự án linh hoạt
+phien_2
+3
+Quản trị rủi ro
+phien_3
+4
+Thuyết trình tự tin
+5
+Khởi nghiệp tinh gọn
+Trịnh Bảo Linh
+KH008
+Thiếu workshop dự thi
+WORKSHOP DỰ THI
+Chưa chọn
+NGUYỆN VỌNG
+phien_1
+1
+Xây dựng thương hiệu cá nhân
+phien_2
+2
+Quản trị rủi ro
+3
+Quản lý thời gian
+‹ Trước
+Trang 1/100 · 800 khách tham dự
+Sau ›
+Tạo khách tham dự mới

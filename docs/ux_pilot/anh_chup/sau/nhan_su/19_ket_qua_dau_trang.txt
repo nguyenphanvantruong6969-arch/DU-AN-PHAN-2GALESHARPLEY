@@ -1,0 +1,54 @@
+Chưa có dữ liệu để sắp xếp: cần ít nhất một nhân viên và một dự án. Hãy nạp Sổ nhập dự án ở phần "Nhập dữ liệu" trước.
+×
+Sắp xếp xong: 289/300 nhân viên có dự án, sau 3 vòng.
+----
+Kết quả
+
+Nhân viên đã được xếp vào dự án nào và mỗi dự án đã đủ chỗ chưa.
+
+Mở rộng tất cả
+Tóm tắt lần xếp
+Lần chạy gần nhất: 2026-10-15T01:26:20 · số khởi tạo 42
+Nhân viên đã có chỗ
+289/300
+96,3% nhân viên
+Được nguyện vọng 1
+90,3%
+100% trong 3 nguyện vọng đầu
+Chỗ còn trống
+41
+trên tổng 330 chỗ
+Nhân viên chưa có chỗ nào
+11
+⚠ Cần xử lý
+Xuất dữ liệu
+Kết quả sắp xếp: một tệp Excel (danh sách nhân viên, từng dự án, nhân viên chưa có chỗ, thống kê)
+Kèm các tệp CSV rời (chỉ cần khi đổ số liệu vào phần mềm khác)
+Dữ liệu đầu vào hiện tại: một Sổ nhập dự án nạp lại được
+Thay đổi so với lần chạy trước
+(chưa có lần chạy trước để so sánh)
+Hồ sơ nhân viên đã chọn
+(chưa chọn nhân viên nào)
+Chọn nhân viên…
+Xuất các mục đã chọn
+
+Hồ sơ nhân viên: bấm "Chọn nhân viên…" rồi đánh dấu nhân viên ở bảng bên dưới. Đang mở một nhân viên ở thẻ 03 thì bấm "Xuất CSV nhân viên này" ngay tại đó.
+
+Tệp xuất có KPI chấm và số bốc thăm. Không gửi các tệp này cho người chấm KPI.
+
+Mức lấp đầy của từng dự án
+12 dự án
+Sắp xếp
+Theo quý
+Đầy nhất
+Vắng nhất
+Chọi cao nhất
+Theo từng dự án
+12 dự án
+Mức đáp ứng nguyện vọng
+289 chỗ đã xếp
+Nhân viên chưa có dự án nào
+11 nhân viên
+Danh sách xếp dự án
+300 dòng
+11 nhân viên chưa có dự án

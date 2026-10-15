@@ -1,0 +1,154 @@
+Chưa có dữ liệu để sắp xếp: cần ít nhất một khách tham dự và một workshop. Hãy nạp Sổ nhập workshop ở phần "Nhập dữ liệu" trước.
+×
+----
+Quản lý workshop & hạng vé
+
+Thêm, sửa workshop và gán hạng vé cho khách tham dự. Hạng vé cao hơn luôn được xếp trước; thứ tự các hạng vé đã đặt lúc tạo workspace.
+
+Thêm hoặc sửa workshop
+Lưu workshop
+MÃ WORKSHOP	TÊN	TỔNG CHỖ	PHIÊN	
+THAO TÁC
+
+ws_canbangcongviecvacuocsong	Cân bằng công việc và cuộc sống	124	Phiên 1	Xoá
+ws_damphanvathuyetphuc	Đàm phán và thuyết phục	137	Phiên 1	Xoá
+ws_lamungdungkhongcancode	Làm ứng dụng không cần code	125	Phiên 1	Xoá
+ws_lanhdaotuxa	Lãnh đạo từ xa	61	Phiên 1	Xoá
+ws_quanlyduanlinhhoat	Quản lý dự án linh hoạt	87	Phiên 1	Xoá
+ws_vanhoadoanhnghiep	Văn hoá doanh nghiệp	116	Phiên 1	Xoá
+ws_xaydungcongdong	Xây dựng cộng đồng	107	Phiên 1	Xoá
+ws_xaydungthuonghieucanhan	Xây dựng thương hiệu cá nhân	72	Phiên 1	Xoá
+ws_banhangb2b	Bán hàng B2B	128	Phiên 2	Xoá
+ws_chuyendoisonganhbanle	Chuyển đổi số ngành bán lẻ	70	Phiên 2	Xoá
+ws_goivondautu	Gọi vốn đầu tư	106	Phiên 2	Xoá
+ws_kinhtetuanhoan	Kinh tế tuần hoàn	70	Phiên 2	Xoá
+ws_nhapmonhocmay	Nhập môn học máy	132	Phiên 2	Xoá
+ws_quanlythoigian	Quản lý thời gian	112	Phiên 2	Xoá
+ws_quantriruiro	Quản trị rủi ro	122	Phiên 2	Xoá
+ws_tudonghoaquytrinh	Tự động hoá quy trình	90	Phiên 2	Xoá
+ws_kechuyenbangdulieu	Kể chuyện bằng dữ liệu	114	Phiên 3	Xoá
+ws_khoinghieptinhgon	Khởi nghiệp tinh gọn	124	Phiên 3	Xoá
+ws_nangluongxanh	Năng lượng xanh	105	Phiên 3	Xoá
+ws_phantichdulieuvoiexcel	Phân tích dữ liệu với Excel	81	Phiên 3	Xoá
+ws_podcastvavideongan	Podcast và video ngắn	99	Phiên 3	Xoá
+ws_thietketrainghiemnguoidung	Thiết kế trải nghiệm người dùng	96	Phiên 3	Xoá
+ws_thuongmaidientuxuyenbiengioi	Thương mại điện tử xuyên biên giới	116	Phiên 3	Xoá
+ws_thuyettrinhtutin	Thuyết trình tự tin	94	Phiên 3	Xoá
+
+Hai workshop cùng phiên là trùng giờ, mỗi khách tham dự chỉ vào được một. Để trống nếu đơn vị chỉ có một phiên.
+
+Tải theo phiên
+
+Nên xem trước khi sắp xếp. Nếu một phiên quá đông trong khi phiên khác còn chỗ, hãy chuyển bớt workshop sang phiên vắng hơn.
+
+PHIÊN	SỐ WORKSHOP	TỔNG CHỖ	KHÁCH THAM DỰ CHỌN PHIÊN NÀY	TỈ LỆ CHỌI	
+MỨC
+
+Phiên 1	8	829	771	0.93×	Còn trống
+Phiên 2	8	830	766	0.92×	Còn trống
+Phiên 3	8	829	757	0.91×	Còn trống
+
+Tỉ lệ chọi tính theo số khách tham dự, không theo số nguyện vọng, vì mỗi khách tham dự chỉ nhận một chỗ mỗi phiên.
+
+Lịch đợt xếp
+
+Mỗi cột là một phiên. Thanh dưới mỗi workshop là mức lấp đầy của lần sắp xếp gần nhất.
+
+Phiên 1
+829 · 0.93×
+Cân bằng công việc và cuộc sống
+Đàm phán và thuyết phục
+Làm ứng dụng không cần code
+Lãnh đạo từ xa
+Quản lý dự án linh hoạt
+Văn hoá doanh nghiệp
+Xây dựng cộng đồng
+Xây dựng thương hiệu cá nhân
+Phiên 2
+830 · 0.92×
+Bán hàng B2B
+Chuyển đổi số ngành bán lẻ
+Gọi vốn đầu tư
+Kinh tế tuần hoàn
+Nhập môn học máy
+Quản lý thời gian
+Quản trị rủi ro
+Tự động hoá quy trình
+Phiên 3
+829 · 0.91×
+Kể chuyện bằng dữ liệu
+Khởi nghiệp tinh gọn
+Năng lượng xanh
+Phân tích dữ liệu với Excel
+Podcast và video ngắn
+Thiết kế trải nghiệm người dùng
+Thương mại điện tử xuyên biên giới
+Thuyết trình tự tin
+Gán hạng vé và xuất hồ sơ khách tham dự
+Gán cho khách tham dự đã đánh dấu
+Xuất CSV khách tham dự đã đánh dấu
+
+Tệp xuất có số bốc thăm của từng khách tham dự. Chỉ chia sẻ cho người phụ trách sắp xếp.
+
+	MÃ KHÁCH THAM DỰ	HỌ TÊN	HẠNG VÉ HIỆN TẠI
+	KH001	Trịnh Quốc Mai	member
+	KH002	Hoàng Bảo Giang	guest
+	KH003	Vũ Anh Phúc	vip
+	KH004	Dương Quốc Thảo	guest
+	KH005	Phan Khánh Tuấn	guest
+	KH006	Phạm Quốc Dũng	member
+	KH007	Lê Gia Yến	guest
+	KH008	Trịnh Bảo Linh	guest
+	KH009	Trần Anh Vy	guest
+	KH010	Mai Bảo Vy	guest
+	KH011	Trịnh Bảo Yến	guest
+	KH012	Đặng Bảo Huy	guest
+	KH013	Ngô Văn Giang	member
+	KH014	Dương Quốc Tuấn	guest
+	KH015	Phạm Hoài Ngân	guest
+	KH016	Vũ Minh Việt	vip
+	KH017	Đặng Anh Bình	guest
+	KH018	Phan Bảo Dũng	member
+	KH019	Lê Minh Yến	guest
+	KH020	Đỗ Khánh Xuân	guest
+	KH021	Lý Thị Việt	member
+	KH022	Chu Thanh Vy	guest
+	KH023	Phan Minh Huy	member
+	KH024	Trần Hoài Tuấn	guest
+	KH025	Mai Anh Uyên	vip
+	KH026	Phạm Anh Vy	guest
+	KH027	Hồ Hoài Nhi	guest
+	KH028	Đặng Khánh Tuấn	guest
+	KH029	Đỗ Anh Mai	guest
+	KH030	Tạ Minh Xuân	guest
+	KH031	Dương Thị Lan	member
+	KH032	Đặng Bảo Quân	guest
+	KH033	Vũ Quốc Tuấn	vip
+	KH034	Hoàng Thị Nhi	guest
+	KH035	Nguyễn Anh Sương	guest
+	KH036	Trần Minh Tuấn	member
+	KH037	Đặng Khánh Giang	member
+	KH038	Mai Gia Mai	vip
+	KH039	Dương Anh Xuân	member
+	KH040	Ngô Hoài Khanh	guest
+	KH041	Đỗ Gia Linh	guest
+	KH042	Lê Văn Phúc	member
+	KH043	Trịnh Thanh Phúc	guest
+	KH044	Lý Gia Mai	guest
+	KH045	Bùi Bảo Huy	guest
+	KH046	Tạ Khánh Mai	guest
+	KH047	Mai Quốc Hà	guest
+	KH048	Chu Hoài Hà	guest
+	KH049	Phạm Thanh Bình	member
+	KH050	Tạ Khánh Nhi	guest
+‹ Trước
+Trang 1/16 · 800 khách tham dự
+Sau ›
+Vùng nguy hiểm: xoá dữ liệu để làm lại
+
+Nạp tệp chỉ thêm khách tham dự mới, không xoá khách tham dự cũ. Muốn làm lại với bộ dữ liệu khác, hãy xoá ở đây trước, nếu không khách tham dự cũ vẫn chiếm chỗ.
+
+Cả hai nút đều tự sao lưu dữ liệu trước khi xoá. Lịch sử các lần sắp xếp được giữ lại.
+
+Xoá toàn bộ khách tham dự (giữ workshop)
+Xoá toàn bộ dữ liệu (cả workshop)

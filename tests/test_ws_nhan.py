@@ -43,11 +43,23 @@ TRAN_MAC_DINH = {"pref_too_many": 10, "pref_too_many_buoi": 10,
 
 # Mã thêm SAU ảnh chụp ngoài nhóm ws_*: điểm theo người ở Sổ nhập (TASK 5); luật xếp, chấm
 # điểm theo người và cảnh báo sức khoẻ dữ liệu của chúng (TASK 6). Chỉ THÊM mã, không đổi mã cũ.
+# Chữ của TRÌNH HƯỚNG DẪN tạo workspace được sửa có chủ ý ở vòng thử người dùng mới (xem
+# UX_PILOT_NOTES.md, mục "Đã sửa"): đây không phải chữ của giao diện trường học mà ảnh chụp bảo vệ,
+# nhưng ảnh chụp lỡ chứa chúng. Chỉ đúng các khoá này được bỏ qua; mọi khoá khác vẫn phải GIỐNG HỆT.
+# tests/test_ws_ux_nguoi_moi.py kiểm chữ mới của từng khoá.
+KHOA_TRINH_HUONG_DAN_DA_SUA = {
+    "ws_r_max_tests", "ws_r_ss_per_person", "ws_r_ss_per_slot", "ws_r_tiers_ph",
+    "ws_r_tm_reserve", "ws_r_tm_strict", "ws_v_max_tests", "ws_wz_ten_ph",
+    "ws_switcher_nhan",
+}
+
 MA_MOI_SAU_ANH_CHUP = {
     "so_nhap_diem_ca_nhan_sai", "scoring_not_per_person", "health_person_score_none",
     "health_person_score_missing", "health_tier_missing", "health_tiers_empty",
     # Vòng sửa lỗi cuối: điểm theo CLB sai chế độ (chấm tay, CSV, cột trong sổ).
     "scoring_not_per_slot", "csv_score_ignored_mode", "so_nhap_diem_sai_che_do",
+    # Vòng thử người dùng mới: biến thể câu báo lỗi khi workspace không có buổi.
+    "so_nhap_qua_tran_nv__khong_buoi", "so_nhap_qua_tran_thi__khong_buoi",
 }
 
 
@@ -261,6 +273,8 @@ def test_moi_chuoi_giao_dien_mac_dinh_giong_het_anh_chup(anh_chup):
     lech = []
     for lang in ("vi", "en"):
         for k in khoa:
+            if k in KHOA_TRINH_HUONG_DAN_DA_SUA:
+                continue
             if ra[lang][k] != anh_chup["ui"][lang][k]:
                 lech.append((lang, k, anh_chup["ui"][lang][k][:70], ra[lang][k][:70]))
     assert not lech, lech[:10]

@@ -1,0 +1,92 @@
+Quản lý dự án & dự trữ
+
+Thêm, sửa dự án và gán nhãn dự trữ cho nhân viên. Trường tự quyết định ai được dự trữ. Phần mềm chỉ ghép nhân viên và dự án có cùng nhãn.
+
+Thêm hoặc sửa dự án
+Lưu dự án
+MÃ DỰ ÁN	TÊN	TỔNG CHỖ	SUẤT DỰ TRỮ	NHÃN DỰ TRỮ	
+THAO TÁC
+
+da_baocaoquantri	Dự án Báo cáo quản trị	20	0	—	Chưa chia quý	Xoá
+da_baomatvatuanthu	Dự án Bảo mật và tuân thủ	29	0	—	Chưa chia quý	Xoá
+da_congtuyendungnoibo	Dự án Cổng tuyển dụng nội bộ	32	0	—	Chưa chia quý	Xoá
+da_hatangdammay	Dự án Hạ tầng đám mây	22	0	—	Chưa chia quý	Xoá
+da_khodulieudoanhnghiep	Dự án Kho dữ liệu doanh nghiệp	33	0	—	Chưa chia quý	Xoá
+da_phantichkinhdoanh	Dự án Phân tích kinh doanh	29	0	—	Chưa chia quý	Xoá
+da_quanlykhovan	Dự án Quản lý kho vận	26	0	—	Chưa chia quý	Xoá
+da_tichhoperp	Dự án Tích hợp ERP	26	0	—	Chưa chia quý	Xoá
+da_trainghiemnguoidung	Dự án Trải nghiệm người dùng	32	0	—	Chưa chia quý	Xoá
+da_trolyaonoibo	Dự án Trợ lý ảo nội bộ	25	0	—	Chưa chia quý	Xoá
+da_tudonghoakiemthu	Dự án Tự động hoá kiểm thử	21	0	—	Chưa chia quý	Xoá
+da_ungdungdidong	Dự án Ứng dụng di động	35	0	—	Chưa chia quý	Xoá
+
+Hai dự án cùng quý là trùng giờ, mỗi nhân viên chỉ vào được một. Để trống nếu trường chỉ có một quý.
+
+Gán nhãn dự trữ và xuất hồ sơ nhân viên
+Gán cho nhân viên đã đánh dấu
+Xuất CSV nhân viên đã đánh dấu
+
+Tệp xuất có KPI chấm và số bốc thăm. Không gửi các tệp này cho giáo viên chấm KPI.
+
+	MÃ NHÂN VIÊN	HỌ TÊN	NHÃN DỰ TRỮ HIỆN TẠI
+	NV001	Tạ Bảo Linh	mid
+	NV002	Ngô Văn An	mid
+	NV003	Hoàng Hoài Giang	mid
+	NV004	Vũ Hoài An	junior
+	NV005	Hồ Bảo Khanh	junior
+	NV006	Ngô Văn Dũng	mid
+	NV007	Đỗ Khánh Phúc	senior
+	NV008	Vũ Anh Việt	junior
+	NV009	Lê Bảo Tuấn	mid
+	NV010	Đặng Quốc Nhi	mid
+	NV011	Hoàng Quốc Linh	junior
+	NV012	Chu Quốc Yến	mid
+	NV013	Phan Văn Huy	mid
+	NV014	Bùi Quốc Khanh	junior
+	NV015	Phan Minh Quân	junior
+	NV016	Trần Văn Khanh	junior
+	NV017	Vũ Bảo Dũng	junior
+	NV018	Trần Khánh Uyên	mid
+	NV019	Ngô Anh Uyên	junior
+	NV020	Đỗ Khánh Lan	mid
+	NV021	Lê Bảo Khanh	mid
+	NV022	Vũ Gia Huy	junior
+	NV023	Tạ Bảo Thảo	junior
+	NV024	Trần Minh Giang	junior
+	NV025	Trần Anh Vy	mid
+	NV026	Bùi Bảo Yến	mid
+	NV027	Dương Hoài Lan	junior
+	NV028	Vũ Quốc Tuấn	junior
+	NV029	Đặng Thanh Bình	mid
+	NV030	Ngô Thanh Giang	junior
+	NV031	Phạm Minh Sương	junior
+	NV032	Chu Bảo An	mid
+	NV033	Bùi Anh Nhi	junior
+	NV034	Trịnh Thị Tuấn	junior
+	NV035	Đặng Khánh Yến	junior
+	NV036	Trần Khánh Bình	mid
+	NV037	Ngô Quốc Lan	junior
+	NV038	Hồ Anh Mai	junior
+	NV039	Bùi Anh Ngân	senior
+	NV040	Phan Minh Huy	mid
+	NV041	Lê Minh Khanh	junior
+	NV042	Bùi Quốc An	junior
+	NV043	Bùi Thanh Giang	junior
+	NV044	Bùi Khánh Dũng	junior
+	NV045	Lý Gia Giang	mid
+	NV046	Nguyễn Minh An	junior
+	NV047	Trần Thanh Mai	mid
+	NV048	Chu Bảo Quân	senior
+	NV049	Phạm Khánh Phúc	junior
+	NV050	Hồ Hoài Vy	mid
+‹ Trước
+Trang 1/6 · 300 nhân viên
+Sau ›
+Vùng nguy hiểm: xoá dữ liệu để làm lại
+
+Nạp tệp chỉ thêm nhân viên mới, không xoá nhân viên cũ. Muốn làm lại với bộ dữ liệu khác, hãy xoá ở đây trước, nếu không nhân viên cũ vẫn chiếm chỗ.
+
+Cả hai nút đều tự sao lưu dữ liệu trước khi xoá. Lịch sử các lần sắp xếp được giữ lại.
+
+Xoá toàn bộ nhân viên (giữ dự án)
+Xoá toàn bộ dữ liệu (cả dự án)

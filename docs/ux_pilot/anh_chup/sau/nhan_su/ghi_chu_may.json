@@ -1,0 +1,646 @@
+{
+ "loi_js": [],
+ "so_mau_sheet": [
+  "1. Dự án",
+  "2. Nhân viên",
+  "Hướng dẫn"
+ ],
+ "so_mau_tieu_de": {
+  "1. Dự án": [
+   "Tên CLB",
+   "Buổi",
+   "Chỉ tiêu",
+   "Suất ưu tiên",
+   "Cấp bậc",
+   "Mã CLB"
+  ],
+  "2. Nhân viên": [
+   "Mã HS",
+   "Họ tên",
+   "Cấp bậc",
+   "KPI",
+   "NV1",
+   "NV2",
+   "NV3"
+  ]
+ },
+ "so_mau_huong_dan": [
+  "SỔ NHẬP DỰ ÁN — một tệp duy nhất để nạp vào phần mềm",
+  "Bước 1. Sheet \"1. Dự án\": mỗi dự án một dòng.",
+  "        Cột \"Tên CLB\" (tên dự án) và \"Chỉ tiêu\" (số chỗ) là bắt buộc.",
+  "        Cột \"Buổi\" (quý) chọn trong danh sách thả xuống;",
+  "        chỉ có một quý thì để trống cả cột.",
+  "        Workspace này xếp theo thứ hạng Cấp bậc, nên cột \"Suất ưu tiên\" và cột Cấp bậc ở sheet này",
+  "        không có tác dụng: cứ để trống. Cột \"Mã CLB\" (mã dự án) cũng để trống, phần mềm tự tạo.",
+  "Bước 2. Sheet \"2. Nhân viên\": mỗi nhân viên một dòng.",
+  "        Cột \"Mã HS\" (mã nhân viên) là bắt buộc và không được trùng.",
+  "        Cột Cấp bậc: chỉ điền với nhân viên thuộc nhóm đó.",
+  "Bước 3. Các cột NV1, NV2, NV3… (NV = nguyện vọng): chọn tên dự án trong danh sách thả xuống,",
+  "        theo thứ tự thích nhất trước. Không cần điền kín.",
+  "        Nhiều quý: cứ điền chung một danh sách — phần mềm tự chia",
+  "        theo quý của từng dự án.",
+  "Bước 4. Cột \"KPI\" (đứng sau cột Cấp bậc): KPI của cả người đó, MỘT ô cho cả dòng.",
+  "        Có KPI thì KPI ấy áp cho mọi nguyện vọng của dòng. Để trống = chưa có KPI.",
+  "        Sẽ có KPI nhưng chưa nhập: gõ chữ  thi  rồi nhập KPI sau trong phần mềm.",
+  "Bước 5. Lưu tệp (giữ định dạng .xlsx).",
+  "Bước 6. Mở phần mềm → màn hình Vận hành → kéo tệp này vào ô nạp",
+  "        → xem lại phần tóm tắt → bấm Nhập.",
+  "Sổ có lỗi (dự án trùng tên, NV ghi tên dự án không có, KPI không phải số) thì phần mềm KHÔNG nạp gì cả",
+  "và chỉ rõ sheet, dòng cần sửa.",
+  "Nạp lại sổ đã sửa là cập nhật — không tạo trùng.",
+  "Ví dụ một dòng:",
+  "  Mã HS   Họ tên          KPI   NV1          NV2",
+  "  001   Nguyễn Văn An   9,5      Dự án A    Dự án B",
+  "  → An có KPI 9,5 cho cả hai nguyện vọng: Dự án A rồi Dự án B."
+ ],
+ "thong_bao_tai_so_mau": "Đã tạo sổ nhập (0 dự án điền sẵn) → /tmp/pilot__fo0078p/tai_xuong/SO_NHAP_DU_AN.xlsx\n----\nVận hành sắp xếp\n\nKiểm tra dữ liệu, bốc thăm, xếp nhân viên vào dự án và xuất kết quả.\n\n0\nnhân viên\n0\ndự án\n0\nđã nộp nguyện vọng\n0\nđã xếp dự án\nNhập dữ liệu\nTải sổ nhập mẫu\n\nToàn bộ dữ liệu nằm trong một tệp Excel duy nhất: Sổ nhập dự án. Chưa có sổ thì bấm \"Tải sổ nhập mẫu\", điền danh sách dự án và nhân viên, lưu lại rồi kéo sổ vào ô bên dưới.\n\nKéo Sổ nhập dự án vào đây\nMột tệp Excel (.xlsx). Bấm để chọn tệp.\nNhập sổ\nBỏ tệp\nĐã tạo sổ nhập (0 dự án điền sẵn) → /tmp/pilot__fo0078p/tai_xuong/SO_NHAP_DU_AN.xlsx\nCảnh báo dữ liệu\nKiểm tra lại\n\nNhững điểm dưới đây không chặn việc sắp xếp nhưng có thể làm kết quả sai lệch. Nên xem trước khi chạy.\n\nChưa có dữ liệu để kiểm tra. Bấm \"Tải sổ nhập mẫu\", điền sổ rồi nạp vào ô phía trên.\nCác bước xử lý\nSố khởi tạo bốc thăm\nKiểm tra dữ liệu\nChạy sắp xếp\nChưa bốc thăm lần nào. Lần sắp xếp đầu tiên sẽ bốc thăm và tự khoá kết quả.\nSao lưu dữ liệu\nChưa chạy\nKiểm tra dữ liệu\nChưa chạy\nBốc thăm\nChưa chạy\nXếp nhân viên vào dự án\nChưa chạy\nLưu kết quả\nChưa chạy\nXuất kết quả\nChưa chạy\nLịch sử sắp xếp\nHiện/ẩn",
+ "nhap": "Chưa có dữ liệu để sắp xếp: cần ít nhất một nhân viên và một dự án. Hãy nạp Sổ nhập dự án ở phần \"Nhập dữ liệu\" trước.\n×\nXong: 12 dự án, 300 nhân viên (300 nhân viên mới, 0 bỏ qua)\n----\nVận hành sắp xếp\n\nKiểm tra dữ liệu, bốc thăm, xếp nhân viên vào dự án và xuất kết quả.\n\n300\nnhân viên\n12\ndự án\n300\nđã nộp nguyện vọng\n0\nđã xếp dự án\nNhập dữ liệu\nTải sổ nhập mẫu\n\nToàn bộ dữ liệu nằm trong một tệp Excel duy nhất: Sổ nhập dự án. Chưa có sổ thì bấm \"Tải sổ nhập mẫu\", điền danh sách dự án và nhân viên, lưu lại rồi kéo sổ vào ô bên dưới.\n\nKéo Sổ nhập dự án vào đây\nMột tệp Excel (.xlsx). Bấm để chọn tệp.\nSO_NHAP.xlsx\nXong: 12 dự án, 300 nhân viên (300 nhân viên mới, 0 bỏ qua)\nBỏ tệp\nXong: 12 dự án, 300 nhân viên (300 nhân viên mới, 0 bỏ qua)\nCảnh báo dữ liệu\nKiểm tra lại\n\nNhững điểm dưới đây không chặn việc sắp xếp nhưng có thể làm kết quả sai lệch. Nên xem trước khi chạy.\n\nKhông thấy vấn đề nào. Dữ liệu đã sẵn sàng.\nCác bước xử lý\nSố khởi tạo bốc thăm\nKiểm tra dữ liệu\nChạy sắp xếp\nChưa bốc thăm lần nào. Lần sắp xếp đầu tiên sẽ bốc thăm và tự khoá kết quả.\nSao lưu dữ liệu\nChưa chạy\nKiểm tra dữ liệu\nChưa chạy\nBốc thăm\nChưa chạy\nXếp nhân viên vào dự án\nChưa chạy\nLưu kết quả\nChưa chạy\nXuất kết quả\nChưa chạy\nLịch sử sắp xếp\nHiện/ẩn",
+ "chay": "Chưa có dữ liệu để sắp xếp: cần ít nhất một nhân viên và một dự án. Hãy nạp Sổ nhập dự án ở phần \"Nhập dữ liệu\" trước.\n×\nSắp xếp xong: 289/300 nhân viên có dự án, sau 3 vòng.\n----\nVận hành sắp xếp\n\nKiểm tra dữ liệu, bốc thăm, xếp nhân viên vào dự án và xuất kết quả.\n\n300\nnhân viên\n12\ndự án\n300\nđã nộp nguyện vọng\n289\nđã xếp dự án\nNhập dữ liệu\nTải sổ nhập mẫu\n\nToàn bộ dữ liệu nằm trong một tệp Excel duy nhất: Sổ nhập dự án. Chưa có sổ thì bấm \"Tải sổ nhập mẫu\", điền danh sách dự án và nhân viên, lưu lại rồi kéo sổ vào ô bên dưới.\n\nKéo Sổ nhập dự án vào đây\nMột tệp Excel (.xlsx). Bấm để chọn tệp.\nSO_NHAP.xlsx\nXong: 12 dự án, 300 nhân viên (300 nhân viên mới, 0 bỏ qua)\nBỏ tệp\nCảnh báo dữ liệu\nKiểm tra lại\n\nNhững điểm dưới đây không chặn việc sắp xếp nhưng có thể làm kết quả sai lệch. Nên xem trước khi chạy.\n\nKhông thấy vấn đề nào. Dữ liệu đã sẵn sàng.\nCác bước xử lý\nSố khởi tạo bốc thăm\nKiểm tra dữ liệu\nChạy sắp xếp\nSố bốc thăm đã khoá từ 2026-10-15T01:26:20. Các lần sắp xếp sau giữ nguyên thứ tự cũ, nhân viên mới được xếp ngẫu nhiên vào.\nBốc thăm lại…\nSố khởi tạo 42 được khoá cùng số bốc thăm. Muốn đổi, bấm \"Bốc thăm lại…\".\nSao lưu dữ liệu\nĐã sao lưu dữ liệu trước khi sắp xếp: app.db.bak-20261015_012620_907353\nKiểm tra dữ liệu\nHoàn tất\nBốc thăm\nĐã bốc thăm cho 300 nhân viên và khoá kết quả bốc thăm.\nXếp nhân viên vào dự án\nHoàn tất sau 3 vòng, không có lỗi.\nLưu kết quả\nHoàn tất\nXuất kết quả\n/tmp/pilot__fo0078p/app/workspaces/nhan-su-chia-nhan-vien-vao-du-an/match_results.csv\nLịch sử sắp xếp\nHiện/ẩn",
+ "ket_qua_mo_rong": "Chưa có dữ liệu để sắp xếp: cần ít nhất một nhân viên và một dự án. Hãy nạp Sổ nhập dự án ở phần \"Nhập dữ liệu\" trước.\n×\n----\nKết quả\n\nNhân viên đã được xếp vào dự án nào và mỗi dự án đã đủ chỗ chưa.\n\nThu gọn tất cả\nTóm tắt lần xếp\nLần chạy gần nhất: 2026-10-15T01:26:20 · số khởi tạo 42\nNhân viên đã có chỗ\n289/300\n96,3% nhân viên\nĐược nguyện vọng 1\n90,3%\n100% trong 3 nguyện vọng đầu\nChỗ còn trống\n41\ntrên tổng 330 chỗ\nNhân viên chưa có chỗ nào\n11\n⚠ Cần xử lý\nXuất dữ liệu\nKết quả sắp xếp: một tệp Excel (danh sách nhân viên, từng dự án, nhân viên chưa có chỗ, thống kê)\nKèm các tệp CSV rời (chỉ cần khi đổ số liệu vào phần mềm khác)\nDữ liệu đầu vào hiện tại: một Sổ nhập dự án nạp lại được\nThay đổi so với lần chạy trước\n(chưa có lần chạy trước để so sánh)\nHồ sơ nhân viên đã chọn\n(chưa chọn nhân viên nào)\nChọn nhân viên…\nXuất các mục đã chọn\n\nHồ sơ nhân viên: bấm \"Chọn nhân viên…\" rồi đánh dấu nhân viên ở bảng bên dưới. Đang mở một nhân viên ở thẻ 03 thì bấm \"Xuất CSV nhân viên này\" ngay tại đó.\n\nTệp xuất có KPI chấm và số bốc thăm. Không gửi các tệp này cho người chấm KPI.\n\nMức lấp đầy của từng dự án\n12 dự án\nSắp xếp\nTheo quý\nĐầy nhất\nVắng nhất\nChọi cao nhất\n\nRê chuột (hoặc dùng bàn phím di tới) một dòng để xem chi tiết. Nhãn bên phải chỉ ra dự án cần để ý.\n\nDự án Báo cáo quản trị\n16/20\n80%\nchọi 1,5×\nDự án Bảo mật và tuân thủ\n29/29\n100%\nchọi 2,62×\nDự án Cổng tuyển dụng nội bộ\n20/32\n62,5%\nchọi 1,47×\nDự án Hạ tầng đám mây\n22/22\n100%\nchọi 2,09×\nDự án Kho dữ liệu doanh nghiệp\n28/33\n84,8%\nchọi 1,33×\nDự án Phân tích kinh doanh\n29/29\n100%\nchọi 1,76×\nDự án Quản lý kho vận\n26/26\n100%\nchọi 3,19×\nDự án Tích hợp ERP\n26/26\n100%\nchọi 2,04×\nDự án Trải nghiệm người dùng\n32/32\n100%\nchọi 1,69×\nDự án Trợ lý ảo nội bộ\n25/25\n100%\nchọi 1,84×\nDự án Tự động hoá kiểm thử\n21/21\n100%\nchọi 2,33×\nDự án Ứng dụng di động\n15/35\n42,9%\nchọi 1×\n○ Còn nhiều chỗ\nĐã xếp Còn trống\nTheo từng dự án\n12 dự án\n\nKhông cộng dồn cột \"Số nhân viên đăng ký\": một nhân viên chọn ba dự án trong cùng quý sẽ được đếm ở cả ba dòng, nhưng chỉ nhận được một chỗ.\n\nMÃ DỰ ÁN\tTÊN\tSỐ NHÂN VIÊN ĐĂNG KÝ\tĐẶT NGUYỆN VỌNG 1\tTỔNG CHỖ\tĐÃ XẾP\tTỈ LỆ CHỌI\t\nMỨC\n\nda_baocaoquantri\tDự án Báo cáo quản trị\t30\t15\t20\t16\t1,5\tXem danh sách\nda_baomatvatuanthu\tDự án Bảo mật và tuân thủ\t76\t36\t29\t29\t2,62\tXem danh sách\nda_congtuyendungnoibo\tDự án Cổng tuyển dụng nội bộ\t47\t16\t32\t20\t1,47\tXem danh sách\nda_hatangdammay\tDự án Hạ tầng đám mây\t46\t18\t22\t22\t2,09\tXem danh sách\nda_khodulieudoanhnghiep\tDự án Kho dữ liệu doanh nghiệp\t44\t25\t33\t28\t1,33\tXem danh sách\nda_phantichkinhdoanh\tDự án Phân tích kinh doanh\t51\t27\t29\t29\t1,76\tXem danh sách\nda_quanlykhovan\tDự án Quản lý kho vận\t83\t48\t26\t26\t3,19\tXem danh sách\nda_tichhoperp\tDự án Tích hợp ERP\t53\t26\t26\t26\t2,04\tXem danh sách\nda_trainghiemnguoidung\tDự án Trải nghiệm người dùng\t54\t34\t32\t32\t1,69\tXem danh sách\nda_trolyaonoibo\tDự án Trợ lý ảo nội bộ\t46\t23\t25\t25\t1,84\tXem danh sách\nda_tudonghoakiemthu\tDự án Tự động hoá kiểm thử\t49\t19\t21\t21\t2,33\tXem danh sách\nda_ungdungdidong\tDự án Ứng dụng di động\t35\t13\t35\t15\t1\tXem danh sách\nMức đáp ứng nguyện vọng\n289 chỗ đã xếp\n\nSố nhân viên có chỗ chưa cho biết chỗ đó có đúng nguyện vọng hay không. Bảng này cho biết điều đó.\n\n90,3% chỗ đã xếp là nguyện vọng 1 · 100% nằm trong 3 nguyện vọng đầu\n\n90,3%\nnguyện vọng 1\nNguyện vọng 1\n90,3%\nNguyện vọng 2\n9,7%\nNguyện vọng 3\n0%\nNguyện vọng 4 trở lên\n0%\nNguyện vọng 1\n261 · 90,3%\nNguyện vọng 2\n28 · 9,7%\nNguyện vọng 3\n0 · 0%\nNguyện vọng 4 trở lên\n0 · 0%\nNhân viên chưa có dự án nào\n11 nhân viên\n\nNhân viên chỉ chọn một dự án đông người và nhân viên chọn nhiều dự án nhưng vẫn chưa có chỗ là hai trường hợp khác nhau, cần cách xử lý khác nhau.\n\nMÃ NHÂN VIÊN\tHỌ TÊN\tSỐ NGUYỆN VỌNG\tCÁC DỰ ÁN ĐÃ CHỌN\nNV078\tVũ Minh Phúc\t1\tDự án Quản lý kho vận 3,19\nNV088\tTrần Minh Tuấn\t2\tDự án Tự động hoá kiểm thử 2,33 Dự án Trải nghiệm người dùng 1,69\nNV116\tĐặng Khánh Ngân\t1\tDự án Tự động hoá kiểm thử 2,33\nNV135\tTrịnh Văn Dũng\t1\tDự án Bảo mật và tuân thủ 2,62\nNV153\tLý Thị Bình\t1\tDự án Bảo mật và tuân thủ 2,62\nNV241\tHồ Quốc Uyên\t1\tDự án Quản lý kho vận 3,19\nNV247\tBùi Hoài Nam\t2\tDự án Trải nghiệm người dùng 1,69 Dự án Quản lý kho vận 3,19\nNV270\tVũ Hoài Sương\t1\tDự án Quản lý kho vận 3,19\nNV278\tLê Bảo Nam\t2\tDự án Bảo mật và tuân thủ 2,62 Dự án Tích hợp ERP 2,04\nNV282\tMai Minh Yến\t3\tDự án Trải nghiệm người dùng 1,69 Dự án Tự động hoá kiểm thử 2,33 Dự án Bảo mật và tuân thủ 2,62\nNV288\tĐặng Văn Chi\t1\tDự án Quản lý kho vận 3,19\nDanh sách xếp dự án\n300 dòng\n11 nhân viên chưa có dự án\nChưa chọn nhân viên nào. Đánh dấu ở cột đầu bảng.\nXuất CSV nhân viên đã chọn\nBỏ chọn\n\tMÃ NHÂN VIÊN\tHỌ TÊN\tDỰ ÁN\tLOẠI CHỖ\tHẠNG NGUYỆN VỌNG\n\tNV001\tTạ Bảo Linh\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV002\tNgô Văn An\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV003\tHoàng Hoài Giang\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV004\tVũ Hoài An\tDự án Tự động hoá kiểm thử\tTổng quát\t2\n\tNV005\tHồ Bảo Khanh\tDự án Hạ tầng đám mây\tTổng quát\t2\n\tNV006\tNgô Văn Dũng\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV007\tĐỗ Khánh Phúc\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV008\tVũ Anh Việt\tDự án Báo cáo quản trị\tTổng quát\t1\n\tNV009\tLê Bảo Tuấn\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV010\tĐặng Quốc Nhi\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV011\tHoàng Quốc Linh\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV012\tChu Quốc Yến\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV013\tPhan Văn Huy\tDự án Báo cáo quản trị\tTổng quát\t1\n\tNV014\tBùi Quốc Khanh\tDự án Hạ tầng đám mây\tTổng quát\t2\n\tNV015\tPhan Minh Quân\tDự án Tích hợp ERP\tTổng quát\t2\n\tNV016\tTrần Văn Khanh\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV017\tVũ Bảo Dũng\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV018\tTrần Khánh Uyên\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV019\tNgô Anh Uyên\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV020\tĐỗ Khánh Lan\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV021\tLê Bảo Khanh\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV022\tVũ Gia Huy\tDự án Phân tích kinh doanh\tTổng quát\t2\n\tNV023\tTạ Bảo Thảo\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV024\tTrần Minh Giang\tDự án Ứng dụng di động\tTổng quát\t1\n\tNV025\tTrần Anh Vy\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV026\tBùi Bảo Yến\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV027\tDương Hoài Lan\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV028\tVũ Quốc Tuấn\tDự án Ứng dụng di động\tTổng quát\t1\n\tNV029\tĐặng Thanh Bình\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV030\tNgô Thanh Giang\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV031\tPhạm Minh Sương\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV032\tChu Bảo An\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV033\tBùi Anh Nhi\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV034\tTrịnh Thị Tuấn\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV035\tĐặng Khánh Yến\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV036\tTrần Khánh Bình\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV037\tNgô Quốc Lan\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV038\tHồ Anh Mai\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV039\tBùi Anh Ngân\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV040\tPhan Minh Huy\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV041\tLê Minh Khanh\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t2\n\tNV042\tBùi Quốc An\tDự án Báo cáo quản trị\tTổng quát\t1\n\tNV043\tBùi Thanh Giang\tDự án Báo cáo quản trị\tTổng quát\t2\n\tNV044\tBùi Khánh Dũng\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV045\tLý Gia Giang\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV046\tNguyễn Minh An\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV047\tTrần Thanh Mai\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV048\tChu Bảo Quân\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV049\tPhạm Khánh Phúc\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV050\tHồ Hoài Vy\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV051\tTạ Anh Xuân\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV052\tNguyễn Thị Vy\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV053\tPhan Quốc Xuân\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV054\tNgô Bảo Nam\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV055\tLý Anh Phúc\tDự án Trợ lý ảo nội bộ\tTổng quát\t2\n\tNV056\tDương Khánh Khanh\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV057\tHoàng Thị Hà\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV058\tNgô Anh Bình\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV059\tTrần Quốc Việt\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV060\tHồ Khánh Mai\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV061\tLê Anh Linh\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV062\tLê Hoài Tuấn\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV063\tChu Văn Linh\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV064\tTrịnh Gia Uyên\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV065\tNgô Văn Yến\tDự án Báo cáo quản trị\tTổng quát\t1\n\tNV066\tNguyễn Hoài Bình\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV067\tHoàng Quốc Quân\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV068\tMai Anh Uyên\tDự án Báo cáo quản trị\tTổng quát\t1\n\tNV069\tChu Thanh An\tDự án Báo cáo quản trị\tTổng quát\t1\n\tNV070\tVũ Quốc Thảo\tDự án Báo cáo quản trị\tTổng quát\t1\n\tNV071\tNgô Văn Yến\tDự án Ứng dụng di động\tTổng quát\t1\n\tNV072\tNgô Thị Vy\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV073\tHồ Anh Phúc\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV074\tTrần Anh Giang\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV075\tNgô Bảo Thảo\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV076\tTạ Bảo Mai\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV077\tTạ Minh Xuân\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV078\tVũ Minh Phúc\tKhông xếp được\t—\t—\n\tNV079\tNgô Minh Yến\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV080\tNgô Gia Việt\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV081\tTrịnh Gia Nam\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV082\tPhan Gia Hà\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV083\tTrần Văn Mai\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV084\tTrịnh Thanh Lan\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV085\tHoàng Khánh Sương\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV086\tHồ Khánh Linh\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV087\tVũ Thanh Yến\tDự án Trải nghiệm người dùng\tTổng quát\t2\n\tNV088\tTrần Minh Tuấn\tKhông xếp được\t—\t—\n\tNV089\tMai Gia Khanh\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV090\tĐặng Khánh Giang\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV091\tBùi Gia Bình\tDự án Ứng dụng di động\tTổng quát\t1\n\tNV092\tDương Khánh Mai\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV093\tVũ Bảo Bình\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV094\tVũ Văn Vy\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV095\tBùi Văn Lan\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV096\tDương Thị Yến\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV097\tBùi Anh Chi\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV098\tChu Quốc Bình\tDự án Bảo mật và tuân thủ\tTổng quát\t2\n\tNV099\tTạ Văn Chi\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV100\tTạ Minh Yến\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV101\tBùi Quốc Ngân\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV102\tTrần Hoài Quân\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV103\tChu Gia Phúc\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV104\tVũ Thanh Sương\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV105\tHồ Thị Uyên\tDự án Báo cáo quản trị\tTổng quát\t1\n\tNV106\tĐỗ Thị Vy\tDự án Tự động hoá kiểm thử\tTổng quát\t2\n\tNV107\tTrịnh Thị Vy\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV108\tMai Thanh Yến\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV109\tTrần Thanh Bình\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV110\tMai Văn An\tDự án Ứng dụng di động\tTổng quát\t2\n\tNV111\tĐỗ Anh Tuấn\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV112\tTạ Quốc Bình\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV113\tMai Bảo Bình\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV114\tĐặng Thanh Nam\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV115\tLý Văn Yến\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV116\tĐặng Khánh Ngân\tKhông xếp được\t—\t—\n\tNV117\tLý Hoài An\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV118\tLê Khánh Lan\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV119\tHoàng Bảo Nam\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV120\tTạ Minh Linh\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV121\tHoàng Hoài Nhi\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV122\tHồ Minh Yến\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t2\n\tNV123\tTrịnh Khánh Nhi\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV124\tMai Thị Quân\tDự án Ứng dụng di động\tTổng quát\t1\n\tNV125\tTạ Hoài Quân\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV126\tTạ Minh Ngân\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV127\tDương Anh Việt\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV128\tVũ Quốc Mai\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV129\tTrịnh Quốc Hà\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV130\tTạ Văn Vy\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV131\tBùi Gia Vy\tDự án Tự động hoá kiểm thử\tTổng quát\t2\n\tNV132\tChu Thị Giang\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV133\tNgô Hoài Nhi\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV134\tHồ Thị Uyên\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV135\tTrịnh Văn Dũng\tKhông xếp được\t—\t—\n\tNV136\tVũ Văn Nhi\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV137\tPhan Minh Sương\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV138\tHồ Gia Yến\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t2\n\tNV139\tBùi Thanh Xuân\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV140\tBùi Quốc Yến\tDự án Báo cáo quản trị\tTổng quát\t1\n\tNV141\tLê Văn Lan\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV142\tHoàng Thanh Nam\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV143\tVũ Thị An\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t2\n\tNV144\tChu Thị Lan\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV145\tNguyễn Văn An\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV146\tPhạm Thanh Linh\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV147\tDương Anh Khanh\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV148\tĐặng Bảo Dũng\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV149\tPhạm Thanh Giang\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV150\tPhạm Minh Dũng\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV151\tĐỗ Khánh Giang\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV152\tTrần Gia Giang\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV153\tLý Thị Bình\tKhông xếp được\t—\t—\n\tNV154\tDương Quốc Phúc\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV155\tTạ Quốc Ngân\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV156\tBùi Bảo Uyên\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV157\tNguyễn Khánh Việt\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV158\tLý Minh Nam\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV159\tVũ Hoài Yến\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV160\tĐặng Anh Bình\tDự án Ứng dụng di động\tTổng quát\t1\n\tNV161\tLý Quốc An\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV162\tBùi Minh Quân\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV163\tMai Văn Phúc\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV164\tMai Minh Bình\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV165\tNgô Thị Yến\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV166\tBùi Thanh Bình\tDự án Hạ tầng đám mây\tTổng quát\t2\n\tNV167\tHoàng Thị Quân\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV168\tĐặng Thanh Nam\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV169\tPhạm Bảo Uyên\tDự án Báo cáo quản trị\tTổng quát\t1\n\tNV170\tNgô Khánh An\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV171\tLê Gia Quân\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV172\tTrần Gia Bình\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV173\tHồ Khánh Hà\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV174\tNguyễn Quốc Giang\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV175\tChu Anh Nhi\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV176\tDương Gia Giang\tDự án Ứng dụng di động\tTổng quát\t1\n\tNV177\tTrần Anh Thảo\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV178\tTạ Minh Linh\tDự án Báo cáo quản trị\tTổng quát\t1\n\tNV179\tLê Quốc Huy\tDự án Ứng dụng di động\tTổng quát\t1\n\tNV180\tVũ Khánh Yến\tDự án Báo cáo quản trị\tTổng quát\t1\n\tNV181\tTrần Thanh Huy\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV182\tDương Quốc Vy\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV183\tHoàng Gia Vy\tDự án Ứng dụng di động\tTổng quát\t1\n\tNV184\tĐặng Thị Uyên\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV185\tPhạm Bảo Dũng\tDự án Báo cáo quản trị\tTổng quát\t1\n\tNV186\tPhạm Anh Linh\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV187\tHồ Khánh Phúc\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV188\tTrịnh Bảo Nhi\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV189\tVũ Anh Nhi\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV190\tBùi Khánh Tuấn\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV191\tChu Quốc Sương\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV192\tMai Văn Dũng\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV193\tBùi Quốc Nam\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV194\tMai Minh Thảo\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV195\tPhạm Quốc Quân\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV196\tLý Thanh Nhi\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV197\tLý Thanh Yến\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV198\tPhan Thanh Mai\tDự án Tự động hoá kiểm thử\tTổng quát\t2\n\tNV199\tDương Gia Uyên\tDự án Phân tích kinh doanh\tTổng quát\t2\n\tNV200\tLý Thanh Bình\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV201\tĐỗ Bảo Quân\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV202\tTrần Anh Linh\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV203\tLý Khánh Ngân\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV204\tPhạm Hoài Lan\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV205\tTạ Thanh An\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV206\tLý Văn Chi\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV207\tLê Anh Bình\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV208\tTạ Bảo Yến\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV209\tLê Bảo Huy\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV210\tTrịnh Thanh Chi\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV211\tDương Anh Giang\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV212\tMai Thanh Dũng\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV213\tĐặng Anh Huy\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV214\tBùi Anh Linh\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV215\tBùi Văn Linh\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV216\tLê Thanh Lan\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV217\tVũ Minh Ngân\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV218\tHoàng Văn Hà\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV219\tBùi Hoài Xuân\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV220\tPhan Minh Xuân\tDự án Báo cáo quản trị\tTổng quát\t1\n\tNV221\tPhan Thanh Phúc\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV222\tLê Bảo Xuân\tDự án Ứng dụng di động\tTổng quát\t2\n\tNV223\tNgô Bảo Uyên\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV224\tPhạm Gia Quân\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV225\tPhan Thị Chi\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV226\tChu Bảo Huy\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV227\tĐỗ Thanh An\tDự án Ứng dụng di động\tTổng quát\t1\n\tNV228\tTạ Thị Tuấn\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV229\tTrịnh Anh An\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV230\tLê Thanh Hà\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV231\tHồ Minh Dũng\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV232\tChu Bảo Nhi\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV233\tNguyễn Văn Linh\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV234\tTrịnh Minh Việt\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV235\tHoàng Thanh Uyên\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t2\n\tNV236\tNgô Khánh An\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV237\tĐặng Anh Mai\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV238\tTrịnh Khánh Vy\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV239\tTạ Văn An\tDự án Trợ lý ảo nội bộ\tTổng quát\t2\n\tNV240\tLý Quốc Quân\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV241\tHồ Quốc Uyên\tKhông xếp được\t—\t—\n\tNV242\tPhan Bảo Xuân\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV243\tNgô Bảo Yến\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV244\tNgô Minh Thảo\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV245\tTrần Bảo Nhi\tDự án Báo cáo quản trị\tTổng quát\t1\n\tNV246\tĐỗ Quốc Nhi\tDự án Tự động hoá kiểm thử\tTổng quát\t2\n\tNV247\tBùi Hoài Nam\tKhông xếp được\t—\t—\n\tNV248\tTrần Văn Ngân\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV249\tNgô Văn Sương\tDự án Ứng dụng di động\tTổng quát\t1\n\tNV250\tHồ Quốc An\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV251\tTạ Minh Xuân\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV252\tNgô Văn Ngân\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV253\tTrần Anh Lan\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV254\tPhạm Anh Ngân\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV255\tLý Khánh Phúc\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV256\tHoàng Bảo An\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV257\tNgô Khánh Việt\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV258\tĐặng Thị Bình\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV259\tTrần Khánh Uyên\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV260\tTrần Thanh Nhi\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV261\tPhan Khánh Linh\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV262\tBùi Gia Linh\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV263\tĐỗ Thanh Huy\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV264\tTrịnh Văn Chi\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV265\tTạ Thị Hà\tDự án Trải nghiệm người dùng\tTổng quát\t2\n\tNV266\tTrần Bảo Nhi\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV267\tHoàng Hoài Mai\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t2\n\tNV268\tVũ Khánh Chi\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV269\tNgô Minh Huy\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV270\tVũ Hoài Sương\tKhông xếp được\t—\t—\n\tNV271\tMai Khánh Quân\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV272\tTrần Gia Tuấn\tDự án Trải nghiệm người dùng\tTổng quát\t2\n\tNV273\tChu Minh Quân\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t2\n\tNV274\tLý Minh Thảo\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV275\tHoàng Minh Giang\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV276\tMai Gia Huy\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV277\tHoàng Văn Linh\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV278\tLê Bảo Nam\tKhông xếp được\t—\t—\n\tNV279\tChu Thị Sương\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV280\tBùi Bảo Huy\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV281\tNgô Thị Mai\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV282\tMai Minh Yến\tKhông xếp được\t—\t—\n\tNV283\tHồ Thị Giang\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV284\tHồ Quốc Mai\tDự án Hạ tầng đám mây\tTổng quát\t2\n\tNV285\tDương Khánh Giang\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV286\tTrần Thị Tuấn\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV287\tNguyễn Anh Uyên\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV288\tĐặng Văn Chi\tKhông xếp được\t—\t—\n\tNV289\tTrịnh Anh Giang\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV290\tLý Quốc Sương\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV291\tDương Thanh Quân\tDự án Ứng dụng di động\tTổng quát\t1\n\tNV292\tMai Thị Việt\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV293\tHoàng Anh Yến\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV294\tLê Anh An\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV295\tĐặng Khánh Thảo\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV296\tMai Hoài Giang\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV297\tNguyễn Anh Sương\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV298\tNgô Quốc Tuấn\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV299\tChu Quốc Việt\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV300\tNguyễn Bảo Sương\tDự án Ứng dụng di động\tTổng quát\t1",
+ "xuat": "Chưa có dữ liệu để sắp xếp: cần ít nhất một nhân viên và một dự án. Hãy nạp Sổ nhập dự án ở phần \"Nhập dữ liệu\" trước.\n×\nĐã xuất kết quả của 300 nhân viên ra một tệp Excel: /tmp/pilot__fo0078p/tai_xuong/ket_qua_phan_bo.xlsx\nGồm 6 trang: Hướng dẫn, Danh sách nhân viên, Theo dự án, Chưa có chỗ, Thống kê, Dấu vết (kỹ thuật).\n----\nKết quả\n\nNhân viên đã được xếp vào dự án nào và mỗi dự án đã đủ chỗ chưa.\n\nThu gọn tất cả\nTóm tắt lần xếp\nLần chạy gần nhất: 2026-10-15T01:26:20 · số khởi tạo 42\nNhân viên đã có chỗ\n289/300\n96,3% nhân viên\nĐược nguyện vọng 1\n90,3%\n100% trong 3 nguyện vọng đầu\nChỗ còn trống\n41\ntrên tổng 330 chỗ\nNhân viên chưa có chỗ nào\n11\n⚠ Cần xử lý\nXuất dữ liệu\nKết quả sắp xếp: một tệp Excel (danh sách nhân viên, từng dự án, nhân viên chưa có chỗ, thống kê)\nKèm các tệp CSV rời (chỉ cần khi đổ số liệu vào phần mềm khác)\nDữ liệu đầu vào hiện tại: một Sổ nhập dự án nạp lại được\nThay đổi so với lần chạy trước\n(chưa có lần chạy trước để so sánh)\nHồ sơ nhân viên đã chọn\n(chưa chọn nhân viên nào)\nChọn nhân viên…\nXuất các mục đã chọn\nĐã xuất kết quả của 300 nhân viên ra một tệp Excel: /tmp/pilot__fo0078p/tai_xuong/ket_qua_phan_bo.xlsx\nGồm 6 trang: Hướng dẫn, Danh sách nhân viên, Theo dự án, Chưa có chỗ, Thống kê, Dấu vết (kỹ thuật).\nDữ liệu đầu vào (Sổ nhập dự án) → /tmp/pilot__fo0078p/tai_xuong/SO_NHAP_DU_AN_20261015_0126.xlsx\nMở thư mục\n\nHồ sơ nhân viên: bấm \"Chọn nhân viên…\" rồi đánh dấu nhân viên ở bảng bên dưới. Đang mở một nhân viên ở thẻ 03 thì bấm \"Xuất CSV nhân viên này\" ngay tại đó.\n\nTệp xuất có KPI chấm và số bốc thăm. Không gửi các tệp này cho người chấm KPI.\n\nMức lấp đầy của từng dự án\n12 dự án\nSắp xếp\nTheo quý\nĐầy nhất\nVắng nhất\nChọi cao nhất\n\nRê chuột (hoặc dùng bàn phím di tới) một dòng để xem chi tiết. Nhãn bên phải chỉ ra dự án cần để ý.\n\nDự án Báo cáo quản trị\n16/20\n80%\nchọi 1,5×\nDự án Bảo mật và tuân thủ\n29/29\n100%\nchọi 2,62×\nDự án Cổng tuyển dụng nội bộ\n20/32\n62,5%\nchọi 1,47×\nDự án Hạ tầng đám mây\n22/22\n100%\nchọi 2,09×\nDự án Kho dữ liệu doanh nghiệp\n28/33\n84,8%\nchọi 1,33×\nDự án Phân tích kinh doanh\n29/29\n100%\nchọi 1,76×\nDự án Quản lý kho vận\n26/26\n100%\nchọi 3,19×\nDự án Tích hợp ERP\n26/26\n100%\nchọi 2,04×\nDự án Trải nghiệm người dùng\n32/32\n100%\nchọi 1,69×\nDự án Trợ lý ảo nội bộ\n25/25\n100%\nchọi 1,84×\nDự án Tự động hoá kiểm thử\n21/21\n100%\nchọi 2,33×\nDự án Ứng dụng di động\n15/35\n42,9%\nchọi 1×\n○ Còn nhiều chỗ\nĐã xếp Còn trống\nTheo từng dự án\n12 dự án\n\nKhông cộng dồn cột \"Số nhân viên đăng ký\": một nhân viên chọn ba dự án trong cùng quý sẽ được đếm ở cả ba dòng, nhưng chỉ nhận được một chỗ.\n\nMÃ DỰ ÁN\tTÊN\tSỐ NHÂN VIÊN ĐĂNG KÝ\tĐẶT NGUYỆN VỌNG 1\tTỔNG CHỖ\tĐÃ XẾP\tTỈ LỆ CHỌI\t\nMỨC\n\nda_baocaoquantri\tDự án Báo cáo quản trị\t30\t15\t20\t16\t1,5\tXem danh sách\nda_baomatvatuanthu\tDự án Bảo mật và tuân thủ\t76\t36\t29\t29\t2,62\tXem danh sách\nda_congtuyendungnoibo\tDự án Cổng tuyển dụng nội bộ\t47\t16\t32\t20\t1,47\tXem danh sách\nda_hatangdammay\tDự án Hạ tầng đám mây\t46\t18\t22\t22\t2,09\tXem danh sách\nda_khodulieudoanhnghiep\tDự án Kho dữ liệu doanh nghiệp\t44\t25\t33\t28\t1,33\tXem danh sách\nda_phantichkinhdoanh\tDự án Phân tích kinh doanh\t51\t27\t29\t29\t1,76\tXem danh sách\nda_quanlykhovan\tDự án Quản lý kho vận\t83\t48\t26\t26\t3,19\tXem danh sách\nda_tichhoperp\tDự án Tích hợp ERP\t53\t26\t26\t26\t2,04\tXem danh sách\nda_trainghiemnguoidung\tDự án Trải nghiệm người dùng\t54\t34\t32\t32\t1,69\tXem danh sách\nda_trolyaonoibo\tDự án Trợ lý ảo nội bộ\t46\t23\t25\t25\t1,84\tXem danh sách\nda_tudonghoakiemthu\tDự án Tự động hoá kiểm thử\t49\t19\t21\t21\t2,33\tXem danh sách\nda_ungdungdidong\tDự án Ứng dụng di động\t35\t13\t35\t15\t1\tXem danh sách\nMức đáp ứng nguyện vọng\n289 chỗ đã xếp\n\nSố nhân viên có chỗ chưa cho biết chỗ đó có đúng nguyện vọng hay không. Bảng này cho biết điều đó.\n\n90,3% chỗ đã xếp là nguyện vọng 1 · 100% nằm trong 3 nguyện vọng đầu\n\n90,3%\nnguyện vọng 1\nNguyện vọng 1\n90,3%\nNguyện vọng 2\n9,7%\nNguyện vọng 3\n0%\nNguyện vọng 4 trở lên\n0%\nNguyện vọng 1\n261 · 90,3%\nNguyện vọng 2\n28 · 9,7%\nNguyện vọng 3\n0 · 0%\nNguyện vọng 4 trở lên\n0 · 0%\nNhân viên chưa có dự án nào\n11 nhân viên\n\nNhân viên chỉ chọn một dự án đông người và nhân viên chọn nhiều dự án nhưng vẫn chưa có chỗ là hai trường hợp khác nhau, cần cách xử lý khác nhau.\n\nMÃ NHÂN VIÊN\tHỌ TÊN\tSỐ NGUYỆN VỌNG\tCÁC DỰ ÁN ĐÃ CHỌN\nNV078\tVũ Minh Phúc\t1\tDự án Quản lý kho vận 3,19\nNV088\tTrần Minh Tuấn\t2\tDự án Tự động hoá kiểm thử 2,33 Dự án Trải nghiệm người dùng 1,69\nNV116\tĐặng Khánh Ngân\t1\tDự án Tự động hoá kiểm thử 2,33\nNV135\tTrịnh Văn Dũng\t1\tDự án Bảo mật và tuân thủ 2,62\nNV153\tLý Thị Bình\t1\tDự án Bảo mật và tuân thủ 2,62\nNV241\tHồ Quốc Uyên\t1\tDự án Quản lý kho vận 3,19\nNV247\tBùi Hoài Nam\t2\tDự án Trải nghiệm người dùng 1,69 Dự án Quản lý kho vận 3,19\nNV270\tVũ Hoài Sương\t1\tDự án Quản lý kho vận 3,19\nNV278\tLê Bảo Nam\t2\tDự án Bảo mật và tuân thủ 2,62 Dự án Tích hợp ERP 2,04\nNV282\tMai Minh Yến\t3\tDự án Trải nghiệm người dùng 1,69 Dự án Tự động hoá kiểm thử 2,33 Dự án Bảo mật và tuân thủ 2,62\nNV288\tĐặng Văn Chi\t1\tDự án Quản lý kho vận 3,19\nDanh sách xếp dự án\n300 dòng\n11 nhân viên chưa có dự án\nChưa chọn nhân viên nào. Đánh dấu ở cột đầu bảng.\nXuất CSV nhân viên đã chọn\nBỏ chọn\n\tMÃ NHÂN VIÊN\tHỌ TÊN\tDỰ ÁN\tLOẠI CHỖ\tHẠNG NGUYỆN VỌNG\n\tNV001\tTạ Bảo Linh\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV002\tNgô Văn An\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV003\tHoàng Hoài Giang\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV004\tVũ Hoài An\tDự án Tự động hoá kiểm thử\tTổng quát\t2\n\tNV005\tHồ Bảo Khanh\tDự án Hạ tầng đám mây\tTổng quát\t2\n\tNV006\tNgô Văn Dũng\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV007\tĐỗ Khánh Phúc\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV008\tVũ Anh Việt\tDự án Báo cáo quản trị\tTổng quát\t1\n\tNV009\tLê Bảo Tuấn\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV010\tĐặng Quốc Nhi\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV011\tHoàng Quốc Linh\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV012\tChu Quốc Yến\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV013\tPhan Văn Huy\tDự án Báo cáo quản trị\tTổng quát\t1\n\tNV014\tBùi Quốc Khanh\tDự án Hạ tầng đám mây\tTổng quát\t2\n\tNV015\tPhan Minh Quân\tDự án Tích hợp ERP\tTổng quát\t2\n\tNV016\tTrần Văn Khanh\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV017\tVũ Bảo Dũng\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV018\tTrần Khánh Uyên\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV019\tNgô Anh Uyên\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV020\tĐỗ Khánh Lan\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV021\tLê Bảo Khanh\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV022\tVũ Gia Huy\tDự án Phân tích kinh doanh\tTổng quát\t2\n\tNV023\tTạ Bảo Thảo\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV024\tTrần Minh Giang\tDự án Ứng dụng di động\tTổng quát\t1\n\tNV025\tTrần Anh Vy\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV026\tBùi Bảo Yến\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV027\tDương Hoài Lan\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV028\tVũ Quốc Tuấn\tDự án Ứng dụng di động\tTổng quát\t1\n\tNV029\tĐặng Thanh Bình\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV030\tNgô Thanh Giang\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV031\tPhạm Minh Sương\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV032\tChu Bảo An\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV033\tBùi Anh Nhi\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV034\tTrịnh Thị Tuấn\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV035\tĐặng Khánh Yến\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV036\tTrần Khánh Bình\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV037\tNgô Quốc Lan\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV038\tHồ Anh Mai\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV039\tBùi Anh Ngân\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV040\tPhan Minh Huy\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV041\tLê Minh Khanh\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t2\n\tNV042\tBùi Quốc An\tDự án Báo cáo quản trị\tTổng quát\t1\n\tNV043\tBùi Thanh Giang\tDự án Báo cáo quản trị\tTổng quát\t2\n\tNV044\tBùi Khánh Dũng\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV045\tLý Gia Giang\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV046\tNguyễn Minh An\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV047\tTrần Thanh Mai\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV048\tChu Bảo Quân\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV049\tPhạm Khánh Phúc\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV050\tHồ Hoài Vy\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV051\tTạ Anh Xuân\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV052\tNguyễn Thị Vy\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV053\tPhan Quốc Xuân\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV054\tNgô Bảo Nam\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV055\tLý Anh Phúc\tDự án Trợ lý ảo nội bộ\tTổng quát\t2\n\tNV056\tDương Khánh Khanh\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV057\tHoàng Thị Hà\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV058\tNgô Anh Bình\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV059\tTrần Quốc Việt\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV060\tHồ Khánh Mai\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV061\tLê Anh Linh\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV062\tLê Hoài Tuấn\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV063\tChu Văn Linh\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV064\tTrịnh Gia Uyên\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV065\tNgô Văn Yến\tDự án Báo cáo quản trị\tTổng quát\t1\n\tNV066\tNguyễn Hoài Bình\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV067\tHoàng Quốc Quân\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV068\tMai Anh Uyên\tDự án Báo cáo quản trị\tTổng quát\t1\n\tNV069\tChu Thanh An\tDự án Báo cáo quản trị\tTổng quát\t1\n\tNV070\tVũ Quốc Thảo\tDự án Báo cáo quản trị\tTổng quát\t1\n\tNV071\tNgô Văn Yến\tDự án Ứng dụng di động\tTổng quát\t1\n\tNV072\tNgô Thị Vy\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV073\tHồ Anh Phúc\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV074\tTrần Anh Giang\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV075\tNgô Bảo Thảo\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV076\tTạ Bảo Mai\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV077\tTạ Minh Xuân\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV078\tVũ Minh Phúc\tKhông xếp được\t—\t—\n\tNV079\tNgô Minh Yến\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV080\tNgô Gia Việt\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV081\tTrịnh Gia Nam\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV082\tPhan Gia Hà\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV083\tTrần Văn Mai\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV084\tTrịnh Thanh Lan\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV085\tHoàng Khánh Sương\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV086\tHồ Khánh Linh\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV087\tVũ Thanh Yến\tDự án Trải nghiệm người dùng\tTổng quát\t2\n\tNV088\tTrần Minh Tuấn\tKhông xếp được\t—\t—\n\tNV089\tMai Gia Khanh\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV090\tĐặng Khánh Giang\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV091\tBùi Gia Bình\tDự án Ứng dụng di động\tTổng quát\t1\n\tNV092\tDương Khánh Mai\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV093\tVũ Bảo Bình\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV094\tVũ Văn Vy\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV095\tBùi Văn Lan\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV096\tDương Thị Yến\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV097\tBùi Anh Chi\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV098\tChu Quốc Bình\tDự án Bảo mật và tuân thủ\tTổng quát\t2\n\tNV099\tTạ Văn Chi\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV100\tTạ Minh Yến\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV101\tBùi Quốc Ngân\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV102\tTrần Hoài Quân\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV103\tChu Gia Phúc\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV104\tVũ Thanh Sương\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV105\tHồ Thị Uyên\tDự án Báo cáo quản trị\tTổng quát\t1\n\tNV106\tĐỗ Thị Vy\tDự án Tự động hoá kiểm thử\tTổng quát\t2\n\tNV107\tTrịnh Thị Vy\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV108\tMai Thanh Yến\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV109\tTrần Thanh Bình\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV110\tMai Văn An\tDự án Ứng dụng di động\tTổng quát\t2\n\tNV111\tĐỗ Anh Tuấn\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV112\tTạ Quốc Bình\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV113\tMai Bảo Bình\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV114\tĐặng Thanh Nam\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV115\tLý Văn Yến\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV116\tĐặng Khánh Ngân\tKhông xếp được\t—\t—\n\tNV117\tLý Hoài An\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV118\tLê Khánh Lan\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV119\tHoàng Bảo Nam\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV120\tTạ Minh Linh\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV121\tHoàng Hoài Nhi\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV122\tHồ Minh Yến\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t2\n\tNV123\tTrịnh Khánh Nhi\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV124\tMai Thị Quân\tDự án Ứng dụng di động\tTổng quát\t1\n\tNV125\tTạ Hoài Quân\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV126\tTạ Minh Ngân\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV127\tDương Anh Việt\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV128\tVũ Quốc Mai\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV129\tTrịnh Quốc Hà\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV130\tTạ Văn Vy\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV131\tBùi Gia Vy\tDự án Tự động hoá kiểm thử\tTổng quát\t2\n\tNV132\tChu Thị Giang\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV133\tNgô Hoài Nhi\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV134\tHồ Thị Uyên\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV135\tTrịnh Văn Dũng\tKhông xếp được\t—\t—\n\tNV136\tVũ Văn Nhi\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV137\tPhan Minh Sương\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV138\tHồ Gia Yến\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t2\n\tNV139\tBùi Thanh Xuân\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV140\tBùi Quốc Yến\tDự án Báo cáo quản trị\tTổng quát\t1\n\tNV141\tLê Văn Lan\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV142\tHoàng Thanh Nam\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV143\tVũ Thị An\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t2\n\tNV144\tChu Thị Lan\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV145\tNguyễn Văn An\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV146\tPhạm Thanh Linh\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV147\tDương Anh Khanh\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV148\tĐặng Bảo Dũng\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV149\tPhạm Thanh Giang\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV150\tPhạm Minh Dũng\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV151\tĐỗ Khánh Giang\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV152\tTrần Gia Giang\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV153\tLý Thị Bình\tKhông xếp được\t—\t—\n\tNV154\tDương Quốc Phúc\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV155\tTạ Quốc Ngân\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV156\tBùi Bảo Uyên\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV157\tNguyễn Khánh Việt\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV158\tLý Minh Nam\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV159\tVũ Hoài Yến\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV160\tĐặng Anh Bình\tDự án Ứng dụng di động\tTổng quát\t1\n\tNV161\tLý Quốc An\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV162\tBùi Minh Quân\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV163\tMai Văn Phúc\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV164\tMai Minh Bình\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV165\tNgô Thị Yến\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV166\tBùi Thanh Bình\tDự án Hạ tầng đám mây\tTổng quát\t2\n\tNV167\tHoàng Thị Quân\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV168\tĐặng Thanh Nam\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV169\tPhạm Bảo Uyên\tDự án Báo cáo quản trị\tTổng quát\t1\n\tNV170\tNgô Khánh An\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV171\tLê Gia Quân\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV172\tTrần Gia Bình\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV173\tHồ Khánh Hà\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV174\tNguyễn Quốc Giang\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV175\tChu Anh Nhi\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV176\tDương Gia Giang\tDự án Ứng dụng di động\tTổng quát\t1\n\tNV177\tTrần Anh Thảo\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV178\tTạ Minh Linh\tDự án Báo cáo quản trị\tTổng quát\t1\n\tNV179\tLê Quốc Huy\tDự án Ứng dụng di động\tTổng quát\t1\n\tNV180\tVũ Khánh Yến\tDự án Báo cáo quản trị\tTổng quát\t1\n\tNV181\tTrần Thanh Huy\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV182\tDương Quốc Vy\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV183\tHoàng Gia Vy\tDự án Ứng dụng di động\tTổng quát\t1\n\tNV184\tĐặng Thị Uyên\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV185\tPhạm Bảo Dũng\tDự án Báo cáo quản trị\tTổng quát\t1\n\tNV186\tPhạm Anh Linh\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV187\tHồ Khánh Phúc\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV188\tTrịnh Bảo Nhi\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV189\tVũ Anh Nhi\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV190\tBùi Khánh Tuấn\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV191\tChu Quốc Sương\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV192\tMai Văn Dũng\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV193\tBùi Quốc Nam\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV194\tMai Minh Thảo\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV195\tPhạm Quốc Quân\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV196\tLý Thanh Nhi\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV197\tLý Thanh Yến\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV198\tPhan Thanh Mai\tDự án Tự động hoá kiểm thử\tTổng quát\t2\n\tNV199\tDương Gia Uyên\tDự án Phân tích kinh doanh\tTổng quát\t2\n\tNV200\tLý Thanh Bình\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV201\tĐỗ Bảo Quân\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV202\tTrần Anh Linh\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV203\tLý Khánh Ngân\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV204\tPhạm Hoài Lan\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV205\tTạ Thanh An\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV206\tLý Văn Chi\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV207\tLê Anh Bình\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV208\tTạ Bảo Yến\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV209\tLê Bảo Huy\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV210\tTrịnh Thanh Chi\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV211\tDương Anh Giang\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV212\tMai Thanh Dũng\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV213\tĐặng Anh Huy\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV214\tBùi Anh Linh\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV215\tBùi Văn Linh\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV216\tLê Thanh Lan\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV217\tVũ Minh Ngân\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV218\tHoàng Văn Hà\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV219\tBùi Hoài Xuân\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV220\tPhan Minh Xuân\tDự án Báo cáo quản trị\tTổng quát\t1\n\tNV221\tPhan Thanh Phúc\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV222\tLê Bảo Xuân\tDự án Ứng dụng di động\tTổng quát\t2\n\tNV223\tNgô Bảo Uyên\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV224\tPhạm Gia Quân\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV225\tPhan Thị Chi\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV226\tChu Bảo Huy\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV227\tĐỗ Thanh An\tDự án Ứng dụng di động\tTổng quát\t1\n\tNV228\tTạ Thị Tuấn\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV229\tTrịnh Anh An\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV230\tLê Thanh Hà\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV231\tHồ Minh Dũng\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV232\tChu Bảo Nhi\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV233\tNguyễn Văn Linh\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV234\tTrịnh Minh Việt\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV235\tHoàng Thanh Uyên\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t2\n\tNV236\tNgô Khánh An\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV237\tĐặng Anh Mai\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV238\tTrịnh Khánh Vy\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV239\tTạ Văn An\tDự án Trợ lý ảo nội bộ\tTổng quát\t2\n\tNV240\tLý Quốc Quân\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV241\tHồ Quốc Uyên\tKhông xếp được\t—\t—\n\tNV242\tPhan Bảo Xuân\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV243\tNgô Bảo Yến\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV244\tNgô Minh Thảo\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV245\tTrần Bảo Nhi\tDự án Báo cáo quản trị\tTổng quát\t1\n\tNV246\tĐỗ Quốc Nhi\tDự án Tự động hoá kiểm thử\tTổng quát\t2\n\tNV247\tBùi Hoài Nam\tKhông xếp được\t—\t—\n\tNV248\tTrần Văn Ngân\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV249\tNgô Văn Sương\tDự án Ứng dụng di động\tTổng quát\t1\n\tNV250\tHồ Quốc An\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV251\tTạ Minh Xuân\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV252\tNgô Văn Ngân\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV253\tTrần Anh Lan\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV254\tPhạm Anh Ngân\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV255\tLý Khánh Phúc\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV256\tHoàng Bảo An\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV257\tNgô Khánh Việt\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV258\tĐặng Thị Bình\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV259\tTrần Khánh Uyên\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV260\tTrần Thanh Nhi\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV261\tPhan Khánh Linh\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV262\tBùi Gia Linh\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV263\tĐỗ Thanh Huy\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV264\tTrịnh Văn Chi\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV265\tTạ Thị Hà\tDự án Trải nghiệm người dùng\tTổng quát\t2\n\tNV266\tTrần Bảo Nhi\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV267\tHoàng Hoài Mai\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t2\n\tNV268\tVũ Khánh Chi\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV269\tNgô Minh Huy\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV270\tVũ Hoài Sương\tKhông xếp được\t—\t—\n\tNV271\tMai Khánh Quân\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV272\tTrần Gia Tuấn\tDự án Trải nghiệm người dùng\tTổng quát\t2\n\tNV273\tChu Minh Quân\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t2\n\tNV274\tLý Minh Thảo\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV275\tHoàng Minh Giang\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV276\tMai Gia Huy\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV277\tHoàng Văn Linh\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV278\tLê Bảo Nam\tKhông xếp được\t—\t—\n\tNV279\tChu Thị Sương\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV280\tBùi Bảo Huy\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV281\tNgô Thị Mai\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV282\tMai Minh Yến\tKhông xếp được\t—\t—\n\tNV283\tHồ Thị Giang\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV284\tHồ Quốc Mai\tDự án Hạ tầng đám mây\tTổng quát\t2\n\tNV285\tDương Khánh Giang\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV286\tTrần Thị Tuấn\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV287\tNguyễn Anh Uyên\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV288\tĐặng Văn Chi\tKhông xếp được\t—\t—\n\tNV289\tTrịnh Anh Giang\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV290\tLý Quốc Sương\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV291\tDương Thanh Quân\tDự án Ứng dụng di động\tTổng quát\t1\n\tNV292\tMai Thị Việt\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV293\tHoàng Anh Yến\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV294\tLê Anh An\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV295\tĐặng Khánh Thảo\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV296\tMai Hoài Giang\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV297\tNguyễn Anh Sương\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV298\tNgô Quốc Tuấn\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV299\tChu Quốc Việt\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV300\tNguyễn Bảo Sương\tDự án Ứng dụng di động\tTổng quát\t1",
+ "tep_da_xuat": [
+  "SO_NHAP_DU_AN.xlsx",
+  "SO_NHAP_DU_AN_20261015_0126.xlsx",
+  "ket_qua_phan_bo.xlsx"
+ ],
+ "xlsx_ket_qua": {
+  "Hướng dẫn": [
+   [
+    "KẾT QUẢ PHÂN BỔ DỰ ÁN",
+    ""
+   ],
+   [
+    "Xuất lúc 2026-10-15T01:26:29.",
+    ""
+   ],
+   [
+    "",
+    ""
+   ],
+   [
+    "SỐ LIỆU CHÍNH",
+    ""
+   ],
+   [
+    "Số nhân viên",
+    "300"
+   ],
+   [
+    "Số nhân viên đã có dự án",
+    "289"
+   ],
+   [
+    "Số nhân viên chưa có chỗ",
+    "11"
+   ],
+   [
+    "Số dự án",
+    "12"
+   ],
+   [
+    "Chỗ đã xếp",
+    "289"
+   ],
+   [
+    "Tổng sức chứa",
+    "330"
+   ],
+   [
+    "Tỉ lệ chỗ là nguyện vọng 1 (%)",
+    "90.3"
+   ],
+   [
+    "",
+    ""
+   ],
+   [
+    "CÁC TRANG TRONG TỆP NÀY — bấm tên trang để mở",
+    ""
+   ],
+   [
+    "Danh sách nhân viên",
+    "Mỗi nhân viên một dòng, kèm dự án của nhân viên. Lọc được theo dự án."
+   ]
+  ],
+  "Danh sách nhân viên": [
+   [
+    "DANH SÁCH NHÂN VIÊN VÀ DỰ ÁN",
+    "",
+    "",
+    "",
+    "",
+    ""
+   ],
+   [
+    "Mỗi nhân viên một dòng. Bấm mũi tên ở dòng tiêu đề để lọc theo dự án. Dòng tô đỏ: nhân viên chưa được xếp.",
+    "",
+    "",
+    "",
+    "",
+    ""
+   ],
+   [
+    "",
+    "",
+    "",
+    "",
+    "",
+    ""
+   ],
+   [
+    "Mã nhân viên",
+    "Họ tên",
+    "Mã dự án",
+    "Tên dự án",
+    "Nguyện vọng thứ",
+    "Cấp bậc"
+   ],
+   [
+    "NV001",
+    "Tạ Bảo Linh",
+    "da_quanlykhovan",
+    "Dự án Quản lý kho vận",
+    "1",
+    "Mid"
+   ],
+   [
+    "NV002",
+    "Ngô Văn An",
+    "da_hatangdammay",
+    "Dự án Hạ tầng đám mây",
+    "1",
+    "Mid"
+   ],
+   [
+    "NV003",
+    "Hoàng Hoài Giang",
+    "da_baomatvatuanthu",
+    "Dự án Bảo mật và tuân thủ",
+    "1",
+    "Mid"
+   ],
+   [
+    "NV004",
+    "Vũ Hoài An",
+    "da_tudonghoakiemthu",
+    "Dự án Tự động hoá kiểm thử",
+    "2",
+    "Junior"
+   ],
+   [
+    "NV005",
+    "Hồ Bảo Khanh",
+    "da_hatangdammay",
+    "Dự án Hạ tầng đám mây",
+    "2",
+    "Junior"
+   ],
+   [
+    "NV006",
+    "Ngô Văn Dũng",
+    "da_khodulieudoanhnghiep",
+    "Dự án Kho dữ liệu doanh nghiệp",
+    "1",
+    "Mid"
+   ],
+   [
+    "NV007",
+    "Đỗ Khánh Phúc",
+    "da_tudonghoakiemthu",
+    "Dự án Tự động hoá kiểm thử",
+    "1",
+    "Senior"
+   ],
+   [
+    "NV008",
+    "Vũ Anh Việt",
+    "da_baocaoquantri",
+    "Dự án Báo cáo quản trị",
+    "1",
+    "Junior"
+   ],
+   [
+    "NV009",
+    "Lê Bảo Tuấn",
+    "da_khodulieudoanhnghiep",
+    "Dự án Kho dữ liệu doanh nghiệp",
+    "1",
+    "Mid"
+   ],
+   [
+    "NV010",
+    "Đặng Quốc Nhi",
+    "da_baomatvatuanthu",
+    "Dự án Bảo mật và tuân thủ",
+    "1",
+    "Mid"
+   ]
+  ],
+  "Theo dự án": [
+   [
+    "DANH SÁCH TỪNG DỰ ÁN",
+    "",
+    "",
+    "",
+    ""
+   ],
+   [
+    "Mỗi dự án một khối. Khi in, mỗi dự án sang một trang riêng — phát thẳng cho người phụ trách.",
+    "",
+    "",
+    "",
+    ""
+   ],
+   [
+    "",
+    "",
+    "",
+    "",
+    ""
+   ],
+   [
+    "Dự án Báo cáo quản trị · Mã dự án: da_baocaoquantri · Đã xếp 16/20 chỗ",
+    "",
+    "",
+    "",
+    ""
+   ],
+   [
+    "STT",
+    "Mã nhân viên",
+    "Họ tên",
+    "Nguyện vọng thứ",
+    "Cấp bậc"
+   ],
+   [
+    "1",
+    "NV008",
+    "Vũ Anh Việt",
+    "1",
+    "Junior"
+   ],
+   [
+    "2",
+    "NV013",
+    "Phan Văn Huy",
+    "1",
+    "Mid"
+   ],
+   [
+    "3",
+    "NV042",
+    "Bùi Quốc An",
+    "1",
+    "Junior"
+   ],
+   [
+    "4",
+    "NV043",
+    "Bùi Thanh Giang",
+    "2",
+    "Junior"
+   ],
+   [
+    "5",
+    "NV065",
+    "Ngô Văn Yến",
+    "1",
+    "Junior"
+   ],
+   [
+    "6",
+    "NV068",
+    "Mai Anh Uyên",
+    "1",
+    "Junior"
+   ],
+   [
+    "7",
+    "NV069",
+    "Chu Thanh An",
+    "1",
+    "Mid"
+   ],
+   [
+    "8",
+    "NV070",
+    "Vũ Quốc Thảo",
+    "1",
+    "Mid"
+   ],
+   [
+    "9",
+    "NV105",
+    "Hồ Thị Uyên",
+    "1",
+    "Junior"
+   ]
+  ],
+  "Chưa có chỗ": [
+   [
+    "NHÂN VIÊN CHƯA CÓ DỰ ÁN NÀO — 11 nhân viên",
+    "",
+    "",
+    ""
+   ],
+   [
+    "Bộ phận phụ trách cần xếp tay hoặc liên hệ những nhân viên này. Cột cuối cho biết nhân viên đã khai những dự án nào và chúng chọi đến đâu.",
+    "",
+    "",
+    ""
+   ],
+   [
+    "",
+    "",
+    "",
+    ""
+   ],
+   [
+    "Mã nhân viên",
+    "Họ tên",
+    "Số nguyện vọng đã khai",
+    "Đã khai những dự án (kèm tỉ lệ chọi)"
+   ],
+   [
+    "NV078",
+    "Vũ Minh Phúc",
+    "1",
+    "Dự án Quản lý kho vận (3,19)"
+   ],
+   [
+    "NV088",
+    "Trần Minh Tuấn",
+    "2",
+    "Dự án Tự động hoá kiểm thử (2,33); Dự án Trải nghiệm người dùng (1,69)"
+   ],
+   [
+    "NV116",
+    "Đặng Khánh Ngân",
+    "1",
+    "Dự án Tự động hoá kiểm thử (2,33)"
+   ],
+   [
+    "NV135",
+    "Trịnh Văn Dũng",
+    "1",
+    "Dự án Bảo mật và tuân thủ (2,62)"
+   ],
+   [
+    "NV153",
+    "Lý Thị Bình",
+    "1",
+    "Dự án Bảo mật và tuân thủ (2,62)"
+   ],
+   [
+    "NV241",
+    "Hồ Quốc Uyên",
+    "1",
+    "Dự án Quản lý kho vận (3,19)"
+   ],
+   [
+    "NV247",
+    "Bùi Hoài Nam",
+    "2",
+    "Dự án Trải nghiệm người dùng (1,69); Dự án Quản lý kho vận (3,19)"
+   ],
+   [
+    "NV270",
+    "Vũ Hoài Sương",
+    "1",
+    "Dự án Quản lý kho vận (3,19)"
+   ],
+   [
+    "NV278",
+    "Lê Bảo Nam",
+    "2",
+    "Dự án Bảo mật và tuân thủ (2,62); Dự án Tích hợp ERP (2,04)"
+   ],
+   [
+    "NV282",
+    "Mai Minh Yến",
+    "3",
+    "Dự án Trải nghiệm người dùng (1,69); Dự án Tự động hoá kiểm thử (2,33); Dự án Bảo mật và tuân thủ (2,62)"
+   ]
+  ],
+  "Thống kê": [
+   [
+    "THỐNG KÊ",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    ""
+   ],
+   [
+    "Số liệu để họp: dự án nào đông, quý nào chật, bao nhiêu nhân viên được nguyện vọng 1.",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    ""
+   ],
+   [
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    ""
+   ],
+   [
+    "TỪNG DỰ ÁN",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    ""
+   ],
+   [
+    "Cột \"Số nhân viên đăng ký\" không cộng dồn được: một nhân viên khai ba dự án được đếm ở cả ba dòng.",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    ""
+   ],
+   [
+    "Quý",
+    "Mã dự án",
+    "Tên dự án",
+    "Số nhân viên đăng ký",
+    "Đặt nguyện vọng 1",
+    "Tỉ lệ chọi",
+    "Đã xếp",
+    "Sức chứa",
+    "Tỉ lệ lấp đầy %"
+   ],
+   [
+    "—",
+    "da_baocaoquantri",
+    "Dự án Báo cáo quản trị",
+    "30",
+    "15",
+    "1.5",
+    "16",
+    "20",
+    "80"
+   ],
+   [
+    "—",
+    "da_baomatvatuanthu",
+    "Dự án Bảo mật và tuân thủ",
+    "76",
+    "36",
+    "2.62",
+    "29",
+    "29",
+    "100"
+   ],
+   [
+    "—",
+    "da_congtuyendungnoibo",
+    "Dự án Cổng tuyển dụng nội bộ",
+    "47",
+    "16",
+    "1.47",
+    "20",
+    "32",
+    "62.5"
+   ],
+   [
+    "—",
+    "da_hatangdammay",
+    "Dự án Hạ tầng đám mây",
+    "46",
+    "18",
+    "2.09",
+    "22",
+    "22",
+    "100"
+   ],
+   [
+    "—",
+    "da_khodulieudoanhnghiep",
+    "Dự án Kho dữ liệu doanh nghiệp",
+    "44",
+    "25",
+    "1.33",
+    "28",
+    "33",
+    "84.8"
+   ],
+   [
+    "—",
+    "da_phantichkinhdoanh",
+    "Dự án Phân tích kinh doanh",
+    "51",
+    "27",
+    "1.76",
+    "29",
+    "29",
+    "100"
+   ],
+   [
+    "—",
+    "da_quanlykhovan",
+    "Dự án Quản lý kho vận",
+    "83",
+    "48",
+    "3.19",
+    "26",
+    "26",
+    "100"
+   ],
+   [
+    "—",
+    "da_tichhoperp",
+    "Dự án Tích hợp ERP",
+    "53",
+    "26",
+    "2.04",
+    "26",
+    "26",
+    "100"
+   ]
+  ],
+  "Dấu vết (kỹ thuật)": [
+   [
+    "DẤU VẾT LẦN CHẠY",
+    ""
+   ],
+   [
+    "Hạt giống + bộ số bốc thăm đã khoá + cách bốc thăm là đủ để bất kỳ ai tính lại và ra đúng kết quả này. Không cần đọc trang này để dùng kết quả.",
+    ""
+   ],
+   [
+    "",
+    ""
+   ],
+   [
+    "Mục",
+    "Giá trị"
+   ],
+   [
+    "Hạt giống bốc thăm",
+    "42"
+   ],
+   [
+    "Cách bốc thăm",
+    "stb_ngay"
+   ],
+   [
+    "Bộ số bốc thăm khoá lúc",
+    "2026-10-15T01:26:20"
+   ],
+   [
+    "Thời điểm chạy",
+    "2026-10-15T01:26:20"
+   ],
+   [
+    "Số vòng xử lý",
+    "3"
+   ],
+   [
+    "Số quý lần chạy này phủ",
+    "1"
+   ],
+   [
+    "Quý đã chạy",
+    "—"
+   ],
+   [
+    "Thời điểm xuất tệp này",
+    "2026-10-15T01:26:29"
+   ],
+   [
+    "",
+    ""
+   ],
+   [
+    "",
+    ""
+   ]
+  ]
+ },
+ "cac_the": {
+  "results": "Chưa có dữ liệu để sắp xếp: cần ít nhất một nhân viên và một dự án. Hãy nạp Sổ nhập dự án ở phần \"Nhập dữ liệu\" trước.\n×\nĐã xuất kết quả của 300 nhân viên ra một tệp Excel: /tmp/pilot__fo0078p/tai_xuong/ket_qua_phan_bo.xlsx\nGồm 6 trang: Hướng dẫn, Danh sách nhân viên, Theo dự án, Chưa có chỗ, Thống kê, Dấu vết (kỹ thuật).\n----\nKết quả\n\nNhân viên đã được xếp vào dự án nào và mỗi dự án đã đủ chỗ chưa.\n\nThu gọn tất cả\nTóm tắt lần xếp\nLần chạy gần nhất: 2026-10-15T01:26:20 · số khởi tạo 42\nNhân viên đã có chỗ\n289/300\n96,3% nhân viên\nĐược nguyện vọng 1\n90,3%\n100% trong 3 nguyện vọng đầu\nChỗ còn trống\n41\ntrên tổng 330 chỗ\nNhân viên chưa có chỗ nào\n11\n⚠ Cần xử lý\nXuất dữ liệu\nKết quả sắp xếp: một tệp Excel (danh sách nhân viên, từng dự án, nhân viên chưa có chỗ, thống kê)\nKèm các tệp CSV rời (chỉ cần khi đổ số liệu vào phần mềm khác)\nDữ liệu đầu vào hiện tại: một Sổ nhập dự án nạp lại được\nThay đổi so với lần chạy trước\n(chưa có lần chạy trước để so sánh)\nHồ sơ nhân viên đã chọn\n(chưa chọn nhân viên nào)\nChọn nhân viên…\nXuất các mục đã chọn\nĐã xuất kết quả của 300 nhân viên ra một tệp Excel: /tmp/pilot__fo0078p/tai_xuong/ket_qua_phan_bo.xlsx\nGồm 6 trang: Hướng dẫn, Danh sách nhân viên, Theo dự án, Chưa có chỗ, Thống kê, Dấu vết (kỹ thuật).\nDữ liệu đầu vào (Sổ nhập dự án) → /tmp/pilot__fo0078p/tai_xuong/SO_NHAP_DU_AN_20261015_0126.xlsx\nMở thư mục\n\nHồ sơ nhân viên: bấm \"Chọn nhân viên…\" rồi đánh dấu nhân viên ở bảng bên dưới. Đang mở một nhân viên ở thẻ 03 thì bấm \"Xuất CSV nhân viên này\" ngay tại đó.\n\nTệp xuất có KPI chấm và số bốc thăm. Không gửi các tệp này cho người chấm KPI.\n\nMức lấp đầy của từng dự án\n12 dự án\nSắp xếp\nTheo quý\nĐầy nhất\nVắng nhất\nChọi cao nhất\n\nRê chuột (hoặc dùng bàn phím di tới) một dòng để xem chi tiết. Nhãn bên phải chỉ ra dự án cần để ý.\n\nDự án Báo cáo quản trị\n16/20\n80%\nchọi 1,5×\nDự án Bảo mật và tuân thủ\n29/29\n100%\nchọi 2,62×\nDự án Cổng tuyển dụng nội bộ\n20/32\n62,5%\nchọi 1,47×\nDự án Hạ tầng đám mây\n22/22\n100%\nchọi 2,09×\nDự án Kho dữ liệu doanh nghiệp\n28/33\n84,8%\nchọi 1,33×\nDự án Phân tích kinh doanh\n29/29\n100%\nchọi 1,76×\nDự án Quản lý kho vận\n26/26\n100%\nchọi 3,19×\nDự án Tích hợp ERP\n26/26\n100%\nchọi 2,04×\nDự án Trải nghiệm người dùng\n32/32\n100%\nchọi 1,69×\nDự án Trợ lý ảo nội bộ\n25/25\n100%\nchọi 1,84×\nDự án Tự động hoá kiểm thử\n21/21\n100%\nchọi 2,33×\nDự án Ứng dụng di động\n15/35\n42,9%\nchọi 1×\n○ Còn nhiều chỗ\nĐã xếp Còn trống\nTheo từng dự án\n12 dự án\n\nKhông cộng dồn cột \"Số nhân viên đăng ký\": một nhân viên chọn ba dự án trong cùng quý sẽ được đếm ở cả ba dòng, nhưng chỉ nhận được một chỗ.\n\nMÃ DỰ ÁN\tTÊN\tSỐ NHÂN VIÊN ĐĂNG KÝ\tĐẶT NGUYỆN VỌNG 1\tTỔNG CHỖ\tĐÃ XẾP\tTỈ LỆ CHỌI\t\nMỨC\n\nda_baocaoquantri\tDự án Báo cáo quản trị\t30\t15\t20\t16\t1,5\tXem danh sách\nda_baomatvatuanthu\tDự án Bảo mật và tuân thủ\t76\t36\t29\t29\t2,62\tXem danh sách\nda_congtuyendungnoibo\tDự án Cổng tuyển dụng nội bộ\t47\t16\t32\t20\t1,47\tXem danh sách\nda_hatangdammay\tDự án Hạ tầng đám mây\t46\t18\t22\t22\t2,09\tXem danh sách\nda_khodulieudoanhnghiep\tDự án Kho dữ liệu doanh nghiệp\t44\t25\t33\t28\t1,33\tXem danh sách\nda_phantichkinhdoanh\tDự án Phân tích kinh doanh\t51\t27\t29\t29\t1,76\tXem danh sách\nda_quanlykhovan\tDự án Quản lý kho vận\t83\t48\t26\t26\t3,19\tXem danh sách\nda_tichhoperp\tDự án Tích hợp ERP\t53\t26\t26\t26\t2,04\tXem danh sách\nda_trainghiemnguoidung\tDự án Trải nghiệm người dùng\t54\t34\t32\t32\t1,69\tXem danh sách\nda_trolyaonoibo\tDự án Trợ lý ảo nội bộ\t46\t23\t25\t25\t1,84\tXem danh sách\nda_tudonghoakiemthu\tDự án Tự động hoá kiểm thử\t49\t19\t21\t21\t2,33\tXem danh sách\nda_ungdungdidong\tDự án Ứng dụng di động\t35\t13\t35\t15\t1\tXem danh sách\nMức đáp ứng nguyện vọng\n289 chỗ đã xếp\n\nSố nhân viên có chỗ chưa cho biết chỗ đó có đúng nguyện vọng hay không. Bảng này cho biết điều đó.\n\n90,3% chỗ đã xếp là nguyện vọng 1 · 100% nằm trong 3 nguyện vọng đầu\n\n90,3%\nnguyện vọng 1\nNguyện vọng 1\n90,3%\nNguyện vọng 2\n9,7%\nNguyện vọng 3\n0%\nNguyện vọng 4 trở lên\n0%\nNguyện vọng 1\n261 · 90,3%\nNguyện vọng 2\n28 · 9,7%\nNguyện vọng 3\n0 · 0%\nNguyện vọng 4 trở lên\n0 · 0%\nNhân viên chưa có dự án nào\n11 nhân viên\n\nNhân viên chỉ chọn một dự án đông người và nhân viên chọn nhiều dự án nhưng vẫn chưa có chỗ là hai trường hợp khác nhau, cần cách xử lý khác nhau.\n\nMÃ NHÂN VIÊN\tHỌ TÊN\tSỐ NGUYỆN VỌNG\tCÁC DỰ ÁN ĐÃ CHỌN\nNV078\tVũ Minh Phúc\t1\tDự án Quản lý kho vận 3,19\nNV088\tTrần Minh Tuấn\t2\tDự án Tự động hoá kiểm thử 2,33 Dự án Trải nghiệm người dùng 1,69\nNV116\tĐặng Khánh Ngân\t1\tDự án Tự động hoá kiểm thử 2,33\nNV135\tTrịnh Văn Dũng\t1\tDự án Bảo mật và tuân thủ 2,62\nNV153\tLý Thị Bình\t1\tDự án Bảo mật và tuân thủ 2,62\nNV241\tHồ Quốc Uyên\t1\tDự án Quản lý kho vận 3,19\nNV247\tBùi Hoài Nam\t2\tDự án Trải nghiệm người dùng 1,69 Dự án Quản lý kho vận 3,19\nNV270\tVũ Hoài Sương\t1\tDự án Quản lý kho vận 3,19\nNV278\tLê Bảo Nam\t2\tDự án Bảo mật và tuân thủ 2,62 Dự án Tích hợp ERP 2,04\nNV282\tMai Minh Yến\t3\tDự án Trải nghiệm người dùng 1,69 Dự án Tự động hoá kiểm thử 2,33 Dự án Bảo mật và tuân thủ 2,62\nNV288\tĐặng Văn Chi\t1\tDự án Quản lý kho vận 3,19\nDanh sách xếp dự án\n300 dòng\n11 nhân viên chưa có dự án\nChưa chọn nhân viên nào. Đánh dấu ở cột đầu bảng.\nXuất CSV nhân viên đã chọn\nBỏ chọn\n\tMÃ NHÂN VIÊN\tHỌ TÊN\tDỰ ÁN\tLOẠI CHỖ\tHẠNG NGUYỆN VỌNG\n\tNV001\tTạ Bảo Linh\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV002\tNgô Văn An\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV003\tHoàng Hoài Giang\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV004\tVũ Hoài An\tDự án Tự động hoá kiểm thử\tTổng quát\t2\n\tNV005\tHồ Bảo Khanh\tDự án Hạ tầng đám mây\tTổng quát\t2\n\tNV006\tNgô Văn Dũng\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV007\tĐỗ Khánh Phúc\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV008\tVũ Anh Việt\tDự án Báo cáo quản trị\tTổng quát\t1\n\tNV009\tLê Bảo Tuấn\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV010\tĐặng Quốc Nhi\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV011\tHoàng Quốc Linh\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV012\tChu Quốc Yến\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV013\tPhan Văn Huy\tDự án Báo cáo quản trị\tTổng quát\t1\n\tNV014\tBùi Quốc Khanh\tDự án Hạ tầng đám mây\tTổng quát\t2\n\tNV015\tPhan Minh Quân\tDự án Tích hợp ERP\tTổng quát\t2\n\tNV016\tTrần Văn Khanh\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV017\tVũ Bảo Dũng\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV018\tTrần Khánh Uyên\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV019\tNgô Anh Uyên\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV020\tĐỗ Khánh Lan\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV021\tLê Bảo Khanh\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV022\tVũ Gia Huy\tDự án Phân tích kinh doanh\tTổng quát\t2\n\tNV023\tTạ Bảo Thảo\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV024\tTrần Minh Giang\tDự án Ứng dụng di động\tTổng quát\t1\n\tNV025\tTrần Anh Vy\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV026\tBùi Bảo Yến\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV027\tDương Hoài Lan\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV028\tVũ Quốc Tuấn\tDự án Ứng dụng di động\tTổng quát\t1\n\tNV029\tĐặng Thanh Bình\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV030\tNgô Thanh Giang\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV031\tPhạm Minh Sương\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV032\tChu Bảo An\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV033\tBùi Anh Nhi\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV034\tTrịnh Thị Tuấn\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV035\tĐặng Khánh Yến\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV036\tTrần Khánh Bình\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV037\tNgô Quốc Lan\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV038\tHồ Anh Mai\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV039\tBùi Anh Ngân\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV040\tPhan Minh Huy\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV041\tLê Minh Khanh\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t2\n\tNV042\tBùi Quốc An\tDự án Báo cáo quản trị\tTổng quát\t1\n\tNV043\tBùi Thanh Giang\tDự án Báo cáo quản trị\tTổng quát\t2\n\tNV044\tBùi Khánh Dũng\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV045\tLý Gia Giang\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV046\tNguyễn Minh An\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV047\tTrần Thanh Mai\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV048\tChu Bảo Quân\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV049\tPhạm Khánh Phúc\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV050\tHồ Hoài Vy\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV051\tTạ Anh Xuân\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV052\tNguyễn Thị Vy\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV053\tPhan Quốc Xuân\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV054\tNgô Bảo Nam\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV055\tLý Anh Phúc\tDự án Trợ lý ảo nội bộ\tTổng quát\t2\n\tNV056\tDương Khánh Khanh\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV057\tHoàng Thị Hà\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV058\tNgô Anh Bình\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV059\tTrần Quốc Việt\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV060\tHồ Khánh Mai\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV061\tLê Anh Linh\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV062\tLê Hoài Tuấn\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV063\tChu Văn Linh\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV064\tTrịnh Gia Uyên\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV065\tNgô Văn Yến\tDự án Báo cáo quản trị\tTổng quát\t1\n\tNV066\tNguyễn Hoài Bình\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV067\tHoàng Quốc Quân\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV068\tMai Anh Uyên\tDự án Báo cáo quản trị\tTổng quát\t1\n\tNV069\tChu Thanh An\tDự án Báo cáo quản trị\tTổng quát\t1\n\tNV070\tVũ Quốc Thảo\tDự án Báo cáo quản trị\tTổng quát\t1\n\tNV071\tNgô Văn Yến\tDự án Ứng dụng di động\tTổng quát\t1\n\tNV072\tNgô Thị Vy\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV073\tHồ Anh Phúc\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV074\tTrần Anh Giang\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV075\tNgô Bảo Thảo\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV076\tTạ Bảo Mai\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV077\tTạ Minh Xuân\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV078\tVũ Minh Phúc\tKhông xếp được\t—\t—\n\tNV079\tNgô Minh Yến\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV080\tNgô Gia Việt\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV081\tTrịnh Gia Nam\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV082\tPhan Gia Hà\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV083\tTrần Văn Mai\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV084\tTrịnh Thanh Lan\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV085\tHoàng Khánh Sương\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV086\tHồ Khánh Linh\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV087\tVũ Thanh Yến\tDự án Trải nghiệm người dùng\tTổng quát\t2\n\tNV088\tTrần Minh Tuấn\tKhông xếp được\t—\t—\n\tNV089\tMai Gia Khanh\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV090\tĐặng Khánh Giang\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV091\tBùi Gia Bình\tDự án Ứng dụng di động\tTổng quát\t1\n\tNV092\tDương Khánh Mai\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV093\tVũ Bảo Bình\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV094\tVũ Văn Vy\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV095\tBùi Văn Lan\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV096\tDương Thị Yến\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV097\tBùi Anh Chi\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV098\tChu Quốc Bình\tDự án Bảo mật và tuân thủ\tTổng quát\t2\n\tNV099\tTạ Văn Chi\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV100\tTạ Minh Yến\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV101\tBùi Quốc Ngân\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV102\tTrần Hoài Quân\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV103\tChu Gia Phúc\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV104\tVũ Thanh Sương\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV105\tHồ Thị Uyên\tDự án Báo cáo quản trị\tTổng quát\t1\n\tNV106\tĐỗ Thị Vy\tDự án Tự động hoá kiểm thử\tTổng quát\t2\n\tNV107\tTrịnh Thị Vy\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV108\tMai Thanh Yến\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV109\tTrần Thanh Bình\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV110\tMai Văn An\tDự án Ứng dụng di động\tTổng quát\t2\n\tNV111\tĐỗ Anh Tuấn\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV112\tTạ Quốc Bình\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV113\tMai Bảo Bình\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV114\tĐặng Thanh Nam\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV115\tLý Văn Yến\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV116\tĐặng Khánh Ngân\tKhông xếp được\t—\t—\n\tNV117\tLý Hoài An\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV118\tLê Khánh Lan\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV119\tHoàng Bảo Nam\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV120\tTạ Minh Linh\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV121\tHoàng Hoài Nhi\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV122\tHồ Minh Yến\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t2\n\tNV123\tTrịnh Khánh Nhi\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV124\tMai Thị Quân\tDự án Ứng dụng di động\tTổng quát\t1\n\tNV125\tTạ Hoài Quân\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV126\tTạ Minh Ngân\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV127\tDương Anh Việt\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV128\tVũ Quốc Mai\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV129\tTrịnh Quốc Hà\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV130\tTạ Văn Vy\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV131\tBùi Gia Vy\tDự án Tự động hoá kiểm thử\tTổng quát\t2\n\tNV132\tChu Thị Giang\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV133\tNgô Hoài Nhi\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV134\tHồ Thị Uyên\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV135\tTrịnh Văn Dũng\tKhông xếp được\t—\t—\n\tNV136\tVũ Văn Nhi\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV137\tPhan Minh Sương\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV138\tHồ Gia Yến\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t2\n\tNV139\tBùi Thanh Xuân\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV140\tBùi Quốc Yến\tDự án Báo cáo quản trị\tTổng quát\t1\n\tNV141\tLê Văn Lan\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV142\tHoàng Thanh Nam\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV143\tVũ Thị An\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t2\n\tNV144\tChu Thị Lan\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV145\tNguyễn Văn An\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV146\tPhạm Thanh Linh\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV147\tDương Anh Khanh\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV148\tĐặng Bảo Dũng\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV149\tPhạm Thanh Giang\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV150\tPhạm Minh Dũng\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV151\tĐỗ Khánh Giang\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV152\tTrần Gia Giang\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV153\tLý Thị Bình\tKhông xếp được\t—\t—\n\tNV154\tDương Quốc Phúc\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV155\tTạ Quốc Ngân\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV156\tBùi Bảo Uyên\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV157\tNguyễn Khánh Việt\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV158\tLý Minh Nam\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV159\tVũ Hoài Yến\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV160\tĐặng Anh Bình\tDự án Ứng dụng di động\tTổng quát\t1\n\tNV161\tLý Quốc An\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV162\tBùi Minh Quân\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV163\tMai Văn Phúc\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV164\tMai Minh Bình\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV165\tNgô Thị Yến\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV166\tBùi Thanh Bình\tDự án Hạ tầng đám mây\tTổng quát\t2\n\tNV167\tHoàng Thị Quân\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV168\tĐặng Thanh Nam\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV169\tPhạm Bảo Uyên\tDự án Báo cáo quản trị\tTổng quát\t1\n\tNV170\tNgô Khánh An\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV171\tLê Gia Quân\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV172\tTrần Gia Bình\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV173\tHồ Khánh Hà\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV174\tNguyễn Quốc Giang\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV175\tChu Anh Nhi\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV176\tDương Gia Giang\tDự án Ứng dụng di động\tTổng quát\t1\n\tNV177\tTrần Anh Thảo\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV178\tTạ Minh Linh\tDự án Báo cáo quản trị\tTổng quát\t1\n\tNV179\tLê Quốc Huy\tDự án Ứng dụng di động\tTổng quát\t1\n\tNV180\tVũ Khánh Yến\tDự án Báo cáo quản trị\tTổng quát\t1\n\tNV181\tTrần Thanh Huy\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV182\tDương Quốc Vy\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV183\tHoàng Gia Vy\tDự án Ứng dụng di động\tTổng quát\t1\n\tNV184\tĐặng Thị Uyên\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV185\tPhạm Bảo Dũng\tDự án Báo cáo quản trị\tTổng quát\t1\n\tNV186\tPhạm Anh Linh\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV187\tHồ Khánh Phúc\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV188\tTrịnh Bảo Nhi\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV189\tVũ Anh Nhi\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV190\tBùi Khánh Tuấn\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV191\tChu Quốc Sương\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV192\tMai Văn Dũng\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV193\tBùi Quốc Nam\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV194\tMai Minh Thảo\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV195\tPhạm Quốc Quân\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV196\tLý Thanh Nhi\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV197\tLý Thanh Yến\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV198\tPhan Thanh Mai\tDự án Tự động hoá kiểm thử\tTổng quát\t2\n\tNV199\tDương Gia Uyên\tDự án Phân tích kinh doanh\tTổng quát\t2\n\tNV200\tLý Thanh Bình\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV201\tĐỗ Bảo Quân\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV202\tTrần Anh Linh\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV203\tLý Khánh Ngân\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV204\tPhạm Hoài Lan\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV205\tTạ Thanh An\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV206\tLý Văn Chi\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV207\tLê Anh Bình\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV208\tTạ Bảo Yến\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV209\tLê Bảo Huy\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV210\tTrịnh Thanh Chi\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV211\tDương Anh Giang\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV212\tMai Thanh Dũng\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV213\tĐặng Anh Huy\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV214\tBùi Anh Linh\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV215\tBùi Văn Linh\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV216\tLê Thanh Lan\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV217\tVũ Minh Ngân\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV218\tHoàng Văn Hà\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV219\tBùi Hoài Xuân\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV220\tPhan Minh Xuân\tDự án Báo cáo quản trị\tTổng quát\t1\n\tNV221\tPhan Thanh Phúc\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV222\tLê Bảo Xuân\tDự án Ứng dụng di động\tTổng quát\t2\n\tNV223\tNgô Bảo Uyên\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV224\tPhạm Gia Quân\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV225\tPhan Thị Chi\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV226\tChu Bảo Huy\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV227\tĐỗ Thanh An\tDự án Ứng dụng di động\tTổng quát\t1\n\tNV228\tTạ Thị Tuấn\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV229\tTrịnh Anh An\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV230\tLê Thanh Hà\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV231\tHồ Minh Dũng\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV232\tChu Bảo Nhi\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV233\tNguyễn Văn Linh\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV234\tTrịnh Minh Việt\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV235\tHoàng Thanh Uyên\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t2\n\tNV236\tNgô Khánh An\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV237\tĐặng Anh Mai\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV238\tTrịnh Khánh Vy\tDự án Trợ lý ảo nội bộ\tTổng quát\t1\n\tNV239\tTạ Văn An\tDự án Trợ lý ảo nội bộ\tTổng quát\t2\n\tNV240\tLý Quốc Quân\tDự án Tự động hoá kiểm thử\tTổng quát\t1\n\tNV241\tHồ Quốc Uyên\tKhông xếp được\t—\t—\n\tNV242\tPhan Bảo Xuân\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV243\tNgô Bảo Yến\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV244\tNgô Minh Thảo\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV245\tTrần Bảo Nhi\tDự án Báo cáo quản trị\tTổng quát\t1\n\tNV246\tĐỗ Quốc Nhi\tDự án Tự động hoá kiểm thử\tTổng quát\t2\n\tNV247\tBùi Hoài Nam\tKhông xếp được\t—\t—\n\tNV248\tTrần Văn Ngân\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV249\tNgô Văn Sương\tDự án Ứng dụng di động\tTổng quát\t1\n\tNV250\tHồ Quốc An\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV251\tTạ Minh Xuân\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV252\tNgô Văn Ngân\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV253\tTrần Anh Lan\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV254\tPhạm Anh Ngân\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV255\tLý Khánh Phúc\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV256\tHoàng Bảo An\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV257\tNgô Khánh Việt\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV258\tĐặng Thị Bình\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV259\tTrần Khánh Uyên\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV260\tTrần Thanh Nhi\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV261\tPhan Khánh Linh\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV262\tBùi Gia Linh\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV263\tĐỗ Thanh Huy\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV264\tTrịnh Văn Chi\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV265\tTạ Thị Hà\tDự án Trải nghiệm người dùng\tTổng quát\t2\n\tNV266\tTrần Bảo Nhi\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV267\tHoàng Hoài Mai\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t2\n\tNV268\tVũ Khánh Chi\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV269\tNgô Minh Huy\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV270\tVũ Hoài Sương\tKhông xếp được\t—\t—\n\tNV271\tMai Khánh Quân\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV272\tTrần Gia Tuấn\tDự án Trải nghiệm người dùng\tTổng quát\t2\n\tNV273\tChu Minh Quân\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t2\n\tNV274\tLý Minh Thảo\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV275\tHoàng Minh Giang\tDự án Hạ tầng đám mây\tTổng quát\t1\n\tNV276\tMai Gia Huy\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV277\tHoàng Văn Linh\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV278\tLê Bảo Nam\tKhông xếp được\t—\t—\n\tNV279\tChu Thị Sương\tDự án Tích hợp ERP\tTổng quát\t1\n\tNV280\tBùi Bảo Huy\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV281\tNgô Thị Mai\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV282\tMai Minh Yến\tKhông xếp được\t—\t—\n\tNV283\tHồ Thị Giang\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV284\tHồ Quốc Mai\tDự án Hạ tầng đám mây\tTổng quát\t2\n\tNV285\tDương Khánh Giang\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV286\tTrần Thị Tuấn\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV287\tNguyễn Anh Uyên\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV288\tĐặng Văn Chi\tKhông xếp được\t—\t—\n\tNV289\tTrịnh Anh Giang\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV290\tLý Quốc Sương\tDự án Bảo mật và tuân thủ\tTổng quát\t1\n\tNV291\tDương Thanh Quân\tDự án Ứng dụng di động\tTổng quát\t1\n\tNV292\tMai Thị Việt\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV293\tHoàng Anh Yến\tDự án Quản lý kho vận\tTổng quát\t1\n\tNV294\tLê Anh An\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV295\tĐặng Khánh Thảo\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV296\tMai Hoài Giang\tDự án Cổng tuyển dụng nội bộ\tTổng quát\t1\n\tNV297\tNguyễn Anh Sương\tDự án Kho dữ liệu doanh nghiệp\tTổng quát\t1\n\tNV298\tNgô Quốc Tuấn\tDự án Trải nghiệm người dùng\tTổng quát\t1\n\tNV299\tChu Quốc Việt\tDự án Phân tích kinh doanh\tTổng quát\t1\n\tNV300\tNguyễn Bảo Sương\tDự án Ứng dụng di động\tTổng quát\t1",
+  "fallback": "Chưa có dữ liệu để sắp xếp: cần ít nhất một nhân viên và một dự án. Hãy nạp Sổ nhập dự án ở phần \"Nhập dữ liệu\" trước.\n×\nĐã xuất kết quả của 300 nhân viên ra một tệp Excel: /tmp/pilot__fo0078p/tai_xuong/ket_qua_phan_bo.xlsx\nGồm 6 trang: Hướng dẫn, Danh sách nhân viên, Theo dự án, Chưa có chỗ, Thống kê, Dấu vết (kỹ thuật).\n----\nNhập tại chỗ\n\nTìm hoặc tạo nhân viên, rồi xếp hạng nguyện vọng.\n\nTìm hoặc tạo nhân viên\nTìm\nTạ Bảo Linh\nNV001\nĐã nhập đủ\nNGUYỆN VỌNG\n1\nDự án Quản lý kho vận\nNgô Văn An\nNV002\nĐã nhập đủ\nNGUYỆN VỌNG\n1\nDự án Hạ tầng đám mây\nHoàng Hoài Giang\nNV003\nĐã nhập đủ\nNGUYỆN VỌNG\n1\nDự án Bảo mật và tuân thủ\n2\nDự án Tự động hoá kiểm thử\nVũ Hoài An\nNV004\nĐã nhập đủ\nNGUYỆN VỌNG\n1\nDự án Quản lý kho vận\n2\nDự án Tự động hoá kiểm thử\nHồ Bảo Khanh\nNV005\nĐã nhập đủ\nNGUYỆN VỌNG\n1\nDự án Quản lý kho vận\n2\nDự án Hạ tầng đám mây\n3\nDự án Trải nghiệm người dùng\nNgô Văn Dũng\nNV006\nĐã nhập đủ\nNGUYỆN VỌNG\n1\nDự án Kho dữ liệu doanh nghiệp\n2\nDự án Quản lý kho vận\nĐỗ Khánh Phúc\nNV007\nĐã nhập đủ\nNGUYỆN VỌNG\n1\nDự án Tự động hoá kiểm thử\n2\nDự án Cổng tuyển dụng nội bộ\n3\nDự án Quản lý kho vận\nVũ Anh Việt\nNV008\nĐã nhập đủ\nNGUYỆN VỌNG\n1\nDự án Báo cáo quản trị\n2\nDự án Quản lý kho vận\n3\nDự án Tự động hoá kiểm thử\n‹ Trước\nTrang 1/38 · 300 nhân viên\nSau ›\nTạo nhân viên mới",
+  "admin": "Chưa có dữ liệu để sắp xếp: cần ít nhất một nhân viên và một dự án. Hãy nạp Sổ nhập dự án ở phần \"Nhập dữ liệu\" trước.\n×\n----\nQuản lý dự án & cấp bậc\n\nThêm, sửa dự án và gán cấp bậc cho nhân viên. Cấp bậc cao hơn luôn được xếp trước; thứ tự các cấp bậc đã đặt lúc tạo workspace.\n\nThêm hoặc sửa dự án\nLưu dự án\nMÃ DỰ ÁN\tTÊN\tTỔNG CHỖ\t\nTHAO TÁC\n\nda_baocaoquantri\tDự án Báo cáo quản trị\t20\tChưa chia quý\tXoá\nda_baomatvatuanthu\tDự án Bảo mật và tuân thủ\t29\tChưa chia quý\tXoá\nda_congtuyendungnoibo\tDự án Cổng tuyển dụng nội bộ\t32\tChưa chia quý\tXoá\nda_hatangdammay\tDự án Hạ tầng đám mây\t22\tChưa chia quý\tXoá\nda_khodulieudoanhnghiep\tDự án Kho dữ liệu doanh nghiệp\t33\tChưa chia quý\tXoá\nda_phantichkinhdoanh\tDự án Phân tích kinh doanh\t29\tChưa chia quý\tXoá\nda_quanlykhovan\tDự án Quản lý kho vận\t26\tChưa chia quý\tXoá\nda_tichhoperp\tDự án Tích hợp ERP\t26\tChưa chia quý\tXoá\nda_trainghiemnguoidung\tDự án Trải nghiệm người dùng\t32\tChưa chia quý\tXoá\nda_trolyaonoibo\tDự án Trợ lý ảo nội bộ\t25\tChưa chia quý\tXoá\nda_tudonghoakiemthu\tDự án Tự động hoá kiểm thử\t21\tChưa chia quý\tXoá\nda_ungdungdidong\tDự án Ứng dụng di động\t35\tChưa chia quý\tXoá\n\nHai dự án cùng quý là trùng giờ, mỗi nhân viên chỉ vào được một. Để trống nếu đơn vị chỉ có một quý.\n\nGán cấp bậc và xuất hồ sơ nhân viên\nGán cho nhân viên đã đánh dấu\nXuất CSV nhân viên đã đánh dấu\n\nTệp xuất có KPI chấm và số bốc thăm. Không gửi các tệp này cho người chấm KPI.\n\n\tMÃ NHÂN VIÊN\tHỌ TÊN\tCẤP BẬC HIỆN TẠI\n\tNV001\tTạ Bảo Linh\tmid\n\tNV002\tNgô Văn An\tmid\n\tNV003\tHoàng Hoài Giang\tmid\n\tNV004\tVũ Hoài An\tjunior\n\tNV005\tHồ Bảo Khanh\tjunior\n\tNV006\tNgô Văn Dũng\tmid\n\tNV007\tĐỗ Khánh Phúc\tsenior\n\tNV008\tVũ Anh Việt\tjunior\n\tNV009\tLê Bảo Tuấn\tmid\n\tNV010\tĐặng Quốc Nhi\tmid\n\tNV011\tHoàng Quốc Linh\tjunior\n\tNV012\tChu Quốc Yến\tmid\n\tNV013\tPhan Văn Huy\tmid\n\tNV014\tBùi Quốc Khanh\tjunior\n\tNV015\tPhan Minh Quân\tjunior\n\tNV016\tTrần Văn Khanh\tjunior\n\tNV017\tVũ Bảo Dũng\tjunior\n\tNV018\tTrần Khánh Uyên\tmid\n\tNV019\tNgô Anh Uyên\tjunior\n\tNV020\tĐỗ Khánh Lan\tmid\n\tNV021\tLê Bảo Khanh\tmid\n\tNV022\tVũ Gia Huy\tjunior\n\tNV023\tTạ Bảo Thảo\tjunior\n\tNV024\tTrần Minh Giang\tjunior\n\tNV025\tTrần Anh Vy\tmid\n\tNV026\tBùi Bảo Yến\tmid\n\tNV027\tDương Hoài Lan\tjunior\n\tNV028\tVũ Quốc Tuấn\tjunior\n\tNV029\tĐặng Thanh Bình\tmid\n\tNV030\tNgô Thanh Giang\tjunior\n\tNV031\tPhạm Minh Sương\tjunior\n\tNV032\tChu Bảo An\tmid\n\tNV033\tBùi Anh Nhi\tjunior\n\tNV034\tTrịnh Thị Tuấn\tjunior\n\tNV035\tĐặng Khánh Yến\tjunior\n\tNV036\tTrần Khánh Bình\tmid\n\tNV037\tNgô Quốc Lan\tjunior\n\tNV038\tHồ Anh Mai\tjunior\n\tNV039\tBùi Anh Ngân\tsenior\n\tNV040\tPhan Minh Huy\tmid\n\tNV041\tLê Minh Khanh\tjunior\n\tNV042\tBùi Quốc An\tjunior\n\tNV043\tBùi Thanh Giang\tjunior\n\tNV044\tBùi Khánh Dũng\tjunior\n\tNV045\tLý Gia Giang\tmid\n\tNV046\tNguyễn Minh An\tjunior\n\tNV047\tTrần Thanh Mai\tmid\n\tNV048\tChu Bảo Quân\tsenior\n\tNV049\tPhạm Khánh Phúc\tjunior\n\tNV050\tHồ Hoài Vy\tmid\n‹ Trước\nTrang 1/6 · 300 nhân viên\nSau ›\nVùng nguy hiểm: xoá dữ liệu để làm lại\n\nNạp tệp chỉ thêm nhân viên mới, không xoá nhân viên cũ. Muốn làm lại với bộ dữ liệu khác, hãy xoá ở đây trước, nếu không nhân viên cũ vẫn chiếm chỗ.\n\nCả hai nút đều tự sao lưu dữ liệu trước khi xoá. Lịch sử các lần sắp xếp được giữ lại.\n\nXoá toàn bộ nhân viên (giữ dự án)\nXoá toàn bộ dữ liệu (cả dự án)",
+  "scoring": "Chưa có dữ liệu để sắp xếp: cần ít nhất một nhân viên và một dự án. Hãy nạp Sổ nhập dự án ở phần \"Nhập dữ liệu\" trước.\n×\n----\nNhập KPI\n\nNhập một KPI cho mỗi nhân viên. Danh sách chỉ có mã và họ tên, không có số bốc thăm hay thứ hạng nguyện vọng, để việc chấm KPI được khách quan.\n\nKPI của từng nhân viên\nĐã chấm 300/300\nLưu KPI\nMÃ NHÂN VIÊN\tHỌ TÊN\tKPI\nNV001\tTạ Bảo Linh\t\nNV002\tNgô Văn An\t\nNV003\tHoàng Hoài Giang\t\nNV004\tVũ Hoài An\t\nNV005\tHồ Bảo Khanh\t\nNV006\tNgô Văn Dũng\t\nNV007\tĐỗ Khánh Phúc\t\nNV008\tVũ Anh Việt\t\nNV009\tLê Bảo Tuấn\t\nNV010\tĐặng Quốc Nhi\t\nNV011\tHoàng Quốc Linh\t\nNV012\tChu Quốc Yến\t\nNV013\tPhan Văn Huy\t\nNV014\tBùi Quốc Khanh\t\nNV015\tPhan Minh Quân\t\nNV016\tTrần Văn Khanh\t\nNV017\tVũ Bảo Dũng\t\nNV018\tTrần Khánh Uyên\t\nNV019\tNgô Anh Uyên\t\nNV020\tĐỗ Khánh Lan\t\nNV021\tLê Bảo Khanh\t\nNV022\tVũ Gia Huy\t\nNV023\tTạ Bảo Thảo\t\nNV024\tTrần Minh Giang\t\nNV025\tTrần Anh Vy\t\nNV026\tBùi Bảo Yến\t\nNV027\tDương Hoài Lan\t\nNV028\tVũ Quốc Tuấn\t\nNV029\tĐặng Thanh Bình\t\nNV030\tNgô Thanh Giang\t\nNV031\tPhạm Minh Sương\t\nNV032\tChu Bảo An\t\nNV033\tBùi Anh Nhi\t\nNV034\tTrịnh Thị Tuấn\t\nNV035\tĐặng Khánh Yến\t\nNV036\tTrần Khánh Bình\t\nNV037\tNgô Quốc Lan\t\nNV038\tHồ Anh Mai\t\nNV039\tBùi Anh Ngân\t\nNV040\tPhan Minh Huy\t\nNV041\tLê Minh Khanh\t\nNV042\tBùi Quốc An\t\nNV043\tBùi Thanh Giang\t\nNV044\tBùi Khánh Dũng\t\nNV045\tLý Gia Giang\t\nNV046\tNguyễn Minh An\t\nNV047\tTrần Thanh Mai\t\nNV048\tChu Bảo Quân\t\nNV049\tPhạm Khánh Phúc\t\nNV050\tHồ Hoài Vy\t\nNV051\tTạ Anh Xuân\t\nNV052\tNguyễn Thị Vy\t\nNV053\tPhan Quốc Xuân\t\nNV054\tNgô Bảo Nam\t\nNV055\tLý Anh Phúc\t\nNV056\tDương Khánh Khanh\t\nNV057\tHoàng Thị Hà\t\nNV058\tNgô Anh Bình\t\nNV059\tTrần Quốc Việt\t\nNV060\tHồ Khánh Mai\t\nNV061\tLê Anh Linh\t\nNV062\tLê Hoài Tuấn\t\nNV063\tChu Văn Linh\t\nNV064\tTrịnh Gia Uyên\t\nNV065\tNgô Văn Yến\t\nNV066\tNguyễn Hoài Bình\t\nNV067\tHoàng Quốc Quân\t\nNV068\tMai Anh Uyên\t\nNV069\tChu Thanh An\t\nNV070\tVũ Quốc Thảo\t\nNV071\tNgô Văn Yến\t\nNV072\tNgô Thị Vy\t\nNV073\tHồ Anh Phúc\t\nNV074\tTrần Anh Giang\t\nNV075\tNgô Bảo Thảo\t\nNV076\tTạ Bảo Mai\t\nNV077\tTạ Minh Xuân\t\nNV078\tVũ Minh Phúc\t\nNV079\tNgô Minh Yến\t\nNV080\tNgô Gia Việt\t\nNV081\tTrịnh Gia Nam\t\nNV082\tPhan Gia Hà\t\nNV083\tTrần Văn Mai\t\nNV084\tTrịnh Thanh Lan\t\nNV085\tHoàng Khánh Sương\t\nNV086\tHồ Khánh Linh\t\nNV087\tVũ Thanh Yến\t\nNV088\tTrần Minh Tuấn\t\nNV089\tMai Gia Khanh\t\nNV090\tĐặng Khánh Giang\t\nNV091\tBùi Gia Bình\t\nNV092\tDương Khánh Mai\t\nNV093\tVũ Bảo Bình\t\nNV094\tVũ Văn Vy\t\nNV095\tBùi Văn Lan\t\nNV096\tDương Thị Yến\t\nNV097\tBùi Anh Chi\t\nNV098\tChu Quốc Bình\t\nNV099\tTạ Văn Chi\t\nNV100\tTạ Minh Yến\t\nNV101\tBùi Quốc Ngân\t\nNV102\tTrần Hoài Quân\t\nNV103\tChu Gia Phúc\t\nNV104\tVũ Thanh Sương\t\nNV105\tHồ Thị Uyên\t\nNV106\tĐỗ Thị Vy\t\nNV107\tTrịnh Thị Vy\t\nNV108\tMai Thanh Yến\t\nNV109\tTrần Thanh Bình\t\nNV110\tMai Văn An\t\nNV111\tĐỗ Anh Tuấn\t\nNV112\tTạ Quốc Bình\t\nNV113\tMai Bảo Bình\t\nNV114\tĐặng Thanh Nam\t\nNV115\tLý Văn Yến\t\nNV116\tĐặng Khánh Ngân\t\nNV117\tLý Hoài An\t\nNV118\tLê Khánh Lan\t\nNV119\tHoàng Bảo Nam\t\nNV120\tTạ Minh Linh\t\nNV121\tHoàng Hoài Nhi\t\nNV122\tHồ Minh Yến\t\nNV123\tTrịnh Khánh Nhi\t\nNV124\tMai Thị Quân\t\nNV125\tTạ Hoài Quân\t\nNV126\tTạ Minh Ngân\t\nNV127\tDương Anh Việt\t\nNV128\tVũ Quốc Mai\t\nNV129\tTrịnh Quốc Hà\t\nNV130\tTạ Văn Vy\t\nNV131\tBùi Gia Vy\t\nNV132\tChu Thị Giang\t\nNV133\tNgô Hoài Nhi\t\nNV134\tHồ Thị Uyên\t\nNV135\tTrịnh Văn Dũng\t\nNV136\tVũ Văn Nhi\t\nNV137\tPhan Minh Sương\t\nNV138\tHồ Gia Yến\t\nNV139\tBùi Thanh Xuân\t\nNV140\tBùi Quốc Yến\t\nNV141\tLê Văn Lan\t\nNV142\tHoàng Thanh Nam\t\nNV143\tVũ Thị An\t\nNV144\tChu Thị Lan\t\nNV145\tNguyễn Văn An\t\nNV146\tPhạm Thanh Linh\t\nNV147\tDương Anh Khanh\t\nNV148\tĐặng Bảo Dũng\t\nNV149\tPhạm Thanh Giang\t\nNV150\tPhạm Minh Dũng\t\nNV151\tĐỗ Khánh Giang\t\nNV152\tTrần Gia Giang\t\nNV153\tLý Thị Bình\t\nNV154\tDương Quốc Phúc\t\nNV155\tTạ Quốc Ngân\t\nNV156\tBùi Bảo Uyên\t\nNV157\tNguyễn Khánh Việt\t\nNV158\tLý Minh Nam\t\nNV159\tVũ Hoài Yến\t\nNV160\tĐặng Anh Bình\t\nNV161\tLý Quốc An\t\nNV162\tBùi Minh Quân\t\nNV163\tMai Văn Phúc\t\nNV164\tMai Minh Bình\t\nNV165\tNgô Thị Yến\t\nNV166\tBùi Thanh Bình\t\nNV167\tHoàng Thị Quân\t\nNV168\tĐặng Thanh Nam\t\nNV169\tPhạm Bảo Uyên\t\nNV170\tNgô Khánh An\t\nNV171\tLê Gia Quân\t\nNV172\tTrần Gia Bình\t\nNV173\tHồ Khánh Hà\t\nNV174\tNguyễn Quốc Giang\t\nNV175\tChu Anh Nhi\t\nNV176\tDương Gia Giang\t\nNV177\tTrần Anh Thảo\t\nNV178\tTạ Minh Linh\t\nNV179\tLê Quốc Huy\t\nNV180\tVũ Khánh Yến\t\nNV181\tTrần Thanh Huy\t\nNV182\tDương Quốc Vy\t\nNV183\tHoàng Gia Vy\t\nNV184\tĐặng Thị Uyên\t\nNV185\tPhạm Bảo Dũng\t\nNV186\tPhạm Anh Linh\t\nNV187\tHồ Khánh Phúc\t\nNV188\tTrịnh Bảo Nhi\t\nNV189\tVũ Anh Nhi\t\nNV190\tBùi Khánh Tuấn\t\nNV191\tChu Quốc Sương\t\nNV192\tMai Văn Dũng\t\nNV193\tBùi Quốc Nam\t\nNV194\tMai Minh Thảo\t\nNV195\tPhạm Quốc Quân\t\nNV196\tLý Thanh Nhi\t\nNV197\tLý Thanh Yến\t\nNV198\tPhan Thanh Mai\t\nNV199\tDương Gia Uyên\t\nNV200\tLý Thanh Bình\t\nNV201\tĐỗ Bảo Quân\t\nNV202\tTrần Anh Linh\t\nNV203\tLý Khánh Ngân\t\nNV204\tPhạm Hoài Lan\t\nNV205\tTạ Thanh An\t\nNV206\tLý Văn Chi\t\nNV207\tLê Anh Bình\t\nNV208\tTạ Bảo Yến\t\nNV209\tLê Bảo Huy\t\nNV210\tTrịnh Thanh Chi\t\nNV211\tDương Anh Giang\t\nNV212\tMai Thanh Dũng\t\nNV213\tĐặng Anh Huy\t\nNV214\tBùi Anh Linh\t\nNV215\tBùi Văn Linh\t\nNV216\tLê Thanh Lan\t\nNV217\tVũ Minh Ngân\t\nNV218\tHoàng Văn Hà\t\nNV219\tBùi Hoài Xuân\t\nNV220\tPhan Minh Xuân\t\nNV221\tPhan Thanh Phúc\t\nNV222\tLê Bảo Xuân\t\nNV223\tNgô Bảo Uyên\t\nNV224\tPhạm Gia Quân\t\nNV225\tPhan Thị Chi\t\nNV226\tChu Bảo Huy\t\nNV227\tĐỗ Thanh An\t\nNV228\tTạ Thị Tuấn\t\nNV229\tTrịnh Anh An\t\nNV230\tLê Thanh Hà\t\nNV231\tHồ Minh Dũng\t\nNV232\tChu Bảo Nhi\t\nNV233\tNguyễn Văn Linh\t\nNV234\tTrịnh Minh Việt\t\nNV235\tHoàng Thanh Uyên\t\nNV236\tNgô Khánh An\t\nNV237\tĐặng Anh Mai\t\nNV238\tTrịnh Khánh Vy\t\nNV239\tTạ Văn An\t\nNV240\tLý Quốc Quân\t\nNV241\tHồ Quốc Uyên\t\nNV242\tPhan Bảo Xuân\t\nNV243\tNgô Bảo Yến\t\nNV244\tNgô Minh Thảo\t\nNV245\tTrần Bảo Nhi\t\nNV246\tĐỗ Quốc Nhi\t\nNV247\tBùi Hoài Nam\t\nNV248\tTrần Văn Ngân\t\nNV249\tNgô Văn Sương\t\nNV250\tHồ Quốc An\t\nNV251\tTạ Minh Xuân\t\nNV252\tNgô Văn Ngân\t\nNV253\tTrần Anh Lan\t\nNV254\tPhạm Anh Ngân\t\nNV255\tLý Khánh Phúc\t\nNV256\tHoàng Bảo An\t\nNV257\tNgô Khánh Việt\t\nNV258\tĐặng Thị Bình\t\nNV259\tTrần Khánh Uyên\t\nNV260\tTrần Thanh Nhi\t\nNV261\tPhan Khánh Linh\t\nNV262\tBùi Gia Linh\t\nNV263\tĐỗ Thanh Huy\t\nNV264\tTrịnh Văn Chi\t\nNV265\tTạ Thị Hà\t\nNV266\tTrần Bảo Nhi\t\nNV267\tHoàng Hoài Mai\t\nNV268\tVũ Khánh Chi\t\nNV269\tNgô Minh Huy\t\nNV270\tVũ Hoài Sương\t\nNV271\tMai Khánh Quân\t\nNV272\tTrần Gia Tuấn\t\nNV273\tChu Minh Quân\t\nNV274\tLý Minh Thảo\t\nNV275\tHoàng Minh Giang\t\nNV276\tMai Gia Huy\t\nNV277\tHoàng Văn Linh\t\nNV278\tLê Bảo Nam\t\nNV279\tChu Thị Sương\t\nNV280\tBùi Bảo Huy\t\nNV281\tNgô Thị Mai\t\nNV282\tMai Minh Yến\t\nNV283\tHồ Thị Giang\t\nNV284\tHồ Quốc Mai\t\nNV285\tDương Khánh Giang\t\nNV286\tTrần Thị Tuấn\t\nNV287\tNguyễn Anh Uyên\t\nNV288\tĐặng Văn Chi\t\nNV289\tTrịnh Anh Giang\t\nNV290\tLý Quốc Sương\t\nNV291\tDương Thanh Quân\t\nNV292\tMai Thị Việt\t\nNV293\tHoàng Anh Yến\t\nNV294\tLê Anh An\t\nNV295\tĐặng Khánh Thảo\t\nNV296\tMai Hoài Giang\t\nNV297\tNguyễn Anh Sương\t\nNV298\tNgô Quốc Tuấn\t\nNV299\tChu Quốc Việt\t\nNV300\tNguyễn Bảo Sương\t"
+ }
+}

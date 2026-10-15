@@ -115,8 +115,8 @@ window.I18N_ERROR_MESSAGES = {
     "en": "Couldn't open this Excel file. Check that it's an .xlsx file, or save it again and retry."
   },
   "file_too_large": {
-    "vi": "Tệp quá lớn ({size_mb} MB, tối đa {max_mb} MB). Tệp danh sách của một trường không lớn cỡ này. Hãy kiểm tra xem có chọn nhầm tệp không.",
-    "en": "The file is too large ({size_mb} MB, maximum {max_mb} MB). A school's list is never this big. Check that the right file was chosen."
+    "vi": "Tệp quá lớn ({size_mb} MB, tối đa {max_mb} MB). Tệp danh sách của một {truong} không lớn cỡ này. Hãy kiểm tra xem có chọn nhầm tệp không.",
+    "en": "The file is too large ({size_mb} MB, maximum {max_mb} MB). A {truong}'s list is never this big. Check that the right file was chosen."
   },
   "xlsx_empty": {
     "vi": "Tệp Excel này không có dữ liệu.",
@@ -635,12 +635,12 @@ window.I18N_ERROR_MESSAGES = {
     "en": "Created a new, empty data file. The old file was renamed and is still in the same folder."
   },
   "so_nhap_khong_phai_so": {
-    "vi": "Đây không phải Sổ nhập CLB (cần có hai sheet \"1. {slot_s}\" và \"2. {person}\"). Hãy bấm \"Tải sổ nhập mẫu\", điền vào sổ đó rồi nạp lại.",
-    "en": "This isn't a Club Input Workbook (it needs the sheets \"1. {slot_sv}\" and \"2. {person_v}\"). Click \"Download the input workbook\", fill it in and import it again."
+    "vi": "Đây không phải Sổ nhập {slot_sl} (cần có hai sheet \"1. {slot_s}\" và \"2. {person}\"). Hãy bấm \"Tải sổ nhập mẫu\", điền vào sổ đó rồi nạp lại.",
+    "en": "This isn't a {slot} Input Workbook (it needs the sheets \"1. {slot_sv}\" and \"2. {person_v}\"). Click \"Download the input workbook\", fill it in and import it again."
   },
   "so_nhap_chi_nhan_xlsx": {
-    "vi": "Phần mềm chỉ nhận Sổ nhập CLB (tệp .xlsx). Hãy bấm \"Tải sổ nhập mẫu\", điền vào sổ đó rồi nạp lại.",
-    "en": "Only the Club Input Workbook (.xlsx) can be imported. Click \"Download the input workbook\", fill it in and import it again."
+    "vi": "Phần mềm chỉ nhận Sổ nhập {slot_sl} (tệp .xlsx). Hãy bấm \"Tải sổ nhập mẫu\", điền vào sổ đó rồi nạp lại.",
+    "en": "Only the {slot} Input Workbook (.xlsx) can be imported. Click \"Download the input workbook\", fill it in and import it again."
   },
   "so_nhap_thieu_sheet": {
     "vi": "Sổ nhập thiếu sheet \"{sheet}\".",
@@ -713,6 +713,14 @@ window.I18N_ERROR_MESSAGES = {
   "so_nhap_qua_tran_nv": {
     "vi": "Sheet \"{sheet}\", dòng {dong} ({student_id}): {n} nguyện vọng ở {session_l} {buoi}, tối đa {tran} mỗi {session_l}. Bớt nguyện vọng của {session_l} này.",
     "en": "Sheet \"{sheet}\", row {dong} ({student_id}): {n} preferences in {session_l} {buoi}, at most {tran} per {session_l}. Remove some for this {session_l}."
+  },
+  "so_nhap_qua_tran_nv__khong_buoi": {
+    "vi": "Sheet \"{sheet}\", dòng {dong} ({student_id}): {n} nguyện vọng, tối đa {tran}. Bớt nguyện vọng cho đủ.",
+    "en": "Sheet \"{sheet}\", row {dong} ({student_id}): {n} preferences, at most {tran}. Remove some."
+  },
+  "so_nhap_qua_tran_thi__khong_buoi": {
+    "vi": "Sheet \"{sheet}\", dòng {dong} ({student_id}): thi {n} {slot_sl}, tối đa {tran}. Xoá bớt ô {score} cho đủ.",
+    "en": "Sheet \"{sheet}\", row {dong} ({student_id}): {n} tested {slot_pl}, at most {tran}. Clear some {score_v} cells."
   },
   "so_nhap_qua_tran_thi": {
     "vi": "Sheet \"{sheet}\", dòng {dong} ({student_id}): thi {n} {slot_sl} ở {session_l} {buoi}, tối đa {tran} mỗi {session_l}. Xoá bớt ô {score} của {session_l} này.",

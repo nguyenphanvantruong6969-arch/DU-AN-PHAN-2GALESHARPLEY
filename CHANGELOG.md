@@ -1,5 +1,35 @@
 # CHANGELOG
 
+## 2026-10-15 — Thử phần mềm như người dùng mới: chuyên viên nhân sự và người tổ chức sự kiện (TASK 11)
+
+Chạy `python main.py` (chế độ trình duyệt dự phòng) và lái bằng Playwright: tạo workspace bằng trình hướng dẫn, tải sổ mẫu,
+nạp `du_lieu_test/bo_cong_ty` (300 nhân viên, KPI, cấp bậc cứng) và `bo_su_kien` (800 khách, 24 workshop, 3 phiên, chỉ theo hạng
+vé), chạy, đọc kết quả, xuất Excel; chụp **mọi** màn (`docs/ux_pilot/anh_chup/{truoc,sau}/`). Danh sách điểm vướng, cái đã
+sửa, cái để lại và lý do: **`UX_PILOT_NOTES.md`**. Hai "người dùng" do AI đóng vai, dữ liệu mô phỏng — không phải khảo sát.
+- **Chữ của trường học** còn lọt vào (Sổ nhập CLB, giáo viên, Nhà trường, em, trường, tuần, thời khoá biểu, tên tệp
+  `SO_NHAP_CLB.xlsx`, ví dụ "Khối 12" / "như trường học" ở trình hướng dẫn, ví dụ "Tin học / Bóng rổ" trong sổ mẫu): theo nhãn của
+  workspace. `nhan_ws.py` + `i18n.js` có thêm các từ `{em} {gv} {nt} {truong} {tuan} {tkb} {tkbt}` (chỉ ra từ của trường học khi nhãn
+  người còn là "Học sinh", nên chuỗi trường học giữ y nguyên từng byte — `tests/test_ws_nhan.py`; trình hướng dẫn có tám khoá chữ sửa
+  có chủ ý, liệt kê ở `KHOA_TRINH_HUONG_DAN_DA_SUA`).
+- **Mã buổi nội bộ** (`phien_1`) hiện thành "Phiên 1" ở chip/ô chọn buổi, mọi bảng, cảnh báo dữ liệu, thông báo lỗi và mọi trang Excel
+  (`nhan_ws.ten_buoi` == `I18N.tenBuoi`; giá trị gửi đi và CSV vẫn là mã).
+- **Nhóm xếp cứng không có suất dự trữ** nên ẩn mọi thứ về dự trữ ở thẻ Kết quả, Quản lý và Excel (cột "Diện trúng tuyển", "Nhóm dự trữ",
+  mục "SUẤT DỰ TRỮ DÙNG TỚI ĐÂU"…), cột nhóm mang tên nhóm ("Hạng vé") và hiện tên trong luật ("Quản lý" chứ không `quan_ly`).
+  Không có bước "chọn chỗ dự thi" (điểm một người một số, hay chỉ theo nhóm) thì ẩn bước đó ở thẻ Nhập tại chỗ, thẻ người không báo
+  "Thiếu … dự thi", tóm tắt nhập không có "0 lượt thi". CSS `body.nhom-cung` / `body.khong-thi` do `apDungLuatChamDiem` đặt.
+- **Sổ nhập** của workspace chỉ theo nhóm **không có cột "Điểm k"** (đọc vẫn nhận sổ cũ có cột đó); sheet "Hướng dẫn" giải thích
+  từng cột tiêu đề cố định ("Tên CLB" = tên dự án…) và đánh số bước liền. `du_lieu_test/bo_cong_ty` và `bo_su_kien` sinh lại theo lệnh trong README.
+- **Bấm Chạy khi chưa có dữ liệu** báo việc cần làm và không ghi lịch sử; Cảnh báo dữ liệu không nói "đã sẵn sàng" khi chưa nạp gì.
+- **Thông báo lỗi** quá số nguyện vọng ở workspace một buổi không còn "ở quý -" (`so_nhap_qua_tran_*__khong_buoi`, đối xứng Python/JS).
+- **Trình hướng dẫn**: nhãn lựa chọn ngắn + lời giải thích dưới ô; ô "số chỗ dự thi" ẩn khi vô nghĩa (lỗi `.ws-truong` ghi đè `hidden` đã sửa);
+  ghi chú khi chọn "chỉ theo nhóm". Nút workspace ở thanh bên nói "bấm để đổi/tạo". Tên tệp sổ theo nhãn (`SO_NHAP_DU_AN.xlsx`).
+- Test mới: `tests/test_ws_ux_nguoi_moi.py` (không cần trình duyệt: sổ mẫu, hướng dẫn, lỗi, Python == JS, tệp Excel của ba workspace) và
+  `tests/test_ws_ux_nguoi_moi_giao_dien.py` (Chromium thật: từng thẻ của sự kiện / công ty / trường học, đổi qua lại không dính luật,
+  trình hướng dẫn, chạy khi chưa có dữ liệu). Bộ chạy tay: `docs/ux_pilot/`.
+- **Chưa sửa** (việc lớn, lý do trong `UX_PILOT_NOTES.md` mục 3): mẫu dựng sẵn theo ngành và "Loại" điền sẵn; mở lần đầu vào bảng chọn;
+  tiêu đề cột sổ nhập/CSV của trường học (hợp đồng cột); từ "workspace" tiếng Anh; "chọi / tỉ lệ chọi"; cột "Quý" toàn "—" trong Excel
+  một buổi; cột "Suất ưu tiên" trong sổ khi nhóm cứng; tên thẻ "Nhập tại chỗ".
+
 ## 2026-10-15 — Skill `sinh-du-lieu-clb` cho workspace (TASK 8)
 
 `scripts/sinh_du_lieu.py` nhận `--cau-hinh config.json` (cùng khuôn hàng `config` của `workspace_settings`; cũng nhận

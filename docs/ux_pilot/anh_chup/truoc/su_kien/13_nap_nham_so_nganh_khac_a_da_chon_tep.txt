@@ -1,0 +1,52 @@
+Đã tạo sổ nhập (0 workshop điền sẵn) → /tmp/pilot_ohd2haxr/tai_xuong/SO_NHAP_CLB.xlsx
+Sắp xếp xong: 0/0 khách tham dự có workshop, sau 0 vòng.
+----
+Vận hành sắp xếp
+
+Kiểm tra dữ liệu, bốc thăm, xếp khách tham dự vào workshop và xuất kết quả.
+
+0
+khách tham dự
+0
+workshop
+0
+đã nộp nguyện vọng
+0
+đã xếp workshop
+Nhập dữ liệu
+Tải sổ nhập mẫu
+
+Toàn bộ dữ liệu nằm trong một tệp Excel duy nhất: Sổ nhập CLB. Chưa có sổ thì bấm "Tải sổ nhập mẫu", điền danh sách workshop và khách tham dự, lưu lại rồi kéo sổ vào ô bên dưới.
+
+Kéo Sổ nhập CLB vào đây
+Một tệp Excel (.xlsx). Bấm để chọn tệp.
+SO_NHAP.xlsx
+Đây không phải Sổ nhập CLB (cần có hai sheet "1. Workshop" và "2. Khách tham dự"). Hãy bấm "Tải sổ nhập mẫu", điền vào sổ đó rồi nạp lại.
+Bỏ tệp
+Cảnh báo dữ liệu
+Kiểm tra lại
+
+Những điểm dưới đây không chặn việc sắp xếp nhưng có thể làm kết quả sai lệch. Nên xem trước khi chạy.
+
+Không thấy vấn đề nào. Dữ liệu đã sẵn sàng.
+Các bước xử lý
+Số khởi tạo bốc thăm
+Kiểm tra dữ liệu
+Chạy sắp xếp
+Số bốc thăm đã khoá từ 2026-10-15T00:17:50. Các lần sắp xếp sau giữ nguyên thứ tự cũ, khách tham dự mới được xếp ngẫu nhiên vào.
+Bốc thăm lại…
+Số khởi tạo 42 được khoá cùng số bốc thăm. Muốn đổi, bấm "Bốc thăm lại…".
+Sao lưu dữ liệu
+Đã sao lưu dữ liệu trước khi sắp xếp: app.db.bak-20261015_001750_636203
+Kiểm tra dữ liệu
+Hoàn tất
+Bốc thăm
+Đã bốc thăm cho 0 khách tham dự và khoá kết quả bốc thăm.
+Xếp khách tham dự vào workshop
+Hoàn tất sau 0 vòng, không có lỗi.
+Lưu kết quả
+Hoàn tất
+Xuất kết quả
+/tmp/pilot_ohd2haxr/app/workspaces/hoi-nghi-chuyen-doi-so-2026/match_results.csv
+Lịch sử sắp xếp
+Hiện/ẩn

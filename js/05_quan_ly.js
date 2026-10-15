@@ -44,7 +44,8 @@ function clubBuoi(clubId) {
 
 function nhanBuoi(buoi) {
   if (!buoi || buoi === BUOI_MAC_DINH) return t("buoi_chua_chia");
-  return buoi;
+  /* `phien_1` -> "Phiên 1" khi workspace gọi buổi là "Phiên"; mã khác giữ nguyên. */
+  return window.I18N.tenBuoi(buoi);
 }
 
 /* Ba mức tải, cùng ngưỡng dùng cho cả bảng lẫn lịch tuần.
@@ -530,7 +531,8 @@ function loadAdminClubs() {
       const tr = document.createElement("tr");
       tr.innerHTML =
         `<td>${esc(c.club_id)}</td><td>${esc(c.name)}</td><td>${esc(c.capacity)}</td>` +
-        `<td>${esc(c.reserve_capacity)}</td><td>${esc(c.reserve_group || "—")}</td>` +
+        `<td class="chi-du-tru">${esc(c.reserve_capacity)}</td>` +
+        `<td class="chi-du-tru">${esc(c.reserve_group || "—")}</td>` +
         `<td class="cot-buoi">${esc(nhanBuoi(c.buoi))}</td><td></td>`;
       const delBtn = document.createElement("button");
       delBtn.className = "btn-icon-danger";
