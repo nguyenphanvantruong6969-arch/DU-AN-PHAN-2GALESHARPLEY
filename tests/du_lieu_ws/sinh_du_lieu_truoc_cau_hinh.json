@@ -1,0 +1,41 @@
+{
+ "ngau --hoc-sinh 12 --buoi thu_2,thu_4 --seed 99 --do-choi 1.3": {
+  "[Content_Types].xml": "7f494ffef7f8763d50df13560b9fb9dd9d301b90568d5b0078c8bcda174669d9",
+  "_rels/.rels": "c545941ba36c15fcdce4ae4568c663f3ced1a2226ad5082d3fd66b178bfac11a",
+  "docProps/app.xml": "209fca6b00afe72a5029754b94be5953d8f16d96f67130325566b9366ad4ccc5",
+  "stdout": "Hợp lệ: 6 câu lạc bộ · 2 buổi · 12 học sinh · 2 ô điểm\n   → <RA>/SO_NHAP_CLB.xlsx\n",
+  "xl/_rels/workbook.xml.rels": "9f80b92319d8b9c20f25d718624b941fcbb42403a9f86fe137722889b35d4b87",
+  "xl/styles.xml": "1856a51fe7d9ea65758584e7ea02d5ec84ad4eb4c8ec59eef81bd7534970308f",
+  "xl/theme/theme1.xml": "d15e8ebf78ef7b9720839d7ae8fdc81a7df5bc24706d8e137df61a5683c358d9",
+  "xl/workbook.xml": "a0f4d63545d908817bb97ec950d4007ed745da6d397617c5be2331eeca8f50c2",
+  "xl/worksheets/sheet1.xml": "17526e0b8948d586a4e30337680122a0ffaec37d110cbc85808f62498fe951a9",
+  "xl/worksheets/sheet2.xml": "94cb0ce8e06a00c97190b9dee019d299a385119f1f684340c77333cafd5f2ec5",
+  "xl/worksheets/sheet3.xml": "d999bdefaebc8fdf3d0efe11087fcd10fa49705065f037d0212f7d939c4952fa"
+ },
+ "ngau --hoc-sinh 180 --buoi thu_2,thu_4,thu_6 --clb-moi-buoi 3 --seed 42": {
+  "[Content_Types].xml": "7f494ffef7f8763d50df13560b9fb9dd9d301b90568d5b0078c8bcda174669d9",
+  "_rels/.rels": "c545941ba36c15fcdce4ae4568c663f3ced1a2226ad5082d3fd66b178bfac11a",
+  "docProps/app.xml": "209fca6b00afe72a5029754b94be5953d8f16d96f67130325566b9366ad4ccc5",
+  "stdout": "Hợp lệ: 9 câu lạc bộ · 3 buổi · 180 học sinh · 321 ô điểm\n   → <RA>/SO_NHAP_CLB.xlsx\n",
+  "xl/_rels/workbook.xml.rels": "9f80b92319d8b9c20f25d718624b941fcbb42403a9f86fe137722889b35d4b87",
+  "xl/styles.xml": "1856a51fe7d9ea65758584e7ea02d5ec84ad4eb4c8ec59eef81bd7534970308f",
+  "xl/theme/theme1.xml": "d15e8ebf78ef7b9720839d7ae8fdc81a7df5bc24706d8e137df61a5683c358d9",
+  "xl/workbook.xml": "a0f4d63545d908817bb97ec950d4007ed745da6d397617c5be2331eeca8f50c2",
+  "xl/worksheets/sheet1.xml": "6d6b3221da63b55beb09c22ddc9836baa8938fa7ed64ae33c0bffe3c2191e701",
+  "xl/worksheets/sheet2.xml": "94a72271b340e1fc4d9c572ec50112c0c8432b6b63b234c573496419cf20c78d",
+  "xl/worksheets/sheet3.xml": "d999bdefaebc8fdf3d0efe11087fcd10fa49705065f037d0212f7d939c4952fa"
+ },
+ "ngau --hoc-sinh 40 --seed 5": {
+  "[Content_Types].xml": "7f494ffef7f8763d50df13560b9fb9dd9d301b90568d5b0078c8bcda174669d9",
+  "_rels/.rels": "c545941ba36c15fcdce4ae4568c663f3ced1a2226ad5082d3fd66b178bfac11a",
+  "docProps/app.xml": "209fca6b00afe72a5029754b94be5953d8f16d96f67130325566b9366ad4ccc5",
+  "stdout": "Hợp lệ: 3 câu lạc bộ · 1 buổi · 40 học sinh · 20 ô điểm\n   → <RA>/SO_NHAP_CLB.xlsx\n",
+  "xl/_rels/workbook.xml.rels": "9f80b92319d8b9c20f25d718624b941fcbb42403a9f86fe137722889b35d4b87",
+  "xl/styles.xml": "1856a51fe7d9ea65758584e7ea02d5ec84ad4eb4c8ec59eef81bd7534970308f",
+  "xl/theme/theme1.xml": "d15e8ebf78ef7b9720839d7ae8fdc81a7df5bc24706d8e137df61a5683c358d9",
+  "xl/workbook.xml": "a0f4d63545d908817bb97ec950d4007ed745da6d397617c5be2331eeca8f50c2",
+  "xl/worksheets/sheet1.xml": "92b31720c7d35ac4fc7f9473653b1ef5365fa4a6d188979a6fe9c9e66cc0bb69",
+  "xl/worksheets/sheet2.xml": "ff655a5a157676a12e16df17c2a265c47a52b1c439befb8ae0340618b7794a9e",
+  "xl/worksheets/sheet3.xml": "d999bdefaebc8fdf3d0efe11087fcd10fa49705065f037d0212f7d939c4952fa"
+ }
+}

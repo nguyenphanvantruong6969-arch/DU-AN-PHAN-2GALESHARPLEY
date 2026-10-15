@@ -1,5 +1,30 @@
 # CHANGELOG
 
+## 2026-10-15 — Skill `sinh-du-lieu-clb` cho workspace (TASK 8)
+
+`scripts/sinh_du_lieu.py` nhận `--cau-hinh config.json` (cùng khuôn hàng `config` của `workspace_settings`; cũng nhận
+tệp mẫu `{"name", "config"}` do `workspace.luu_mau` ghi) và `ngau --kich-ban company|event`. **Không truyền thì đầu ra y hệt
+bản cũ** — `tests/du_lieu_ws/sinh_du_lieu_truoc_cau_hinh.json` chụp từ bản trước khi sửa (từng mục .xlsx trừ giờ ghi tệp,
+và cả chữ in ra), một cấu hình giống hệt trường học cũng đi đường cũ.
+- Nhãn vào tên sheet / tiêu đề cột (đúng `so_nhap.ghi_so_nhap(cfg=...)`) và vào chữ in ra; `max_choices` / `max_tests`
+  (`null` = không giới hạn) thay hai trần 10 và 5 ở `soat`; `per_person` = một điểm cho cả người (`diem_ca_nhan`),
+  `per_slot` = điểm từng chỗ dự thi, `priority = tier` = không điểm; nhóm xếp cứng = mỗi người đúng một nhóm trong
+  `rules.tiers` chia theo tỉ lệ (3 nhóm 10/30/60, chia đúng tổng); chỗ ngồi tính theo số người khai nguyện vọng ở buổi đó.
+- `soat` mới bắt: nguyện vọng / thi vượt trần của workspace, điểm từng chỗ trong workspace chấm theo người, điểm âm hoặc
+  không phải số, người có nguyện vọng mà nhóm không nằm trong `rules.tiers` (cùng khoá so khớp với thuật toán).
+- Có cấu hình thì ghi .xlsx **tất định** (`co_dinh_xlsx`: giờ trong `core.xml` và giờ các mục zip cố định), nên cùng seed cho
+  cùng từng byte và bộ commit tái lập được; bản cũ vẫn khác nhau vài byte ở `docProps/core.xml` giữa hai lần chạy.
+- Hai bộ mô phỏng đã commit, mỗi bộ có `config.json`, `SO_NHAP.xlsx`, `README.md`: `du_lieu_test/bo_cong_ty/` (300 nhân viên, 12 dự
+  án, KPI 0–100 theo người, Senior > Mid > Junior cứng) và `du_lieu_test/bo_su_kien/` (800 khách, 24 workshop trong 3 phiên, chỉ
+  theo hạng vé VIP > Member > Guest, không điểm).
+- Test (`tests/test_skill_sinh_du_lieu.py`, `tests/test_dong_goi_skill.py`): mặc định không đổi; cùng seed cùng từng byte;
+  mọi sổ sinh ra — hai kịch bản và 9 cấu hình khác × một / ba buổi — nhập vào workspace mang đúng cấu hình đó với 0 lỗi, 0 cảnh
+  báo nhập, 0 cảnh báo sức khoẻ dữ liệu và chạy xếp được; bộ commit tái lập đúng từng byte bằng lệnh trong README;
+  `chuan_hoa_cau_hinh` của skill so với `cau_hinh_ws.chuan_hoa` (cả cấu hình hợp lệ lẫn 31 cấu hình sai) và `khoa_nhom` so với
+  `khoa_ten_nhom`, vì skill đóng gói không được import hai module đó; bản `.zip` ghi và soát được sổ workspace ngoài kho.
+- Bắt được lỗi thật ngay khi viết test so sánh: nhãn chỉ có `vi` ("Dự án") bị từ chối nhầm vì `"" in "=+-@"` là đúng.
+- `TAI_LIEU_DU_LIEU.md` mục 4.1 dán lại nguyên văn SKILL.md mới; bảng cờ CLI mục 4.4 có thêm ba cờ.
+
 ## 2026-10-14 — Workspace: kiểm toán đầu-cuối (TASK 7)
 
 Đọc toàn bộ diff từ `0e4d774`, dựng ba workspace thật (bản sao `app_DEMO_da_cham_diem.db` đã di trú, một công ty

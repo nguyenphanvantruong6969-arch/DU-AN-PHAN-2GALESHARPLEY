@@ -57,3 +57,20 @@ def test_zip_chay_ngoai_kho(tmp_path):
                        cwd=str(ngoai), capture_output=True, text=True, encoding="utf-8")
     assert r.returncode == 0, r.stderr
     assert os.path.isfile(str(ngoai / "bo" / "SO_NHAP_CLB.xlsx"))
+
+    # …và ghi được sổ của WORKSPACE (nhãn, luật, điểm theo người) ngoài kho: --kich-ban cần
+    # so_nhap.py, i18n_errors.py và nhan_ws.py đi kèm, và không được kéo cau_hinh_ws.py.
+    assert not os.path.exists(str(ngoai / "xu-li-raw-forms" / "scripts" / "cau_hinh_ws.py"))
+    for kich_ban, sheet in (("company", "2. Nhân viên"), ("event", "2. Khách tham dự")):
+        ra = str(ngoai / ("bo_" + kich_ban))
+        r = subprocess.run([sys.executable, sdl, "ngau", "--kich-ban", kich_ban, "--ra", ra,
+                            "--hoc-sinh", "30", "--clb-moi-buoi", "4"],
+                           cwd=str(ngoai), capture_output=True, text=True, encoding="utf-8")
+        assert r.returncode == 0, r.stderr
+        assert sorted(os.listdir(ra)) == ["SO_NHAP_CLB.xlsx", "config.json"]
+        import openpyxl
+        assert sheet in openpyxl.load_workbook(os.path.join(ra, "SO_NHAP_CLB.xlsx")).sheetnames
+        r = subprocess.run([sys.executable, sdl, "soat", os.path.join(ra, "SO_NHAP_CLB.xlsx"),
+                            "--cau-hinh", os.path.join(ra, "config.json")],
+                           cwd=str(ngoai), capture_output=True, text=True, encoding="utf-8")
+        assert r.returncode == 0, r.stderr

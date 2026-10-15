@@ -1,0 +1,38 @@
+{
+  "name": "Hội nghị Chuyển đổi số 2026 (mô phỏng)",
+  "industry": "event",
+  "labels": {
+    "person": {
+      "vi": "Khách tham dự",
+      "en": "Attendee"
+    },
+    "slot": {
+      "vi": "Workshop",
+      "en": "Workshop"
+    },
+    "session": {
+      "vi": "Phiên",
+      "en": "Track"
+    },
+    "group": {
+      "vi": "Hạng vé",
+      "en": "Ticket"
+    },
+    "score": {
+      "vi": "Điểm",
+      "en": "Score"
+    }
+  },
+  "rules": {
+    "max_choices": 2,
+    "max_tests": 0,
+    "priority": "tier",
+    "tier_mode": "strict",
+    "score_scope": "per_slot",
+    "tiers": [
+      "VIP",
+      "Member",
+      "Guest"
+    ]
+  }
+}

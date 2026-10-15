@@ -17,6 +17,8 @@ Giao diện chỉ nhận **Sổ nhập CLB** (một tệp Excel). Mỗi bộ dư
 | `SO_NHAP_CO_LOI_CO_Y.xlsx` | 10 em, **cố ý sai 5 chỗ** | Xem bảng lỗi: phần mềm phải liệt kê đủ 5 lỗi kèm dòng và **không nạp gì** |
 | `bo_sach/SO_NHAP_SACH.xlsx` | 140 em, 12 CLB | Chạy thử, 0 cảnh báo |
 | `vi_du_huong_dan/SO_NHAP_VIDU.xlsx` | 10 em, 4 CLB | Đi kèm `HUONG_DAN_SU_DUNG.md` |
+| `bo_cong_ty/SO_NHAP.xlsx` + `config.json` | 300 nhân viên, 12 dự án, KPI theo người, cấp bậc xếp cứng | Chạy thử workspace công ty (xem `bo_cong_ty/README.md`) |
+| `bo_su_kien/SO_NHAP.xlsx` + `config.json` | 800 khách, 24 workshop, 3 phiên, chỉ theo hạng vé | Chạy thử workspace sự kiện (xem `bo_su_kien/README.md`) |
 
 Năm lỗi cài sẵn trong `SO_NHAP_CO_LOI_CO_Y.xlsx`: NV ghi tên một CLB không có
 (`CLB Bóng chuyền`), một ô điểm ghi chữ (`tám`), một mã HS lặp hai dòng, một CLB

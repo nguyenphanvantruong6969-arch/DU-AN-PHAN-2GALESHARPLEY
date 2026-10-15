@@ -1,0 +1,38 @@
+{
+  "name": "Công ty Cổ phần Ánh Dương (mô phỏng)",
+  "industry": "company",
+  "labels": {
+    "person": {
+      "vi": "Nhân viên",
+      "en": "Employee"
+    },
+    "slot": {
+      "vi": "Dự án",
+      "en": "Project"
+    },
+    "session": {
+      "vi": "Quý",
+      "en": "Quarter"
+    },
+    "group": {
+      "vi": "Cấp bậc",
+      "en": "Level"
+    },
+    "score": {
+      "vi": "KPI",
+      "en": "KPI"
+    }
+  },
+  "rules": {
+    "max_choices": 3,
+    "max_tests": 0,
+    "priority": "score+tier",
+    "tier_mode": "strict",
+    "score_scope": "per_person",
+    "tiers": [
+      "Senior",
+      "Mid",
+      "Junior"
+    ]
+  }
+}
