@@ -174,6 +174,7 @@ Luật nhóm: `reserve` → mọi nhóm của người phải có chỗ dành su
 | `ma_trung` | mã lặp | phiếu nộp lại? → hỏi đầu/cuối → `phieu_trung`; trùng thật → người dùng sửa raw |
 | `ma_khac_hoa` | `nv01` và `NV01` | phần mềm coi là hai người → người dùng sửa raw |
 | `nv_trung`, `hang_trung`, `hang_sai` | một người chọn một chỗ hai lần / hai chỗ cùng hạng / hạng không đọc được | người dùng sửa raw |
+| `ten_mau_thuan`, `nhom_mau_thuan`, `diem_mau_thuan` | dạng `dong_dai`: cùng mã mà các dòng ghi khác tên / nhóm / điểm | người dùng sửa raw |
 | `qua_tran_nv`, `qua_tran_thi` | vượt trần mỗi buổi | nâng `max_choices`/`max_tests` (hỏi) hoặc sửa raw |
 | `nhom_mo_coi`, `nhom_ngoai_tiers` | nhóm không có tác dụng | thêm suất / sửa `tiers` / `nhom_doi_ten` / bỏ cột nhóm — hỏi |
 | `diem_khong_nv`, `diem_sai`, `diem_sai_che_do` | điểm không thuộc nguyện vọng / không phải số / sai `score_scope` | sửa raw hoặc spec |

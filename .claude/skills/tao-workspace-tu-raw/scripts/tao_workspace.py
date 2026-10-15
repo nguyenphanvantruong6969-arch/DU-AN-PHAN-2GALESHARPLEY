@@ -560,6 +560,12 @@ def doc_nguoi(spec, goc_spec, loi, cfg):
                     loi.append(_loi("nhom_mau_thuan", "Mã %r mang hai nhóm: %r và %r."
                                     % (ma, p["nhom"], nhom), **vt))
                     continue
+                diem_cn = o[i_diem] if i_diem is not None else ""
+                if diem_cn != p["diem_cn"]:
+                    loi.append(_loi("diem_mau_thuan", "Mã %r mang hai %s: %r và %r."
+                                    % (ma, cfg["labels"]["score"]["vi"].lower(), p["diem_cn"], diem_cn),
+                                    **vt))
+                    continue
             else:
                 theo_ma[ma] = {"ma": ma, "name": ten, "nhom": nhom, "nv": [], "dong": so_dong,
                                "diem_cn": o[i_diem] if i_diem is not None else "",

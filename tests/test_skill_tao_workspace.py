@@ -294,6 +294,18 @@ def test_khong_de_tep_da_co(tw, tmp_path):
     assert e.value.loi[0]["ma"] == "de_tep"
 
 
+def test_dong_dai_mot_nguoi_hai_diem_bi_chan(tw, tmp_path):
+    _csv(tmp_path / "dk.csv", [["Mã", "Điểm", "Chỗ"], ["A", "80", DU_AN[0]], ["A", "90", DU_AN[1]]])
+    p = _spec(tmp_path,
+              cau_hinh={"industry": "custom", "labels": NHAN,
+                        "rules": {"max_choices": 2, "max_tests": None, "score_scope": "per_person"}},
+              nguoi={"nguon": {"tep": "dk.csv"}, "cot": {"ma": "Mã", "diem": "Điểm"},
+                     "nguyen_vong": {"dang": "dong_dai", "cot_cho": "Chỗ"}})
+    with pytest.raises(tw.LoiDung) as e:
+        _dung(tw, p, str(tmp_path / "ra"))
+    assert "diem_mau_thuan" in [x["ma"] for x in e.value.loi]
+
+
 # ---------------------------------------------------------------- soi
 
 def test_soi_doan_vai_tro_cot(tw, tmp_path):
