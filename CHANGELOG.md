@@ -1,5 +1,39 @@
 # CHANGELOG
 
+## 2026-10-15 — Workspace: Việt hoá sạch màn chọn và sửa bảng (ngoài sổ đăng ký, theo yêu cầu chủ dự án; chồng lấn Z1)
+
+Ở giao diện tiếng Việt, màn chọn workspace còn "workspace" và ".zip" lẫn trong câu, và bảng bị vỡ.
+Giao diện tiếng Anh giữ nguyên chữ cũ. Không đổi backend, thuật toán hay hợp đồng `{ok, data, errors}`.
+- **Chữ tiếng Việt.** "workspace" → "không gian làm việc"; ".zip" → "tệp nén" (nút Xuất tệp nén / Nhập tệp nén,
+  câu nhắc, thông báo). Sửa trong `i18n.js` (khối `vi`, các khoá `ws_*`), `i18n_errors.py` (sáu mã `ws_*` và bốn
+  câu có "Workspace này"), `index.html` (chữ mặc định của nút thanh bên); `i18n_loi.js` sinh lại bằng
+  `tao_i18n_js.py`. "thư mục _trash" giữ nguyên vì là tên thư mục thật trên đĩa.
+- **Chuỗi do backend đặt, không đổi theo ngôn ngữ.** Tên mẫu dựng sẵn "Trường học" nay dịch ở JS theo khoá mới
+  `ws_mau_truong_hoc` (vi "Trường học", en "School"); cột "Sửa lần cuối" hiện `15/10/2026 12:19:20` ở tiếng Việt,
+  giữ `2026-10-15 12:19:20` ở tiếng Anh (`js/075_workspace.js`: `wsTenMau`, `wsDinhDangNgay`).
+- **Bảng.** `display:flex` đặt thẳng lên `<td>` làm ô mất kiểu `table-cell`: nền hàng "Đang mở" dừng giữa chừng,
+  đường kẻ lệch, nút Xoá rớt dòng. Nay `<td class="ws-cot-hanh-dong">` chứa `<div class="ws-hanh-dong">` (flex);
+  hộp thoại rộng 1040px; cột Tên về font chữ thường (trước đó dùng font mã của `.data-table td:first-child`);
+  `select` / `textarea` trong trình hướng dẫn kế thừa font. Màn hẹp thì sáu nút xuống dòng gọn trong ô.
+- **Test mới (viết trước, thấy đỏ rồi mới sửa).** `tests/test_giao_dien_tieng_viet_sach.py`: thêm "workspace" vào
+  danh sách cấm và một test quét thô chữ "zip". `tests/test_ws_giao_dien.py`: tiếng Việt không còn
+  workspace/zip ở màn chọn và cả bốn bước hướng dẫn; tiếng Anh không còn chữ có dấu tiếng Việt ở màn chọn và ba
+  bước đầu; tên mẫu và ngày đổi theo ngôn ngữ; bảng vẽ đúng (ô hành động là `table-cell`, mọi ô cao bằng hàng,
+  sáu nút một dòng, nền phủ cả hàng, tên không dùng font mã).
+- **Ảnh chụp chuỗi làm mới có chủ đích.** `tests/du_lieu_ws/chuoi_truoc_khi_co_nhan.json`: chỉ 24 chuỗi `vi` đã đổi
+  (5 mã lỗi `ws_*`, 19 khoá `ws_*` của giao diện); `test_ws_nhan.py` vẫn so toàn bộ phần còn lại như cũ.
+
+## 2026-10-15 — Skill `tao-workspace-tu-raw` và hai bộ dữ liệu thử (ngoài sổ đăng ký, theo yêu cầu chủ dự án)
+
+- **Skill mới `.claude/skills/tao-workspace-tu-raw/`**: raw bất kỳ (Excel/CSV tự do, Google/Microsoft Forms, hai
+  tệp tách rời, văn bản dán) → workspace `.zip` nạp sẵn dữ liệu + Sổ nhập theo nhãn + `BAO_CAO_SOAT.md`.
+  Bốn dạng nguyện vọng (`cot_xep_hang`, `mot_o`, `dong_dai`, `ma_tran`), đủ luật workspace, điểm theo chỗ / theo
+  người. Đoán rồi hỏi duyệt; chỉ tiêu bắt buộc hỏi; sai một điều không ghi tệp nào; kiểm bằng `import_so_nhap` +
+  báo cáo sức khoẻ + chạy thử; từ chối ghi đầu ra vào kho git (dữ liệu người thật). Không đụng mã sản phẩm.
+  Test: `tests/test_skill_tao_workspace.py` (21 ca).
+- **Bộ dữ liệu thử (mô phỏng)**: `du_lieu_test/bo_thu_chuong_trinh/` (trường 3 buổi, 180 học sinh) và
+  `du_lieu_test/bo_thu_workspace/` (workspace "Công ty Bình Minh", zip nạp sẵn, kèm script sinh lại).
+
 ## 2026-10-14 — Sửa lỗi CI Windows của PR #1 (24 test đỏ; Linux đạt)
 
 Bộ test Windows đỏ 24 ca trong khi Linux xanh. Hai nguyên nhân, một thật của sản phẩm và một của test:

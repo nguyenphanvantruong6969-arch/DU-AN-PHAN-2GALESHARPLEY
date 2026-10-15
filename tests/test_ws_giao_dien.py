@@ -5,6 +5,7 @@ browser_host. Máy nào không có playwright/Chromium thì bỏ qua cả tệp.
 """
 
 import os
+import re
 
 import pytest
 
@@ -329,11 +330,133 @@ def test_doi_ngon_ngu_khi_man_chon_dang_mo(mo_trang):
     page, _, _, loi = mo_trang()
     page.locator("#btnWorkspace").click()
     page.wait_for_selector("#wsTieuDe")          # danh sách vẽ sau khi backend trả lời
-    assert "Chọn workspace" in page.locator("#wsHop").inner_text()
+    assert "Chọn không gian làm việc" in page.locator("#wsHop").inner_text()
     page.evaluate("window.I18N.setLang('en')")   # nút EN nằm sau màn chọn nên không bấm được
     page.wait_for_function("document.documentElement.lang === 'en'")
     chu = page.locator("#wsHop").inner_text()
-    assert "Choose a workspace" in chu and "Chọn workspace" not in chu
+    assert "Choose a workspace" in chu and "Chọn không gian làm việc" not in chu
+    assert not loi, loi
+
+
+# ------------------------------------------------------------------ không lẫn Anh–Việt
+
+DAU_VIET = re.compile(
+    "[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]", re.I)
+
+# Mọi chữ người dùng đọc trong màn chọn: nội dung + thuộc tính hiện ra khi rê/đọc màn hình.
+# Bỏ ô tên (.ws-ten): đó là TÊN do người dùng đặt, ngôn ngữ nào cũng được.
+_JS_CHU = """() => {
+  const goc = document.querySelector('#wsHop').cloneNode(true);
+  goc.querySelectorAll('.ws-ten').forEach((e) => e.remove());
+  const ra = [goc.textContent];
+  document.querySelectorAll('#wsHop [placeholder], #wsHop [aria-label], #wsHop [title], '
+    + '#btnWorkspace').forEach((e) => {
+    ['placeholder', 'aria-label', 'title'].forEach((a) => { if (e.getAttribute(a)) ra.push(e.getAttribute(a)); });
+  });
+  // nhãn của nút ở thanh bên (không lấy tên workspace đang mở bên cạnh nó)
+  ra.push(document.querySelector('#btnWorkspace .ws-switcher-nhan').textContent);
+  return ra.join(' | ');
+}"""
+
+
+def _chu_cac_buoc_wizard(page, den_buoc):
+    """Chữ của từng bước trình hướng dẫn (bước 1..den_buoc), gõ tên để qua được bước 1."""
+    page.locator("#wsBtnMoi").click()
+    page.fill("#wzTen", "Alpha")
+    ra = [page.evaluate(_JS_CHU)]
+    for _ in range(den_buoc - 1):
+        page.locator("#wzTiep").click()
+        ra.append(page.evaluate(_JS_CHU))
+    return ra
+
+
+def test_tieng_viet_khong_con_workspace_hay_zip_o_man_chon_va_wizard(mo_trang):
+    page, _, _, loi = mo_trang()
+    page.locator("#btnWorkspace").click()
+    page.wait_for_selector("#wsTieuDe")
+    cac_man = [page.evaluate(_JS_CHU)] + _chu_cac_buoc_wizard(page, 4)
+    for chu in cac_man:
+        assert not re.search(r"workspace|zip", chu, re.I), chu
+    # và nút đổi ở thanh bên cũng vậy
+    assert "Không gian làm việc" in page.locator("#btnWorkspace").inner_text()
+    assert not loi, loi
+
+
+def test_tieng_anh_khong_con_chu_viet_o_man_chon_va_wizard(mo_trang):
+    """Chiều ngược lại: ô mẫu dựng sẵn từng hiện "Trường học" khi đang ở tiếng Anh.
+    Bước 4 bỏ qua: bảng xem lại in nhãn từ vựng cả hai thứ tiếng ("Học sinh / Student")."""
+    page, _, _, loi = mo_trang()
+    page.evaluate("window.I18N.setLang('en')")
+    page.wait_for_function("document.documentElement.lang === 'en'")
+    page.locator("#btnWorkspace").click()
+    page.wait_for_selector("#wsTieuDe")
+    cac_man = [page.evaluate(_JS_CHU)] + _chu_cac_buoc_wizard(page, 3)
+    for chu in cac_man:
+        assert not DAU_VIET.search(chu), chu
+    assert not loi, loi
+
+
+def test_o_mau_dung_san_doi_ten_theo_ngon_ngu(mo_trang):
+    page, _, _, loi = mo_trang()
+    page.locator("#btnWorkspace").click()
+    page.wait_for_selector("#wsTieuDe")
+    page.locator("#wsBtnMoi").click()
+    assert page.locator("#wzMau option").first.inner_text() == "Trường học"
+    page.evaluate("window.I18N.setLang('en')")
+    page.wait_for_function("document.documentElement.lang === 'en'")
+    assert page.locator("#wzMau option").first.inner_text() == "School"
+    assert not loi, loi
+
+
+def test_cot_sua_lan_cuoi_theo_ngon_ngu(mo_trang):
+    page, _, _, loi = mo_trang()
+    page.locator("#btnWorkspace").click()
+    page.wait_for_selector("tr[data-slug] .ws-sua")
+    assert re.fullmatch(r"\d{2}/\d{2}/\d{4} \d{2}:\d{2}:\d{2}",
+                        page.locator("tr[data-slug] .ws-sua").first.inner_text())
+    page.evaluate("window.I18N.setLang('en')")
+    page.wait_for_function("document.documentElement.lang === 'en'")
+    assert re.fullmatch(r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}",
+                        page.locator("tr[data-slug] .ws-sua").first.inner_text())
+    assert not loi, loi
+
+
+# ------------------------------------------------------------------ bảng vẽ đúng
+
+_JS_BANG = """() => [...document.querySelectorAll('#wsBang tbody tr[data-slug]')].map((tr) => {
+  const o = tr.getBoundingClientRect();
+  const nut = [...tr.querySelectorAll('button[data-hanh-dong], button.ws-xoa')];
+  const hanhDong = tr.querySelector('button[data-hanh-dong="mo"]').closest('td');
+  return {
+    slug: tr.dataset.slug,
+    hienThi: [...tr.children].map((c) => getComputedStyle(c).display),
+    caoO: [...tr.children].map((c) => Math.round(c.getBoundingClientRect().height)),
+    caoHang: Math.round(o.height),
+    topNut: nut.map((b) => Math.round(b.getBoundingClientRect().top)),
+    soNut: nut.length,
+    nenHanhDong: getComputedStyle(hanhDong).backgroundColor,
+    nenTen: getComputedStyle(tr.children[0]).backgroundColor,
+    fontTen: getComputedStyle(tr.querySelector('.ws-ten-chinh')).fontFamily,
+  };
+})"""
+
+
+def test_bang_workspace_o_hanh_dong_la_o_bang_that_va_sau_nut_cung_mot_dong(mo_trang):
+    """Lỗi cũ: `display:flex` đặt thẳng lên <td> làm ô mất kiểu table-cell: nền hàng
+    "Đang mở" dừng giữa chừng, đường kẻ lệch, nút Xoá rớt xuống dòng dưới."""
+    page, _, _, loi = mo_trang(ten_ws=("Alpha", "Beta"))
+    page.set_viewport_size({"width": 1280, "height": 900})
+    page.locator("#btnWorkspace").click()
+    page.wait_for_selector('tr[data-slug="beta"]')
+    hang = page.evaluate(_JS_BANG)
+    assert [h["slug"] for h in hang] == ["alpha", "beta"]
+    for h in hang:
+        assert h["hienThi"] == ["table-cell"] * 4, h
+        assert len(set(h["caoO"])) == 1 and h["caoO"][0] == h["caoHang"], h   # mọi ô cao bằng hàng
+        assert h["soNut"] == 6 and len(set(h["topNut"])) == 1, h              # sáu nút một dòng
+        assert "monospace" not in h["fontTen"], h                            # tên không dùng font mã
+    mo = hang[0]
+    assert mo["nenHanhDong"] == mo["nenTen"] != "rgba(0, 0, 0, 0)", mo       # nền phủ cả hàng
     assert not loi, loi
 
 

@@ -2601,7 +2601,7 @@ html.tat-hieu-ung .status-strip:hover {
 .ws-overlay[hidden] { display: none; }
 
 .ws-hop {
-  width: min(880px, 100%);
+  width: min(1040px, 100%);
   background: var(--paper-raised);
   border: 1px solid var(--hairline);
   border-radius: var(--radius-md);
@@ -2622,7 +2622,14 @@ html.tat-hieu-ung .status-strip:hover {
 .ws-ten-chinh { font-weight: 600; }
 .ws-slug { font-family: var(--font-mono); font-size: 11.5px; color: var(--slate); }
 .ws-sua { white-space: nowrap; font-family: var(--font-mono); font-size: 12px; }
-.ws-hanh-dong { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+/* Ô hành động là table-cell thật; hộp flex nằm ở <div> bên trong. Đặt display:flex lên chính
+   <td> thì nền hàng "Đang mở", đường kẻ và chiều cao ô đều lệch nhau. */
+.ws-cot-hanh-dong { min-width: 440px; }
+.ws-hanh-dong { display: flex; flex-wrap: wrap; gap: 4px 6px; align-items: center; }
+/* Cột Tên là tên do người dùng đặt, không phải mã máy: bỏ font mã của .data-table. */
+.ws-bang td:first-child { font-family: var(--font-body); font-size: 13px; }
+/* Ô chọn và khung nhập trong trình hướng dẫn: không kế thừa font thì dùng font của hệ điều hành. */
+.ws-hop select, .ws-hop textarea { font-family: inherit; font-size: inherit; }
 tr.ws-dang-mo td { background: var(--moss-soft); }
 .ws-badge {
   display: inline-block;

@@ -35,7 +35,8 @@ GOC = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Từ nào lọt vào chữ hiển thị tiếng Việt là hỏng.
 CAM = ["pipeline", "club", "clubs", "seed", "tab", "kiosk", "hardcode",
-       "file", "form", "checkbox", "import", "export", "upload", "backup"]
+       "file", "form", "checkbox", "import", "export", "upload", "backup",
+       "workspace"]
 
 # Bỏ những thứ KHÔNG phải chữ người dùng đọc trước khi tìm từ cấm.
 BO_QUA = [
@@ -105,10 +106,25 @@ def test_khong_con_tu_tieng_anh_trong_chu_hien_thi(lay):
     assert not ban, "còn tiếng Anh trong giao diện tiếng Việt:\n" + "\n".join(ban)
 
 
+@pytest.mark.parametrize("lay", [
+    _chuoi_vi_trong_i18n_js,
+    _chuoi_vi_trong_i18n_errors,
+    _chu_mac_dinh_trong_index_html,
+], ids=["i18n.js", "i18n_errors.py", "index.html"])
+def test_khong_con_chu_zip_trong_chu_hien_thi(lay):
+    """`CAM` bỏ đuôi tệp (`.zip`) trước khi tìm, nên ".zip" lọt qua. Nhưng ở
+    nút "Xuất .zip" thì nó là chữ người dùng đọc: tiếng Việt gọi là "tệp nén".
+    Quét thô, không bỏ đuôi tệp."""
+    ban = ["%s: %s" % (k, c[:90]) for k, c in lay().items()
+           if re.search(r"zip", c, re.I)]
+    assert not ban, "còn chữ zip trong giao diện tiếng Việt:\n" + "\n".join(ban)
+
+
 def test_luoi_chan_nay_that_su_bat_duoc():
     """Test cho chính test: nếu bộ lọc BO_QUA quá rộng thì test trên xanh
     một cách vô nghĩa."""
     assert _con_tu_cam("Chạy pipeline") == ["pipeline"]
+    assert _con_tu_cam("Tạo workspace mới") == ["workspace"]
     assert _con_tu_cam("đã xếp club") == ["club"]
     assert _con_tu_cam("Kéo thả file Excel") == ["file"]
     # còn đây là những chỗ ĐƯỢC PHÉP, không được báo nhầm
