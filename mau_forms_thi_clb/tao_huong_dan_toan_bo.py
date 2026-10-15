@@ -97,7 +97,7 @@ def viet():
         ["3. Tạo biểu mẫu", "Chạy mã trên Google, cài đặt, gửi học sinh", "Google Apps Script, Google Forms",
          "Biểu mẫu và phiếu trả lời"],
         ["4. Chấm và xuất", "Chấm điểm từng CLB, xuất dữ liệu", "Hàm chamTheoCLB trong mã",
-         "Thư mục Kết quả CLB (4 tệp Excel)"],
+         "Thư mục Kết quả CLB (một tệp Excel: SO_NHAP_CLB.xlsx)"],
         ["5. Xử lí raw", "Soát, chấm lại, ra sổ nhập", "Skill xu-li-raw-forms",
          "SO_NHAP_CLB.xlsx và báo cáo bất thường"],
     ], dam_cot_dau=True)
@@ -127,9 +127,10 @@ def viet():
         ["MAU_DE_THI.xlsx", "Đầu vào của mọi thứ: buổi, CLB, đề thi, đáp án, cài đặt"],
         ["TAO_GOOGLE_FORM.gs", "Mã Google Apps Script. Có hai hàm: taoBieuMau (tạo biểu mẫu) và chamTheoCLB (chấm, xuất Excel)"],
         ["HUONG_DAN_TUNG_BUOC.md", "Hướng dẫn riêng cho đúng bộ đề vừa sinh (số buổi, số CLB, ví dụ làm thử)"],
-        ["Thư mục Kết quả CLB <ngày giờ>", "Trên Google Drive, do chamTheoCLB tạo, chứa 4 tệp Excel (mục 7)"],
-        ["RAW_PHIEU.xlsx, DAP_AN.xlsx", "Dữ liệu raw đã chấm từng câu, và đáp án. Đầu vào của skill xu-li-raw-forms"],
-        ["SO_NHAP_CLB.xlsx", "Sổ nhập CLB: tệp DUY NHẤT phần mềm xếp CLB nạp được (trang 1. CLB, trang 2. Học sinh)"],
+        ["Thư mục Kết quả CLB <ngày giờ>", "Trên Google Drive, do chamTheoCLB tạo, chỉ chứa MỘT tệp Excel (mục 7)"],
+        ["SO_NHAP_CLB.xlsx", "Tệp DUY NHẤT của kết quả. Phần mềm xếp CLB nạp hai trang 1. CLB và 2. Học sinh; "
+                             "các trang Bảng điểm, Cảnh báo, Raw (dữ liệu đã chấm từng câu) và Đáp án để kiểm tra "
+                             "và xử lí raw"],
         ["BAO_CAO_BAT_THUONG.md", "Những điều bất thường trong phiếu, kèm mã học sinh"],
         ["DINH_DANG_RAW.md", "Mô tả từng cột của dữ liệu raw. Skill xử lí raw đọc theo tài liệu này"],
     ], dam_cot_dau=True)
@@ -168,7 +169,7 @@ def viet():
     gach(doc, " mỗi tệp .zip đã mang theo mọi tệp phụ thuộc (khuôn mẫu mã, bộ soát, tài liệu "
               "định dạng, tệp Excel mẫu). Không cần tải thêm gì.", dam="Tệp đi kèm:")
     gach(doc, " với tao-google-form-clb là tệp Excel đề thi; với xu-li-raw-forms là "
-              "RAW_PHIEU.xlsx, DAP_AN.xlsx và SO_NHAP_CLB.xlsx đã điền chỉ tiêu.",
+              "SO_NHAP_CLB.xlsx đã điền chỉ tiêu (tệp này có sẵn các trang Raw và Đáp án).",
          dam="Đầu vào:")
     gach(doc, " nói đúng việc cần làm, ví dụ “tạo Google Form từ tệp này” hoặc “xử lí raw”. "
               "Claude nhận ra và dùng skill.", dam="Cách gọi:")
@@ -331,14 +332,12 @@ def viet():
               "thư mục “Kết quả CLB <ngày giờ>”.")
     buoc(doc, "Tải về: quay ra thư mục cha, bấm chuột phải vào thư mục “Kết quả CLB ...”, chọn “Tải "
               "xuống”. Google nén thành một tệp .zip. Giải nén.")
-    doan(doc, "Bốn tệp trong thư mục:")
+    doan(doc, "Thư mục chỉ có một tệp:")
     bang(doc, ["Tệp", "Nội dung", "Dùng để"], [
-        ["BANG_DIEM.xlsx", "Bảng điểm từng CLB (mỗi em một dòng) và trang Cảnh báo",
-         "Giáo viên xem"],
-        ["SO_NHAP_CLB.xlsx", "Sổ nhập CLB: trang 1. CLB (cột Chỉ tiêu để trống), trang 2. Học sinh "
-         "(nguyện vọng, điểm cạnh CLB đã thi)", "Điền chỉ tiêu (mục 8), rồi nạp thẳng hoặc qua skill"],
-        ["RAW_PHIEU.xlsx", "Mọi câu trả lời của mọi phiếu, đã chấm từng câu", "Đầu vào skill xu-li-raw-forms"],
-        ["DAP_AN.xlsx", "Đáp án 100 câu (hoặc số câu của đề)", "Đầu vào skill xu-li-raw-forms"],
+        ["SO_NHAP_CLB.xlsx", "Trang 1. CLB (cột Chỉ tiêu để trống), trang 2. Học sinh (nguyện vọng, điểm "
+         "cạnh CLB đã thi), trang Bảng điểm (mỗi em một dòng), trang Cảnh báo, trang Raw (mọi câu trả lời "
+         "đã chấm từng câu) và trang Đáp án",
+         "Điền chỉ tiêu (mục 8), rồi nạp thẳng hoặc qua skill xu-li-raw-forms"],
     ], dam_cot_dau=True)
     gach(doc, "Có phiếu nộp muộn thì chạy lại chamTheoCLB. Mỗi lần chạy tạo một thư mục mới, thư mục cũ giữ nguyên.")
     gach(doc, "Cách khác để lấy câu trả lời thô: trong Google Forms, tab Câu trả lời, dấu ba chấm, “Tải các "
@@ -359,7 +358,7 @@ def viet():
     # ------------------------------------------------------------------ 9
     muc(doc, "9. Chặng 5: xử lí raw thành Sổ nhập CLB")
     muc(doc, "9.1. Cách dễ: nhờ Claude", 2)
-    buoc(doc, "Đính kèm ba tệp: RAW_PHIEU.xlsx, DAP_AN.xlsx, SO_NHAP_CLB.xlsx (đã điền chỉ tiêu).")
+    buoc(doc, "Đính kèm SO_NHAP_CLB.xlsx (đã điền chỉ tiêu; tệp này có sẵn các trang Raw và Đáp án).")
     buoc(doc, "Gõ: “xử lí raw”.")
     buoc(doc, "Claude chạy skill xu-li-raw-forms, gửi lại một SO_NHAP_CLB.xlsx mới (điểm đã chấm lại) và "
               "BAO_CAO_BAT_THUONG.md, cùng tóm tắt những điều cần xem.")
@@ -369,8 +368,7 @@ def viet():
     muc(doc, "9.2. Cách tự chạy lệnh", 2)
     lenh(doc,
          "python .claude/skills/xu-li-raw-forms/scripts/xu_li_raw.py \\",
-         "    --raw    \"Kết quả CLB .../RAW_PHIEU.xlsx\" \\",
-         "    --dap-an \"Kết quả CLB .../DAP_AN.xlsx\" \\",
+         "    --raw    \"Kết quả CLB .../SO_NHAP_CLB.xlsx\" \\",
          "    --clb    \"Kết quả CLB .../SO_NHAP_CLB.xlsx\" \\",
          "    --ra     nap")
     doan(doc, "Ở thư mục skill đã giải nén, dùng xu-li-raw-forms/scripts/xu_li_raw.py. Trên Windows, viết "
@@ -380,7 +378,7 @@ def viet():
               "tệp chỉ tiêu thiếu CLB, buổi không khớp): đọc lý do, sửa, chạy lại.")
 
     muc(doc, "9.3. Skill làm gì với dữ liệu", 2)
-    gach(doc, "Chấm lại mọi câu theo DAP_AN.xlsx, không tin điểm có sẵn.")
+    gach(doc, "Chấm lại mọi câu theo trang Đáp án (hoặc DAP_AN.xlsx nếu có), không tin điểm có sẵn.")
     gach(doc, "Mỗi mã học sinh chỉ giữ phiếu nộp đầu tiên (đây là bài thi, nộp lại không thành làm lại).")
     gach(doc, "Chỉ tính bài của CLB đã tick và đã chọn ở một Top, tối đa 5 CLB mỗi buổi.")
     gach(doc, "Một CLB chọn ở nhiều Top: giữ Top cao nhất. Bỏ trống một Top ở giữa: dồn lên.")
@@ -522,7 +520,7 @@ def viet():
         "Gửi đường dẫn học sinh. Hết hạn thì tắt nhận câu trả lời.",
         "Chạy chamTheoCLB → tải thư mục Kết quả CLB về, giải nén.",
         "Điền cột Chỉ tiêu ở trang 1. CLB của SO_NHAP_CLB.xlsx.",
-        "Claude: “xử lí raw” kèm RAW_PHIEU, DAP_AN, SO_NHAP_CLB → nhận sổ nhập mới và báo cáo.",
+        "Claude: “xử lí raw” kèm SO_NHAP_CLB (đã điền chỉ tiêu) → nhận sổ nhập mới và báo cáo.",
         "Đọc báo cáo bất thường.",
         "Phần mềm: kéo SO_NHAP_CLB.xlsx vào → Nhập sổ → đọc cảnh báo → Chạy sắp xếp (ghi lại seed) → Xuất kết quả.",
     ]:

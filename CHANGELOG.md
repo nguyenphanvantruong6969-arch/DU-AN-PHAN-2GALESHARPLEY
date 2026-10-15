@@ -17,6 +17,21 @@ Nguồn: bảng "Điểm cần cải thiện", mục 1–6, của sơ đồ bi�
 - **Mục 6, chặn trùng nguyện vọng (chưa sửa).** Cần quyết định của tác giả: vì sao biểu mẫu đã bỏ lưới. Chưa đổi.
 - **Không đổi** cột CSV, hợp đồng raw, hay `dem_cau` (212 câu). Sinh lại `TAO_GOOGLE_FORM.gs` và `HUONG_DAN_TUNG_BUOC.md`
   bằng đúng khuôn; vòng tròn skill và `test_ma_google_forms_khop_du_lieu` vẫn khớp.
+## 2026-10-15 — Google Forms: kết quả chấm thành MỘT tệp SO_NHAP_CLB.xlsx (ngoài sổ đăng ký, theo yêu cầu chủ dự án)
+
+`chamTheoCLB` trước đây ghi bốn tệp (BANG_DIEM, SO_NHAP_CLB, RAW_PHIEU, DAP_AN). Nay chỉ ghi một tệp
+`SO_NHAP_CLB.xlsx` với sáu trang: `1. CLB`, `2. Học sinh` (phần mềm nạp), `Bảng điểm`, `Cảnh báo`, `Raw`, `Đáp án`.
+- **Khuôn mẫu.** `mau_forms_thi_clb/tao_google_forms.py`: gộp vào một bảng tính rồi xuất một lần; bỏ `taoTepNap_`,
+  `taoSoNhap_`. `TAO_GOOGLE_FORM.gs` sinh lại từ khuôn, không sửa tay.
+- **Bộ xử lý raw.** `xu_li_raw.py` đọc trang `Raw` và `Đáp án` từ tệp gộp; tệp `RAW_PHIEU.xlsx` / `DAP_AN.xlsx`
+  rời vẫn chạy như cũ. Thêm chốt chặn: `--ra` trùng tệp đầu vào thì dừng, không ghi gì.
+- **Tài liệu.** `tao_form.py` (HUONG_DAN_TUNG_BUOC.md sinh lại), `tao_huong_dan_google.py`,
+  `tao_huong_dan_toan_bo.py`, `SKILL.md` của xu-li-raw-forms, `DINH_DANG_RAW.md`, `dong_goi_skill.py`.
+  `docs/PROMPTS_WORKSPACE.md` và `chuyen_forms_sang_phan_mem.py` (công cụ Python riêng, còn ghi `BANG_DIEM.xlsx`) giữ nguyên.
+- **Test mới.** `tests/test_so_nhap_gop_sau_trang.py`: 500 học sinh, tệp sáu trang nạp vào phần mềm thật, không
+  cảnh báo, chạy được phân bổ; và chặn ghi đè. `tests/test_skill_xu_li_raw.py`: tệp gộp cho cùng kết quả như hai
+  tệp rời. Cập nhật hai chỗ khoá tên tệp cũ trong `test_mau_forms_thi_clb.py` và `test_skill_tao_google_form.py`.
+- **Chưa kiểm được.** Apps Script thật (chỉ kiểm bằng bản giả lập Node). Dữ liệu là mô phỏng, học sinh hư cấu.
 
 ## 2026-10-15 — Workspace: Việt hoá sạch màn chọn và sửa bảng (ngoài sổ đăng ký, theo yêu cầu chủ dự án; chồng lấn Z1)
 

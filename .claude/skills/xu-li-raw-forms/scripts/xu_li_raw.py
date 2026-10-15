@@ -358,6 +358,9 @@ def doc_clb_tu_so(duong):
 
 
 def chay(duong_raw, thu_muc_ra, duong_dap_an=None, duong_clb=None):
+    # Ghi đè chính tệp đầu vào sẽ mất bản gộp duy nhất (không còn trang Raw). Chặn trước khi làm gì.
+    if os.path.realpath(duong_raw) == os.path.realpath(os.path.join(thu_muc_ra, sdl.TEN_SO)):
+        raise LoiDauVao("Thư mục ra trùng với tệp đầu vào %s. Chọn thư mục khác." % sdl.TEN_SO)
     # Raw có thể là RAW_PHIEU.xlsx, hoặc SO_NHAP_CLB.xlsx gộp (trang "Raw" và "Đáp án").
     td, raw = doc_bang(duong_raw, "Raw")
     _can_cot("RAW_PHIEU", td, COT_RAW)

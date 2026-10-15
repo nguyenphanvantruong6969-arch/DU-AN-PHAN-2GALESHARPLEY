@@ -39,9 +39,7 @@ Mở đường dẫn SỬA biểu mẫu:
 
 1. Mở lại dự án Apps Script ở Bước 1. Chọn hàm **chamTheoCLB**, bấm **Chạy**.
 2. Nhật ký thực thi hiện đường dẫn **Thư mục kết quả** trên Google Drive, gồm:
-   - `BANG_DIEM.xlsx`: điểm từng CLB và trang cảnh báo.
-   - `SO_NHAP_CLB.xlsx`: Sổ nhập CLB, tệp DUY NHẤT nạp vào phần mềm.
-   - `RAW_PHIEU.xlsx`: mọi câu trả lời, đã chấm từng câu. `DAP_AN.xlsx`: đáp án.
+   - `SO_NHAP_CLB.xlsx`: tệp DUY NHẤT trong thư mục. Trang **1. CLB** và **2. Học sinh** nạp vào phần mềm; các trang **Bảng điểm**, **Cảnh báo**, **Raw** (mọi câu trả lời, đã chấm từng câu) và **Đáp án** để kiểm tra và xử lí tiếp.
 3. Bấm chuột phải vào thư mục, chọn **Tải xuống**, giải nén.
 
 ## Bước 5. Nạp vào phần mềm xếp CLB
