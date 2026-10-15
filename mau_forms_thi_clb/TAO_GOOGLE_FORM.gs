@@ -1395,11 +1395,13 @@ function taoBieuMau() {
         .setTitle('[di-' + d.ma + '] Em có đăng ký sinh hoạt ' + d.ten + ' không?')
         .setRequired(true);
 
+    // Buổi không có CLB thi thì không có ô tick: chỉ nhắc ô tick khi buổi có CLB thi.
+    const coThiBuoi = d.clubs.some(function (c) { return c.de.length; });
     const trangXep = form.addPageBreakItem()
         .setTitle(d.ten + ': nguyện vọng và chọn CLB thi')
         .setHelpText('Top 1 là CLB em thích nhất. Bấm vào từng Top để chọn CLB trong danh sách. '
-            + 'Mỗi CLB chỉ chọn một lần. Không muốn thêm thì để ' + BO_TRONG + '. '
-            + 'Muốn CLB được chấm điểm: xếp CLB đó ở một Top, tick ở ô bên dưới, rồi làm bài thi.');
+            + 'Mỗi CLB chỉ chọn một lần. Không muốn thêm thì để ' + BO_TRONG + '.'
+            + (coThiBuoi ? ' Muốn CLB được chấm điểm: xếp CLB đó ở một Top, tick ở ô bên dưới, rồi làm bài thi.' : ''));
     // Mỗi Top một danh sách thả xuống. Google không chặn được chọn trùng giữa
     // các danh sách: chamTheoCLB giữ Top cao hơn và ghi cảnh báo.
     d.clubs.forEach(function (_, k) {
@@ -1429,7 +1431,8 @@ function taoBieuMau() {
     form.addPageBreakItem().setTitle(d.ten + ': làm bài thi');
     const chonDau = form.addMultipleChoiceItem()
         .setTitle('[thi-' + d.ma + '] Em thi CLB nào trước? Chọn một CLB em đã tick. Làm xong sẽ được chọn CLB tiếp theo.')
-        .setHelpText('Chọn CLB đứng trên cùng trong số các CLB em đã tick. Làm xong thì chỉ chọn được CLB đứng sau.')
+        .setHelpText('Chọn CLB đứng trên cùng (đứng đầu trong danh sách) trong số các CLB em đã tick. '
+            + 'Không thi CLB nào thì chọn "' + KHONG_THI + '". Làm xong thì chỉ chọn được CLB đứng sau.')
         .setRequired(true);
 
     const clubs = coThi.map(function (c, i) {
@@ -1549,6 +1552,7 @@ function chamTheoCLB() {
   const form = moBieuMau_();
   const phieu = form.getResponses();
   const daCo = {};
+  const daThuong = {};
   const hocSinh = [];
   const canhBao = [];
 
@@ -1567,8 +1571,8 @@ function chamTheoCLB() {
       cacCau.push({ma: m[1], cau: m[2], tl: ir.getResponse(), diemForms: diemForms});
     });
     const sid = String(tl.student_id || '').trim();
-    // Khoá so trùng: bỏ mọi khoảng trắng, không phân biệt hoa thường. Mã ghi ra vẫn là mã đã gõ.
-    const khoa = sid.replace(/\s+/g, '').toLowerCase();
+    // Khoá so trùng: chỉ bỏ khoảng trắng. Vẫn phân biệt hoa thường như kiosk (hs001 và HS001 là hai em).
+    const khoa = sid.replace(/\s+/g, '');
     const dong = 'Phiếu thứ ' + (i + 1);
     // Cách xử lí từng CLB trong phiếu: {club_id: [được tính 1/0, ghi chú]}.
     const xuLi = {};
@@ -1582,6 +1586,13 @@ function chamTheoCLB() {
       canhBao.push([dong, sid, 'Nộp lần nữa. Bỏ phiếu này, giữ phiếu đầu (' + daCo[khoa] + ')']);
     } else {
       daCo[khoa] = dong;
+      // Chỉ khác hoa thường với mã đã nộp: giữ cả hai (kiosk coi là hai em) và báo để soát.
+      const chuThuong = sid.toLowerCase();
+      if (daThuong[chuThuong] && daThuong[chuThuong] !== sid) {
+        canhBao.push([dong, sid, 'Chỉ khác hoa thường với mã ' + daThuong[chuThuong] + ' đã nộp: giữ cả hai, nên soát.']);
+      } else {
+        daThuong[chuThuong] = sid;
+      }
       const hs = {sid: sid, ten: String(tl.name || '').trim(), nv: {}, diem: {}, thi: []};
       BUOI.forEach(function (d) {
         if (tl['di-' + d.ma] !== CO_BUOI) return;

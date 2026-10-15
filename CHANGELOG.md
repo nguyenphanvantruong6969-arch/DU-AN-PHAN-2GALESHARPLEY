@@ -4,11 +4,16 @@
 
 Nguồn: bảng "Điểm cần cải thiện", mục 1–6, của sơ đồ biểu mẫu. Số liệu là dữ liệu mô phỏng.
 - **Mục 1, khoá so trùng mã học sinh (sửa).** `chamTheoCLB` (`mau_forms_thi_clb/tao_google_forms.py`, khuôn `MAU`) và
-  `xu_li_raw.py` so trùng bằng khoá bỏ khoảng trắng và không phân biệt hoa thường: `HS 001` và `hs001` là một
-  người. Mã ghi ra vẫn là mã đã gõ, không đổi các ID trong sổ. Kiểm: `test_ma_chi_khac_khoang_trang_hoac_hoa_thuong_la_mot_hoc_sinh`
-  (Node), `test_ma_chi_khac_khoang_trang_hoac_hoa_thuong_bi_coi_la_nop_trung` (xu-li-raw). `DINH_DANG_RAW.md` mục 3 cập nhật.
+  `xu_li_raw.py` so trùng bằng khoá chỉ bỏ khoảng trắng (đúng bộ `\s` của JavaScript): `HS 001` và `HS001` là một
+  người, và mã ghi ra là mã đã gõ của phiếu đầu. Không gộp hoa thường: kiosk coi `HS001` và `hs001` là hai em
+  (`mau_csv/vi_du_day_du/GIAI_THICH.md`), nên hai phiếu chỉ khác hoa thường được giữ cả hai và có cảnh báo
+  `ma_khac_hoa_thuong` để giáo viên soát. Email gom mã theo cùng khoá. Kiểm: `test_ma_chi_khac_khoang_trang_la_mot_hoc_sinh`
+  và `test_ma_chi_khac_hoa_thuong_giu_ca_hai_va_canh_bao` (Node), `test_ma_chi_khac_khoang_trang_la_nop_trung`,
+  `test_ma_chi_khac_hoa_thuong_giu_ca_hai_va_bao_cao` và `test_khoang_trang_khop_giua_skill_va_apps_script`
+  (đối chiếu mọi mã điểm Unicode với JavaScript). `DINH_DANG_RAW.md` mục 3 và mục 6 cập nhật.
 - **Mục 3 và 5, chữ trợ giúp trên form (sửa).** Trang Top, ô tick, câu "thi CLB nào trước" và "CLB tiếp theo" nêu rõ
-  điều kiện được chấm điểm và thứ tự chọn. Kiểm: `test_google_forms_noi_ro_dieu_kien_duoc_cham_diem`. Tiêu đề câu hỏi không đổi.
+  điều kiện được chấm điểm và thứ tự chọn. Câu chọn CLB đầu nói rõ "đứng đầu danh sách, không phải Top 1" và cách chọn "Em không thi CLB nào buổi này";
+  trang Top chỉ nhắc ô tick ở buổi có CLB thi. Kiểm: `test_google_forms_noi_ro_dieu_kien_duoc_cham_diem`. Tiêu đề câu hỏi không đổi.
 - **Mục 2, gõ nhầm mã (chỉ tài liệu, cần kiểm).** `HUONG_DAN_TUNG_BUOC.md` thêm dòng xử lí: xoá đúng phiếu, học sinh nộp lại.
   Chưa xác nhận được sau khi xoá học sinh có nộp lại được không. Không tự bật `setLimitOneResponsePerUser` hay
   `setCollectEmail`: hai cài đặt này đổi ai được nộp, và cần quyết định của nhà trường.

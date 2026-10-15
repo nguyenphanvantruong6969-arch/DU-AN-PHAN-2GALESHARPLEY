@@ -44,6 +44,8 @@ COT_DAP_AN = ["buoi", "ten_buoi", "club_id", "ten_clb", "ma_cau", "cau_so", "cau
 CO_BUOI = "Có"
 CO_THI = "Có, em thi CLB này"
 TRAN_THI = sdl.TRAN_CLB_THI_MOI_BUOI
+# Cùng bộ khoảng trắng với \s của JavaScript (xem khoá so trùng trong chamTheoCLB).
+_KHOANG_TRANG_JS = re.compile(r"[ \t\n\v\f\r   -     　﻿]")
 
 
 class LoiDauVao(ValueError):
@@ -117,7 +119,7 @@ def xu_li(raw, dap_an=None, clb_truong=None):
     clb_truong: [dict] danh sách CLB có chỉ tiêu, hoặc None
     """
     bc = OrderedDict((k, []) for k in (
-        "phieu_trung", "phieu_khong_ma", "ma_sai_dang", "email_hai_ma",
+        "phieu_trung", "ma_khac_hoa_thuong", "phieu_khong_ma", "ma_sai_dang", "email_hai_ma",
         "dap_an_forms_lech", "diem_raw_lech", "lam_khong_tick", "tick_khong_lam",
         "qua_tran", "thieu_xep_hang", "trung_hang", "bo_trong_top", "clb_nhieu_top", "bai_khong_hop_le",
         "cau_la", "khong_dang_ky_buoi", "ghi_chu"))
@@ -154,22 +156,30 @@ def xu_li(raw, dap_an=None, clb_truong=None):
     phieu = OrderedDict(sorted(phieu.items()))
 
     # ---- chọn phiếu giữ: phiếu đầu của mỗi mã
-    giu, dau_tien, email_ma = OrderedDict(), {}, {}
+    giu, dau_tien, email_ma, thuong_ma = OrderedDict(), {}, {}, {}
     for ps, rows in phieu.items():
         sid = next((r["student_id"] for r in rows if r["student_id"]), "")
         email = next((r["email"] for r in rows if r["email"]), "")
+        # Khoá so trùng giống chamTheoCLB: chỉ bỏ khoảng trắng (đúng bộ \s của JavaScript,
+        # không dùng split() của Python vì hai bên khác nhau ở U+001C–U+001F, U+0085, U+FEFF).
+        # Không gộp hoa thường: kiosk coi "HS001" và "hs001" là hai học sinh.
+        khoa_trung = _KHOANG_TRANG_JS.sub("", sid)
         if email and sid:
-            email_ma.setdefault(email.lower(), set()).add(sid)
+            email_ma.setdefault(email.lower(), set()).add(khoa_trung)
         if not sid:
             bc["phieu_khong_ma"].append("Phiếu %d" % ps)
             continue
-        # Khoá so trùng giống chamTheoCLB: bỏ mọi khoảng trắng, không phân biệt hoa thường.
-        khoa_trung = "".join(sid.split()).lower()
         if khoa_trung in dau_tien:
             bc["phieu_trung"].append("%s: phiếu %d bị bỏ, giữ phiếu %d" % (sid, ps, dau_tien[khoa_trung]))
             continue
         dau_tien[khoa_trung] = ps
         giu[ps] = (sid, rows)
+        chu_thuong = sid.lower()
+        if chu_thuong in thuong_ma and thuong_ma[chu_thuong][0] != sid:
+            bc["ma_khac_hoa_thuong"].append("%s chỉ khác hoa thường với %s (phiếu %d): giữ cả hai, nên soát"
+                                           % (sid, thuong_ma[chu_thuong][0], thuong_ma[chu_thuong][1]))
+        else:
+            thuong_ma.setdefault(chu_thuong, (sid, ps))
     for e, ds in email_ma.items():
         if len(ds) > 1:
             bc["email_hai_ma"].append("%s dùng %d mã: %s" % (e, len(ds), ", ".join(sorted(ds))))
@@ -286,6 +296,7 @@ def xu_li(raw, dap_an=None, clb_truong=None):
 
 TIEU_DE_BC = OrderedDict([
     ("phieu_trung", "Phiếu nộp trùng (giữ phiếu đầu)"),
+    ("ma_khac_hoa_thuong", "Mã chỉ khác hoa thường với mã khác (kiosk coi là hai học sinh; giữ cả hai, nên soát)"),
     ("phieu_khong_ma", "Phiếu không có mã học sinh (bỏ cả phiếu)"),
     ("ma_sai_dang", "Mã học sinh khác dạng với số đông (kiểm tra có gõ sai không)"),
     ("email_hai_ma", "Một email nộp bằng nhiều mã học sinh"),

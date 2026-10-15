@@ -319,7 +319,7 @@ def huong_dan(du_lieu, tieu_de, diem, tran, canh_bao):
     w("1. Gửi đường dẫn HỌC SINH qua nhóm lớp, email hoặc mã QR.")
     w("2. Nhắc học sinh: buổi bận thì chọn \"Không\"; bấm vào Top 1 và chọn CLB thích nhất trong danh sách, rồi Top 2, ...; "
       "mỗi CLB chỉ chọn một lần, Top không dùng thì để (Bỏ trống); "
-      "tick tối đa %d CLB muốn thi; khi làm bài, chọn CLB đứng trên cùng trong số CLB đã tick, rồi chọn lần lượt các CLB đứng sau. "
+      "tick tối đa %d CLB muốn thi; khi làm bài, chọn CLB đứng đầu danh sách trong số CLB đã tick (không phải Top 1), rồi chọn lần lượt các CLB đứng sau. "
       "CLB được tính điểm khi vừa được xếp ở một Top, vừa được tick, và vừa được làm bài." % tran)
     w("3. Hết hạn: tab **Câu trả lời**, tắt **Chấp nhận câu trả lời**.")
     w("")

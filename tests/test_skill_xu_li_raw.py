@@ -11,6 +11,7 @@ import base64
 import importlib.util
 import io
 import os
+import shutil
 import sys
 
 import pytest
@@ -267,20 +268,58 @@ def test_clb_chon_o_nhieu_top_khong_chan_ca_bo(tmp_path, xr, de):
     assert bc["clb_nhieu_top"] == ["HS001 · thu_2: %s ở Top 1 và Top 3, giữ Top 1" % T2[2]]
 
 
-def test_ma_chi_khac_khoang_trang_hoac_hoa_thuong_bi_coi_la_nop_trung(tmp_path, xr, de):
-    """Raw cũ (ghi trước khi chuẩn hoá khoá) có "HS 007" và "hs007": skill chọn lại phiếu
-    giữ cũng phải coi là một học sinh, không để hai chỗ trong sổ."""
+def test_ma_chi_khac_khoang_trang_la_nop_trung(tmp_path, xr, de):
+    """Raw có "HS 007" và "HS007" (gõ thừa khoảng trắng): skill chọn lại phiếu giữ cũng
+    phải coi là một học sinh, không để hai chỗ trong sổ."""
     T2 = [c["id"] for c in de[0]["clubs"]]
     r = Raw(xr, de)
     r.phieu("HS 007", "Học sinh Bảy", {"thu_2": {"tick": [T2[0]], "lam": {T2[0]: 2}}})
-    r.phieu("hs007", "Học sinh Bảy lần 2", {"thu_2": {"tick": [T2[1]], "lam": {T2[1]: 2}}})
+    r.phieu("HS007", "Học sinh Bảy lần 2", {"thu_2": {"tick": [T2[1]], "lam": {T2[1]: 2}}})
     r.ghi(str(tmp_path / "RAW_PHIEU.xlsx"))
     ghi_dap_an(de, str(tmp_path / "DAP_AN.xlsx"))
     ghi_clb(de, str(tmp_path / "01.xlsx"))
     _, hs, bc = xr.chay(str(tmp_path / "RAW_PHIEU.xlsx"), str(tmp_path / "ra"),
                         str(tmp_path / "DAP_AN.xlsx"), str(tmp_path / "01.xlsx"))
     assert [h["student_id"] for h in hs] == ["HS 007"]
-    assert bc["phieu_trung"] == ["hs007: phiếu 2 bị bỏ, giữ phiếu 1"]
+    assert bc["phieu_trung"] == ["HS007: phiếu 2 bị bỏ, giữ phiếu 1"]
+
+
+def test_ma_chi_khac_hoa_thuong_giu_ca_hai_va_bao_cao(tmp_path, xr, de):
+    """Kiosk coi "HS007" và "hs007" là hai học sinh: không gộp, giữ cả hai, và báo để soát."""
+    T2 = [c["id"] for c in de[0]["clubs"]]
+    r = Raw(xr, de)
+    r.phieu("HS007", "Học sinh Bảy", {"thu_2": {"tick": [T2[0]], "lam": {T2[0]: 2}}})
+    r.phieu("hs007", "Học sinh Bảy (chữ thường)", {"thu_2": {"tick": [T2[1]], "lam": {T2[1]: 2}}})
+    r.ghi(str(tmp_path / "RAW_PHIEU.xlsx"))
+    ghi_dap_an(de, str(tmp_path / "DAP_AN.xlsx"))
+    ghi_clb(de, str(tmp_path / "01.xlsx"))
+    _, hs, bc = xr.chay(str(tmp_path / "RAW_PHIEU.xlsx"), str(tmp_path / "ra"),
+                        str(tmp_path / "DAP_AN.xlsx"), str(tmp_path / "01.xlsx"))
+    assert [h["student_id"] for h in hs] == ["HS007", "hs007"]
+    assert bc["phieu_trung"] == []
+    assert len(bc["ma_khac_hoa_thuong"]) == 1
+    assert "hs007" in bc["ma_khac_hoa_thuong"][0] and "HS007" in bc["ma_khac_hoa_thuong"][0]
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="cần Node.js để so với chamTheoCLB")
+def test_khoang_trang_khop_giua_skill_va_apps_script(xr):
+    """Khoá so trùng bên skill và bên chamTheoCLB phải bỏ cùng một bộ ký tự khoảng trắng
+    (\\s của JavaScript). Duyệt mọi mã điểm Unicode, không chỉ ASCII."""
+    import json
+    import subprocess
+    code = ("const s = require('fs').readFileSync(0, 'utf8');"
+            "const bo = [];"
+            "for (const c of s.trim().split(' ')) {"
+            "  const x = String.fromCodePoint(parseInt(c, 16));"
+            "  if (('a' + x + 'b').replace(/\\s+/g, '').length === 2) bo.push(parseInt(c, 16));"
+            "}"
+            "process.stdout.write(JSON.stringify(bo));")
+    cps = " ".join("%x" % i for i in range(0x110000))
+    out = subprocess.run(["node", "-e", code], input=cps, capture_output=True,
+                         text=True, encoding="utf-8", check=True).stdout
+    js_bo = set(json.loads(out))
+    py_bo = {i for i in range(0x110000) if len(xr._KHOANG_TRANG_JS.sub("", "a" + chr(i) + "b")) == 2}
+    assert js_bo == py_bo, sorted(js_bo ^ py_bo)[:20]
 
 
 def test_mot_tep_gop_cho_cung_ket_qua_nhu_hai_tep_rieng(bo, xr):

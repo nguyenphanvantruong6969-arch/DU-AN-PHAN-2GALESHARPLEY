@@ -75,7 +75,7 @@ dạng này: `xep_hang` được đổi sang `Top n`, và câu `[thi-<club_id>]`
 | Mã | Nghĩa |
 |---|---|
 | `giu` | Phiếu hợp lệ, được dùng |
-| `bo_nop_trung` | Mã học sinh đã nộp trước đó. So khớp bỏ mọi khoảng trắng và không phân biệt hoa thường (`HS 001`, `hs001` là một người). Chỉ giữ phiếu đầu tiên; `student_id` của phiếu giữ là mã đã gõ, không đổi |
+| `bo_nop_trung` | Mã học sinh đã nộp trước đó. So khớp chỉ bỏ khoảng trắng (`HS 001` và `HS001` là một người). Vẫn phân biệt hoa thường, như kiosk (`HS001` và `hs001` là hai em). Chỉ giữ phiếu đầu tiên; `student_id` của phiếu giữ là mã đã gõ, không đổi |
 | `bo_khong_ma` | Không có mã học sinh |
 
 `ghi_chu` ở câu đề thi khi `duoc_tinh = 0`:
@@ -127,6 +127,7 @@ cạnh nguyện vọng của CLB đó) và tệp 01 thành trang `1. CLB`. Bố 
 ## 6. Những điểm bất thường nên soát
 
 - Hai phiếu cùng `student_id` (đã được đánh dấu `bo_nop_trung`).
+- Hai mã chỉ khác hoa thường (`HS001` và `hs001`): cả hai đều được giữ, vì kiosk coi là hai em. Cảnh báo `ma_khac_hoa_thuong` để giáo viên soát.
 - `student_id` sai dạng so với mã của trường, hoặc cùng một email mà hai mã khác nhau.
 - `diem_forms` khác `diem`: đáp án trên Google Forms lệch với `DAP_AN.xlsx`.
 - `ghi_chu = khong_tick`: em làm bài mà quên tick.

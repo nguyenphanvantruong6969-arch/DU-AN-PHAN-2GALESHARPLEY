@@ -367,7 +367,9 @@ def test_google_forms_noi_ro_dieu_kien_duoc_cham_diem():
     gs = tg.noi_dung()
     assert "Muốn CLB được chấm điểm: xếp CLB đó ở một Top, tick ở ô bên dưới, rồi làm bài thi." in gs
     assert "CLB được chấm điểm khi vừa được xếp ở một Top, vừa được tick ở đây, và vừa được làm bài." in gs
-    assert "Chọn CLB đứng trên cùng trong số các CLB em đã tick." in gs
+    assert "Chọn CLB đứng trên cùng (đứng đầu trong danh sách) trong số các CLB em đã tick." in gs
+    assert 'Không thi CLB nào thì chọn "\' + KHONG_THI + \'". Làm xong thì chỉ chọn được CLB đứng sau.' in gs
+    assert 'const KHONG_THI = "Em không thi CLB nào buổi này";' in gs
     assert "Chỉ hiện các CLB đứng sau CLB vừa làm." in gs
 
 
