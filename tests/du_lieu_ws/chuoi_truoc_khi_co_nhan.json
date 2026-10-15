@@ -682,23 +682,23 @@
   },
   "ws_du_lieu_sai": {
    "en": "This couldn't be done because the workspace details are not valid. Check the fields that were filled in.",
-   "vi": "Không thực hiện được vì thông tin workspace chưa hợp lệ. Kiểm tra lại các ô đã điền."
+   "vi": "Không thực hiện được vì thông tin không gian làm việc chưa hợp lệ. Kiểm tra lại các ô đã điền."
   },
   "ws_khong_co": {
    "en": "Workspace \"{slug}\" was not found. It may have been deleted or moved. Reopen the list.",
-   "vi": "Không tìm thấy workspace \"{slug}\". Có thể nó đã bị xoá hoặc đổi chỗ. Hãy mở lại danh sách."
+   "vi": "Không tìm thấy không gian làm việc \"{slug}\". Có thể nó đã bị xoá hoặc đổi chỗ. Hãy mở lại danh sách."
   },
   "ws_khong_xoa_dang_mo": {
    "en": "Workspace \"{slug}\" can't be deleted because it is open. Open another workspace first, then delete it.",
-   "vi": "Không xoá được workspace \"{slug}\" vì đang mở nó. Hãy mở workspace khác trước rồi xoá."
+   "vi": "Không xoá được không gian làm việc \"{slug}\" vì đang mở nó. Hãy mở không gian làm việc khác trước rồi xoá."
   },
   "ws_loi_khong_ro": {
    "en": "Couldn't complete the workspace operation. Try again.",
-   "vi": "Không thực hiện được thao tác với workspace. Hãy thử lại."
+   "vi": "Không thực hiện được thao tác với không gian làm việc. Hãy thử lại."
   },
   "ws_tat_che_do": {
    "en": "The program was started with its own data file (a path given at launch), so workspaces are turned off.",
-   "vi": "Chương trình đang mở một tệp dữ liệu riêng (đường dẫn truyền lúc khởi động), nên chức năng workspace đang tắt."
+   "vi": "Chương trình đang mở một tệp dữ liệu riêng (đường dẫn truyền lúc khởi động), nên chức năng không gian làm việc đang tắt."
   },
   "xem_nhat_ky": {
    "en": "Technical details were saved to {file}, in the same folder as the data file. If the error keeps happening, send that file to the technical contact.",
@@ -1582,27 +1582,27 @@
    "ws_btn_mo": "Mở",
    "ws_btn_moi": "Tạo mới",
    "ws_btn_nhan_ban": "Nhân bản",
-   "ws_btn_nhap_zip": "Nhập .zip",
+   "ws_btn_nhap_zip": "Nhập tệp nén",
    "ws_btn_quay_lai": "Quay lại",
-   "ws_btn_tao": "Tạo workspace",
+   "ws_btn_tao": "Tạo không gian làm việc",
    "ws_btn_tiep": "Tiếp",
    "ws_btn_xoa": "Xoá",
    "ws_btn_xoa_xn": "Bấm lần nữa để xoá",
-   "ws_btn_xuat": "Xuất .zip",
-   "ws_chi_nhan_zip": "Chỉ nhận tệp .zip do chương trình này xuất ra.",
-   "ws_chon_hint": "Mỗi workspace có dữ liệu và luật xếp riêng, nằm trong một thư mục riêng.",
-   "ws_chon_title": "Chọn workspace",
+   "ws_btn_xuat": "Xuất tệp nén",
+   "ws_chi_nhan_zip": "Chỉ nhận tệp nén do chương trình này xuất ra.",
+   "ws_chon_hint": "Mỗi không gian làm việc có dữ liệu và luật xếp riêng, nằm trong một thư mục riêng.",
+   "ws_chon_title": "Chọn không gian làm việc",
    "ws_cot_loai": "Loại",
    "ws_cot_sua": "Sửa lần cuối",
    "ws_cot_ten": "Tên",
    "ws_da_doi_ten": "Đã đổi tên thành \"{ten}\".",
    "ws_da_luu_mau": "Đã lưu mẫu \"{ten}\".",
-   "ws_da_mo": "Đã mở workspace \"{ten}\".",
+   "ws_da_mo": "Đã mở không gian làm việc \"{ten}\".",
    "ws_da_nhan_ban": "Đã nhân bản thành \"{ten}\".",
-   "ws_da_nhap": "Đã nhập workspace \"{ten}\".",
-   "ws_da_tao": "Đã tạo workspace \"{ten}\".",
-   "ws_da_xoa": "Đã chuyển workspace \"{ten}\" vào thùng rác (thư mục _trash), chưa xoá vĩnh viễn.",
-   "ws_da_xuat": "Đã xuất workspace: {path}",
+   "ws_da_nhap": "Đã nhập không gian làm việc \"{ten}\".",
+   "ws_da_tao": "Đã tạo không gian làm việc \"{ten}\".",
+   "ws_da_xoa": "Đã chuyển không gian làm việc \"{ten}\" vào thùng rác (thư mục _trash), chưa xoá vĩnh viễn.",
+   "ws_da_xuat": "Đã xuất không gian làm việc: {path}",
    "ws_dang_mo_nhan": "Đang mở",
    "ws_dt_group": "Nhóm ưu tiên",
    "ws_dt_group_mo_ta": "Nhóm của người tham gia được ưu tiên khi xếp (vd. khối, chính sách, cấp bậc).",
@@ -1614,7 +1614,7 @@
    "ws_dt_session_mo_ta": "Mỗi người nhận tối đa một chỗ trong mỗi đợt (vd. buổi, ca, đợt).",
    "ws_dt_slot": "Chỗ được xếp",
    "ws_dt_slot_mo_ta": "Nơi người tham gia được xếp vào (vd. câu lạc bộ, dự án, phòng).",
-   "ws_khong_xoa_dang_mo": "Đang mở workspace này nên chưa xoá được. Hãy mở workspace khác trước.",
+   "ws_khong_xoa_dang_mo": "Đang mở không gian làm việc này nên chưa xoá được. Hãy mở không gian làm việc khác trước.",
    "ws_loai_company": "Công ty",
    "ws_loai_custom": "Tuỳ chỉnh",
    "ws_loai_event": "Sự kiện",
@@ -1638,9 +1638,9 @@
    "ws_r_tiers_ph": "Khối 12\nKhối 11\nKhối 10",
    "ws_r_tm_reserve": "Suất dự trữ mềm (như trường học)",
    "ws_r_tm_strict": "Thứ hạng nhóm nghiêm ngặt",
-   "ws_rong": "Chưa có workspace nào. Hãy tạo mới hoặc nhập từ tệp .zip.",
-   "ws_switcher_aria": "Đổi workspace",
-   "ws_switcher_nhan": "Workspace",
+   "ws_rong": "Chưa có không gian làm việc nào. Hãy tạo mới hoặc nhập từ tệp nén.",
+   "ws_switcher_aria": "Đổi không gian làm việc",
+   "ws_switcher_nhan": "Không gian làm việc",
    "ws_ten_mau": "Tên mẫu",
    "ws_ten_moi": "Tên mới",
    "ws_v_max_choices": "Số lựa chọn tối đa phải là số nguyên từ 1 đến 20.",
@@ -1658,12 +1658,12 @@
    "ws_wz_loai": "Loại",
    "ws_wz_mau": "Bắt đầu từ mẫu",
    "ws_wz_mau_hint": "Chọn mẫu sẽ điền sẵn cả bốn bước, và vẫn sửa được từng ô.",
-   "ws_wz_ten": "Tên workspace",
+   "ws_wz_ten": "Tên không gian làm việc",
    "ws_wz_ten_ph": "Ví dụ: Trường Trung học A, năm học 2026",
-   "ws_wz_title": "Tạo workspace mới",
-   "ws_wz_tu_vung_hint": "Đặt tên gọi cho năm khái niệm của workspace này. Ô tiếng Anh để trống thì dùng tiếng Việt.",
+   "ws_wz_title": "Tạo không gian làm việc mới",
+   "ws_wz_tu_vung_hint": "Đặt tên gọi cho năm khái niệm của không gian làm việc này. Ô tiếng Anh để trống thì dùng tiếng Việt.",
    "ws_wz_vi": "Tiếng Việt",
-   "ws_wz_xem_lai_hint": "Kiểm tra lần cuối. Bấm Quay lại để sửa; bấm Tạo workspace để dựng và mở nó.",
+   "ws_wz_xem_lai_hint": "Kiểm tra lần cuối. Bấm Quay lại để sửa; bấm Tạo không gian làm việc để dựng và mở nó.",
    "xuat_bo_hs_khong_con": "Đã bỏ khỏi danh sách chọn những học sinh không còn trong hệ thống: {ds}. Bấm Xuất lại để xuất những học sinh còn lại.",
    "xuat_canh_bao_diem": "Tệp xuất có điểm chấm và số bốc thăm. Không gửi các tệp này cho giáo viên chấm điểm.",
    "xuat_hint_hoc_sinh": "Hồ sơ học sinh: bấm \"Chọn học sinh…\" rồi đánh dấu học sinh ở bảng bên dưới. Đang mở một học sinh ở thẻ 03 thì bấm \"Xuất CSV học sinh này\" ngay tại đó.",

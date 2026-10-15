@@ -63,6 +63,20 @@ function wsTenNganh(nganh) {
   return t("ws_loai_" + (WS_NGANH.includes(nganh) ? nganh : "custom"));
 }
 
+/* Backend trả "YYYY-MM-DD HH:MM:SS". Tiếng Việt đọc ngày trước tháng: "15/10/2026 12:19:20";
+   tiếng Anh, hoặc chuỗi không đúng mẫu, giữ nguyên. */
+function wsDinhDangNgay(chuoi) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})([ T]\d{2}:\d{2}(?::\d{2})?)$/.exec(String(chuoi || ""));
+  if (!m || window.I18N.getLang() !== "vi") return chuoi;
+  return m[3] + "/" + m[2] + "/" + m[1] + m[4].replace("T", " ");
+}
+
+/* Tên mẫu: mẫu dựng sẵn do backend đặt tên cố định bằng tiếng Việt, nên dịch ở đây theo
+   ngôn ngữ đang chọn. Mẫu người dùng tự lưu là tên họ đặt, giữ nguyên. */
+function wsTenMau(m) {
+  return m.builtin ? t("ws_mau_truong_hoc") : m.name;
+}
+
 /* ------------------------------------------------------------------ *
  * KHỞI ĐỘNG VÀ NÚT Ở THANH BÊN
  * ------------------------------------------------------------------ */
@@ -221,8 +235,10 @@ function wsDongWorkspace(w) {
       wsEl("div", { class: "ws-slug", text: w.slug }),
       w.dang_mo ? wsEl("span", { class: "ws-badge", text: t("ws_dang_mo_nhan") }) : null),
     wsEl("td", { text: wsTenNganh(w.industry) }),
-    wsEl("td", { class: "ws-sua", text: w.modified }),
-    wsEl("td", { class: "ws-hanh-dong" },
+    wsEl("td", { class: "ws-sua", text: wsDinhDangNgay(w.modified) }),
+    /* <td> phải giữ kiểu table-cell: đặt display:flex thẳng lên nó làm nền hàng và
+       đường kẻ chỉ phủ một phần ô. Hộp flex nằm ở <div> bên trong. */
+    wsEl("td", { class: "ws-cot-hanh-dong" }, wsEl("div", { class: "ws-hanh-dong" },
       wsEl("button", { type: "button", class: "btn btn-secondary btn-nho",
         "data-slug": w.slug, "data-hanh-dong": "mo", text: t("ws_btn_mo"),
         disabled: w.dang_mo, onclick: () => wsMo(w) }),
@@ -230,7 +246,7 @@ function wsDongWorkspace(w) {
       hanhDong("nhan_ban", () => wsBatSua(w, "nhan_ban")),
       hanhDong("luu_mau", () => wsBatSua(w, "luu_mau")),
       hanhDong("xuat", () => wsXuat(w)),
-      nutXoa));
+      nutXoa)));
 }
 
 function wsBatSua(w, kieu) {
@@ -521,7 +537,7 @@ function wsVeWizard() {
 /* --- Bước 1: tên, loại, mẫu --- */
 function wsBuoc1(hop) {
   const w = wsWizard;
-  const oMau = wsChon("wzMau", w.mau, wsMau.map((m) => [m.slug, m.name]));
+  const oMau = wsChon("wzMau", w.mau, wsMau.map((m) => [m.slug, wsTenMau(m)]));
   hop.append(
     wsTruong("wzTen", "ws_wz_ten", wsEl("input", { type: "text", id: "wzTen", class: "text-input",
       value: w.ten, placeholder: t("ws_wz_ten_ph"), maxlength: "80" })),

@@ -159,7 +159,7 @@ MESSAGES = {
         "en": "The {score_l} “{diem_goc}” for {person_l} {student_id} in {slot_l} {club_id} isn't a number, so it wasn't saved. The test {slot_l} choices were kept. Fix the {score_l} and import the file again.",
     },
     "csv_score_ignored_mode": {
-        "vi": "Workspace này không dùng {score_l} theo từng {slot_l} (chấm theo {person_l}, hoặc chỉ xét nhóm): {n} ô {score_l} trong tệp đã được bỏ qua, không lưu.",
+        "vi": "Không gian làm việc này không dùng {score_l} theo từng {slot_l} (chấm theo {person_l}, hoặc chỉ xét nhóm): {n} ô {score_l} trong tệp đã được bỏ qua, không lưu.",
         "en": "This workspace doesn't use a {score_l} per {slot_l} (it scores per {person_l}, or ranks by group only): {n} {score_l} cell(s) in the file were skipped and not saved.",
     },
     "csv_score_negative": {
@@ -533,11 +533,11 @@ MESSAGES = {
         "en": "{student_id}: not in the {person_l} list, so it was skipped. Turn on adding new {person_pl} automatically to include it.",
     },
     "scoring_not_per_person": {
-        "vi": "Workspace này chấm {score_l} theo từng {slot_l}, không theo từng {person_l}. Hãy chấm ở danh sách của {slot_l}.",
+        "vi": "Không gian làm việc này chấm {score_l} theo từng {slot_l}, không theo từng {person_l}. Hãy chấm ở danh sách của {slot_l}.",
         "en": "This workspace sets the {score_l} per {slot_l}, not per {person_l}. Score from the {slot_l}'s list instead.",
     },
     "scoring_not_per_slot": {
-        "vi": "Workspace này không dùng {score_l} theo từng {slot_l} (chấm theo {person_l}, hoặc chỉ xét nhóm), nên {score_l} chấm ở đây sẽ không được dùng khi xếp. Hãy chấm theo cách của workspace này.",
+        "vi": "Không gian làm việc này không dùng {score_l} theo từng {slot_l} (chấm theo {person_l}, hoặc chỉ xét nhóm), nên {score_l} chấm ở đây sẽ không được dùng khi xếp. Hãy chấm theo cách của không gian làm việc này.",
         "en": "This workspace doesn't use a {score_l} per {slot_l} (it scores per {person_l}, or ranks by group only), so a {score_l} saved here would be ignored when sorting. Score the way this workspace does.",
     },
     "score_not_applicant": {
@@ -734,7 +734,7 @@ MESSAGES = {
         "en": "Sheet \"{sheet}\", row {dong} ({student_id}), {score_v} {k}: \"{gia_tri}\" isn't a {score_l}. Enter a number (e.g. 8.5), or the word thi if the {score_l} isn't known yet.",
     },
     "so_nhap_diem_sai_che_do": {
-        "vi": "Sheet \"{sheet}\", dòng {dong} ({student_id}): có {score_l} ở cột \"{cot}\", nhưng cột này không đúng cách chấm của workspace (một {score_l} cho cả {person_l}, hoặc một {score_l} cho mỗi {slot_l}). Nạp vào sẽ mất {score_l} mà không báo. Hãy tải sổ mẫu của workspace này và điền lại vào đúng cột.",
+        "vi": "Sheet \"{sheet}\", dòng {dong} ({student_id}): có {score_l} ở cột \"{cot}\", nhưng cột này không đúng cách chấm của không gian làm việc (một {score_l} cho cả {person_l}, hoặc một {score_l} cho mỗi {slot_l}). Nạp vào sẽ mất {score_l} mà không báo. Hãy tải sổ mẫu của không gian làm việc này và điền lại vào đúng cột.",
         "en": "Sheet \"{sheet}\", row {dong} ({student_id}): there is a {score_l} in column \"{cot}\", but that column doesn't match how this workspace scores (one {score_l} per {person_l}, or one per {slot_l}). Importing would lose it silently. Download this workspace's template and fill it in again in the right column.",
     },
     "so_nhap_diem_ca_nhan_sai": {
@@ -783,27 +783,27 @@ MESSAGES = {
     },
     # --- workspace (api_workspace.py) ---
     "ws_tat_che_do": {
-        "vi": "Chương trình đang mở một tệp dữ liệu riêng (đường dẫn truyền lúc khởi động), nên chức năng workspace đang tắt.",
+        "vi": "Chương trình đang mở một tệp dữ liệu riêng (đường dẫn truyền lúc khởi động), nên chức năng không gian làm việc đang tắt.",
         "en": "The program was started with its own data file (a path given at launch), so workspaces are turned off.",
     },
     "ws_khong_co": {
-        "vi": "Không tìm thấy workspace \"{slug}\". Có thể nó đã bị xoá hoặc đổi chỗ. Hãy mở lại danh sách.",
+        "vi": "Không tìm thấy không gian làm việc \"{slug}\". Có thể nó đã bị xoá hoặc đổi chỗ. Hãy mở lại danh sách.",
         "en": "Workspace \"{slug}\" was not found. It may have been deleted or moved. Reopen the list.",
     },
     "ws_du_lieu_sai": {
-        "vi": "Không thực hiện được vì thông tin workspace chưa hợp lệ. Kiểm tra lại các ô đã điền.",
+        "vi": "Không thực hiện được vì thông tin không gian làm việc chưa hợp lệ. Kiểm tra lại các ô đã điền.",
         "en": "This couldn't be done because the workspace details are not valid. Check the fields that were filled in.",
     },
     "ws_khong_xoa_dang_mo": {
-        "vi": "Không xoá được workspace \"{slug}\" vì đang mở nó. Hãy mở workspace khác trước rồi xoá.",
+        "vi": "Không xoá được không gian làm việc \"{slug}\" vì đang mở nó. Hãy mở không gian làm việc khác trước rồi xoá.",
         "en": "Workspace \"{slug}\" can't be deleted because it is open. Open another workspace first, then delete it.",
     },
     "ws_cau_hinh_hong": {
-        "vi": "Không đọc được cấu hình của workspace này, nên chưa thể làm việc đó: chạy bằng luật trường học sẽ ra kết quả sai mà không báo. Hãy mở lại workspace, kiểm tra hoặc đặt lại cấu hình rồi thử lại.",
+        "vi": "Không đọc được cấu hình của không gian làm việc này, nên chưa thể làm việc đó: chạy bằng luật trường học sẽ ra kết quả sai mà không báo. Hãy mở lại không gian làm việc, kiểm tra hoặc đặt lại cấu hình rồi thử lại.",
         "en": "This workspace's settings can't be read, so this can't be done: running with the school rules would give wrong results without any warning. Reopen the workspace, check or reset its settings, then try again.",
     },
     "ws_loi_khong_ro": {
-        "vi": "Không thực hiện được thao tác với workspace. Hãy thử lại.",
+        "vi": "Không thực hiện được thao tác với không gian làm việc. Hãy thử lại.",
         "en": "Couldn't complete the workspace operation. Try again.",
     },
 }
