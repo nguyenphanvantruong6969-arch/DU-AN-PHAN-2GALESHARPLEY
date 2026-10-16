@@ -126,6 +126,16 @@ def test_trang_hoc_sinh_khong_co_phan_giao_vien():
         assert 'id="%s"' % id_ in gv, id_
 
 
+def test_trang_giao_vien_chi_co_phan_nhap_lieu():
+    """Trang giáo viên không có phần làm bài của học sinh; vẫn có đủ phần nhập liệu."""
+    with open(GV_TRANG, encoding="utf-8") as f:
+        gv = f.read()
+    for thu in ('id="form"', 'id="thi"', "$('#form')", "Làm bài"):
+        assert thu not in gv, thu
+    for id_ in ("gv-tep", "gv-chi-tieu", "gv-tai-xlsx"):
+        assert 'id="%s"' % id_ in gv, id_
+
+
 def test_moi_cau_tro_giup_hien_thi_co_nguon_trong_bieu_mau():
     """Mọi câu của chữ trợ giúp đang hiển thị (TRO_GIUP) phải có trong biểu mẫu Google, trừ câu riêng của
     trang (trần Top 1–10). Kiểm chữ thật sự hiển thị, không chỉ danh sách viết tay."""

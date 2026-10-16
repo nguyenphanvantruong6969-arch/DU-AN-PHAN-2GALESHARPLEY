@@ -67,14 +67,15 @@ KHUON = r"""<!doctype html>
 <header class="hero">
   <span class="badge">Bản thử · dữ liệu mô phỏng</span>
   <h1>Thi tuyển CLB: 12 câu lạc bộ mỗi buổi</h1>
-  <p>Em xếp các CLB muốn vào (Top 1 đến Top 10 mỗi buổi), tick những CLB muốn thi (tối đa 5 mỗi buổi, có thể thi 0 đến 5 CLB), rồi chỉ làm đề của những CLB em đã chọn. Sau khi nộp, em sẽ không thấy điểm; giáo viên sẽ chấm.</p>
-  <nav class="top"><a href="#thi">Làm bài</a><!--GV-BEGIN--><a href="#gv">Giáo viên</a><!--GV-END--></nav>
+  <!--HS-BEGIN--><p>Em xếp các CLB muốn vào (Top 1 đến Top 10 mỗi buổi), tick những CLB muốn thi (tối đa 5 mỗi buổi, có thể thi 0 đến 5 CLB), rồi chỉ làm đề của những CLB em đã chọn. Sau khi nộp, em sẽ không thấy điểm; giáo viên sẽ chấm.</p><!--HS-END-->
+  <!--GV-BEGIN--><p>Trang nhập liệu cho giáo viên: nạp phiếu của học sinh, nhập chỉ tiêu cho 60 CLB, rồi tải sổ nhập (.xlsx) hoặc CSV. Phần làm bài nằm ở trang học sinh.</p><!--GV-END-->
+  <nav class="top"><!--HS-BEGIN--><a href="#thi">Làm bài</a><!--HS-END--><!--GV-BEGIN--><a href="#gv">Giáo viên</a><!--GV-END--></nav>
 </header>
 
-<section id="thi" class="card">
+<!--HS-BEGIN--><section id="thi" class="card">
   <h2>Làm bài</h2>
   <div id="form"></div>
-</section>
+</section><!--HS-END-->
 
 <!--GV-BEGIN--><section id="gv" class="card">
   <h2>Giáo viên: nạp phiếu, chỉ tiêu và tải sổ nhập</h2>
@@ -212,6 +213,7 @@ function dungXlsx(danhSach){
 
   // Trang theo thứ tự: mỗi buổi là trang buổi, trang xếp Top và tick, trang CLB thi đầu tiên,
   // rồi trang đề và trang "tiếp theo" cho từng CLB. Chỉ trang hiện tại được dựng.
+  /*HS-BEGIN*/
   const TRANG = [{loai: 'info'}];
   const NGAY = [];
   BUOI.forEach(function(d, k){
@@ -235,6 +237,7 @@ function dungXlsx(danhSach){
   function moi(thongBao){ return {cur: 0, path: [0], ans: {}, loi: '', thongBao: thongBao || ''}; }
   let st = moi();
   let DA_NOP = null;
+  /*HS-END*/
   /*GV-BEGIN*/
   const GV = [];      // phiếu đã nạp, kèm thời điểm nộp
   const DA_NAP = {};  // nội dung tệp đã nạp, để bỏ bản sao
@@ -247,6 +250,7 @@ function dungXlsx(danhSach){
   }
   /*GV-END*/
 
+  /*HS-BEGIN*/
   // CLB đã tick trong buổi (theo thứ tự buổi). Chỉ các CLB này được chọn để làm bài.
   function daTick(ng){
     const dang = st.ans['chon-' + ng.d.ma] || [];
@@ -440,6 +444,8 @@ function dungXlsx(danhSach){
     return '';
   }
 
+  /*HS-END*/
+
   function bang(tieu, dong){
     let h = '<table><thead><tr>' + tieu.map(function(t){ return '<th>' + esc(t) + '</th>'; }).join('') + '</tr></thead><tbody>';
     if(!dong.length) h += '<tr><td colspan="' + tieu.length + '" class="muted">Không có dòng nào.</td></tr>';
@@ -449,6 +455,7 @@ function dungXlsx(danhSach){
     return h + '</tbody></table>';
   }
 
+  /*HS-BEGIN*/
   function render(){
     const p = TRANG[st.cur];
     let h = '';
@@ -533,6 +540,8 @@ function dungXlsx(danhSach){
       render();
     }
   });
+
+  /*HS-END*/
 
   function taiTep(ten, blob){
     const a = document.createElement('a');
@@ -663,7 +672,9 @@ function dungXlsx(danhSach){
   /*GV-BEGIN*/
   veChiTieu();
   /*GV-END*/
+  /*HS-BEGIN*/
   render();
+  /*HS-END*/
   /*GV-BEGIN*/
   renderGV();
   /*GV-END*/
@@ -700,14 +711,21 @@ def _dien(khuon):
                  .replace("__TRO_GIUP__", _js(TRO_GIUP)))
 
 
+_VUNG_HS = r"<!--HS-BEGIN-->.*?<!--HS-END-->|/\*HS-BEGIN\*/.*?/\*HS-END\*/"
+_VUNG_GV = r"<!--GV-BEGIN-->.*?<!--GV-END-->|/\*GV-BEGIN\*/.*?/\*GV-END\*/"
+_DANH_DAU = r"<!--(?:HS|GV)-(?:BEGIN|END)-->|/\*(?:HS|GV)-(?:BEGIN|END)\*/"
+
+
 def noi_dung_hoc_sinh():
-    """Trang học sinh: bỏ hẳn mọi đoạn đánh dấu GV-BEGIN…GV-END (HTML và JS) của phần giáo viên."""
-    return re.sub(r"<!--GV-BEGIN-->.*?<!--GV-END-->|/\*GV-BEGIN\*/.*?/\*GV-END\*/", "", _dien(KHUON), flags=re.S)
+    """Trang học sinh: bỏ hẳn phần giáo viên (HTML và JS), giữ phần làm bài; xoá các dấu đánh dấu."""
+    html = re.sub(_VUNG_GV, "", _dien(KHUON), flags=re.S)
+    return re.sub(_DANH_DAU, "", html)
 
 
 def noi_dung_giao_vien():
-    """Trang giáo viên: giữ nguyên nội dung, chỉ bỏ các dấu đánh dấu."""
-    return re.sub(r"<!--GV-BEGIN-->|<!--GV-END-->|/\*GV-BEGIN\*/|/\*GV-END\*/", "", _dien(KHUON))
+    """Trang giáo viên: bỏ hẳn phần làm bài của học sinh, giữ phần nhập liệu; xoá các dấu đánh dấu."""
+    html = re.sub(_VUNG_HS, "", _dien(KHUON), flags=re.S)
+    return re.sub(_DANH_DAU, "", html)
 
 
 def main():

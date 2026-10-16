@@ -58,6 +58,7 @@ code{font-family:ui-monospace,Consolas,monospace;font-size:12.5px;background:var
   <span class="badge">Bản thử · dữ liệu mô phỏng</span>
   <h1>Thi tuyển CLB: 12 câu lạc bộ mỗi buổi</h1>
   <p>Em xếp các CLB muốn vào (Top 1 đến Top 10 mỗi buổi), tick những CLB muốn thi (tối đa 5 mỗi buổi, có thể thi 0 đến 5 CLB), rồi chỉ làm đề của những CLB em đã chọn. Sau khi nộp, em sẽ không thấy điểm; giáo viên sẽ chấm.</p>
+  
   <nav class="top"><a href="#thi">Làm bài</a></nav>
 </header>
 
@@ -208,6 +209,7 @@ const TRO_GIUP = {"top": "Top 1 là CLB em thích nhất. Bấm vào từng Top 
 
   // Trang theo thứ tự: mỗi buổi là trang buổi, trang xếp Top và tick, trang CLB thi đầu tiên,
   // rồi trang đề và trang "tiếp theo" cho từng CLB. Chỉ trang hiện tại được dựng.
+  
   const TRANG = [{loai: 'info'}];
   const NGAY = [];
   BUOI.forEach(function(d, k){
@@ -232,7 +234,9 @@ const TRO_GIUP = {"top": "Top 1 là CLB em thích nhất. Bấm vào từng Top 
   let st = moi();
   let DA_NOP = null;
   
+  
 
+  
   // CLB đã tick trong buổi (theo thứ tự buổi). Chỉ các CLB này được chọn để làm bài.
   function daTick(ng){
     const dang = st.ans['chon-' + ng.d.ma] || [];
@@ -426,6 +430,8 @@ const TRO_GIUP = {"top": "Top 1 là CLB em thích nhất. Bấm vào từng Top 
     return '';
   }
 
+  
+
   function bang(tieu, dong){
     let h = '<table><thead><tr>' + tieu.map(function(t){ return '<th>' + esc(t) + '</th>'; }).join('') + '</tr></thead><tbody>';
     if(!dong.length) h += '<tr><td colspan="' + tieu.length + '" class="muted">Không có dòng nào.</td></tr>';
@@ -435,6 +441,7 @@ const TRO_GIUP = {"top": "Top 1 là CLB em thích nhất. Bấm vào từng Top 
     return h + '</tbody></table>';
   }
 
+  
   function render(){
     const p = TRANG[st.cur];
     let h = '';
@@ -520,6 +527,8 @@ const TRO_GIUP = {"top": "Top 1 là CLB em thích nhất. Bấm vào từng Top 
     }
   });
 
+  
+
   function taiTep(ten, blob){
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -531,7 +540,9 @@ const TRO_GIUP = {"top": "Top 1 là CLB em thích nhất. Bấm vào từng Top 
   
 
   
+  
   render();
+  
   
 })();
 </script>
