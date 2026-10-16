@@ -24,6 +24,7 @@ import pytest
 GOC = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MAU = os.path.join(GOC, "mau_forms_thi_clb")
 TRANG = os.path.join(GOC, "docs", "thi_12_clb", "index.html")
+GV_TRANG = os.path.join(GOC, "docs", "thi_12_clb", "giao_vien.html")
 CHROME = "/opt/pw-browsers/chromium-1194/chrome-linux/chrome"
 
 CO = "Có"
@@ -108,8 +109,21 @@ def test_dap_an_clb_moi_da_xao_khong_tap_trung_o_vi_tri_dau():
 def test_tep_trang_khop_ban_sinh():
     sys.path.insert(0, MAU)
     import tao_trang_thi_12_clb as tt
+    for duong, noi_dung in ((TRANG, tt.noi_dung_hoc_sinh()), (GV_TRANG, tt.noi_dung_giao_vien())):
+        with open(duong, encoding="utf-8") as f:
+            assert f.read() == noi_dung, duong
+
+
+def test_trang_hoc_sinh_khong_co_phan_giao_vien():
+    """Trang học sinh không có một phần tử nào của phần giáo viên; trang giáo viên thì có đủ."""
     with open(TRANG, encoding="utf-8") as f:
-        assert f.read() == tt.noi_dung()
+        hs = f.read()
+    with open(GV_TRANG, encoding="utf-8") as f:
+        gv = f.read()
+    for id_ in ("gv-tep", "gv-so", "gv-ket-qua", "gv-chi-tieu", "gv-tai-xlsx", "gv-tai-so", "gv-tai-clb",
+                "gv-tai-canh", "gv-xoa"):
+        assert 'id="%s"' % id_ not in hs, id_
+        assert 'id="%s"' % id_ in gv, id_
 
 
 def test_moi_cau_tro_giup_hien_thi_co_nguon_trong_bieu_mau():
@@ -157,7 +171,7 @@ def test_logic_cham_giong_chamtheoclb(tmp_path):
             ["node", str(harness_gs), gs, str(tmp_path / "x.json"), str(p)],
             capture_output=True, text=True, encoding="utf-8", check=True).stdout)
         web_kq = json.loads(subprocess.run(
-            ["node", str(harness_web), TRANG, str(p)],
+            ["node", str(harness_web), GV_TRANG, str(p)],
             capture_output=True, text=True, encoding="utf-8", check=True).stdout)
         bo_trong = lambda rows: [[x for x in r if x != ""] for r in rows]  # noqa: E731
         assert bo_trong(web_kq["hs"]) == bo_trong(gs_kq["hs"]), ten
@@ -195,7 +209,7 @@ def test_logic_12_clb_thi_0_va_thi_khong_xep(tmp_path):
     p = tmp_path / "phieu.json"
     p.write_text(json.dumps([khong_thi, khong_xep], ensure_ascii=False), encoding="utf-8")
     kq = json.loads(subprocess.run(
-        ["node", str(harness), TRANG, str(p)],
+        ["node", str(harness), GV_TRANG, str(p)],
         capture_output=True, text=True, encoding="utf-8", check=True).stdout)
 
     hs = {r[0]: r for r in kq["hs"][1:]}
@@ -229,7 +243,7 @@ def test_bo_ghi_xlsx_doc_duoc_bang_openpyxl(tmp_path):
     js = tmp_path / "xlsx.js"
     js.write_text(XLSX_JS, encoding="utf-8")
     duong = tmp_path / "mau.xlsx"
-    subprocess.run(["node", str(js), TRANG, str(duong)], check=True, cwd=GOC, timeout=120)
+    subprocess.run(["node", str(js), GV_TRANG, str(duong)], check=True, cwd=GOC, timeout=120)
     wb = openpyxl.load_workbook(duong)
     assert wb.sheetnames == ["1. CLB", "2. Học sinh"]
     assert list(wb["1. CLB"].iter_rows(values_only=True)) == [
@@ -244,13 +258,14 @@ def _kiem_so_nhap_xlsx(duong, A, B):
     import openpyxl
     sys.path.insert(0, GOC)
     import so_nhap
-    wb = openpyxl.load_workbook(duong)
+    wb = openpyxl.load_workbook(duong, read_only=True)
     assert wb.sheetnames == ["1. CLB", "2. Học sinh"]
     rows1 = list(wb["1. CLB"].iter_rows(values_only=True))
     assert rows1[0] == ("Tên CLB", "Buổi", "Chỉ tiêu", "Suất ưu tiên", "Nhóm ưu tiên", "Mã CLB")
     assert len(rows1) == 61 and all(r[2] == 20 for r in rows1[1:])
     rows2 = list(wb["2. Học sinh"].iter_rows(values_only=True))
     hang = next(r for r in rows2 if r[0] == "HS 101")
+    hang = tuple(hang) + (None,) * 8  # chế độ read_only có thể bỏ các ô trống cuối dòng
     assert hang[1] == "=Thí sinh thử"
     assert hang[2:6] == (A["name"], 10, B["name"], 5)
     assert hang[7] is None  # CLB C xếp Top 3 nhưng không làm bài: không có điểm
@@ -332,6 +347,8 @@ const kb = JSON.parse(process.argv[4]);
   out.thongBao = await page.locator('.ok').first().textContent();
   out.phieuKhoa = Object.keys(JSON.parse(fs.readFileSync(path.join(thuMuc, 'phieu.json'), 'utf8')).phieu || {});
 
+  // Giáo viên dùng trang riêng: trang học sinh không có phần này.
+  await page.goto('file://' + process.argv[5]);
   // Giáo viên: nạp phiếu của học sinh và một tệp có Top 11 (tệp bị sửa tay).
   const top11 = { loai: 'phieu_thi_12_clb', phien: 1, phieu: { student_id: 'HS 303', name: 'Tệp sửa tay', 'di-thu_2': 'Có' } };
   kb.top11.forEach((o, i) => { top11.phieu['thu_2-top-' + (i + 1)] = o; });
@@ -387,7 +404,7 @@ def test_hoc_sinh_chi_thay_de_cua_clb_da_chon(tmp_path):
     }
     js = tmp_path / "walk.js"
     js.write_text(WALK_JS, encoding="utf-8")
-    r = subprocess.run(["node", str(js), TRANG, str(tmp_path), json.dumps(kb, ensure_ascii=False)],
+    r = subprocess.run(["node", str(js), TRANG, str(tmp_path), json.dumps(kb, ensure_ascii=False), GV_TRANG],
                        capture_output=True, text=True, encoding="utf-8", cwd=GOC, timeout=300)
     assert r.returncode == 0, r.stderr
     out = json.loads(r.stdout.strip().splitlines()[-1])
@@ -478,3 +495,120 @@ def test_tiep_theo_chi_hien_clb_dung_sau_va_chan_ma_trong(tmp_path):
     assert out["loi"] == []
     assert out["loiMaTrong"] == ["Em cần ghi mã học sinh."]
     assert out["tiep"] == [DUNG]
+
+
+XLSX_CTRL_JS = r"""
+const fs = require('fs');
+const html = fs.readFileSync(process.argv[2], 'utf8');
+const doan = html.split('/*XLSX-BEGIN*/')[1].split('/*XLSX-END*/')[0];
+const dungXlsx = new Function(doan + '\nreturn dungXlsx;')();
+const bytes = dungXlsx([
+  { ten: '1. CLB', dong: [['Tên CLB', 'Buổi', 'Chỉ tiêu'], ['CLB\u000B Đàn\u0001 tranh', 'thu_2', 20]] },
+  { ten: '2. Học sinh', dong: [['Mã HS', 'Họ tên', 'NV1', 'Điểm 1'], ['HS 1', 'Thí\u0003 sinh', 'CLB Đàn tranh', 0]] },
+]);
+fs.writeFileSync(process.argv[3], Buffer.from(bytes));
+"""
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="cần Node.js để chạy bộ ghi .xlsx")
+def test_ky_tu_dieu_khien_khong_lam_hong_tep_xlsx(tmp_path):
+    """Ký tự điều khiển (ví dụ dấu ngắt mềm chép từ Word) trong tên không được làm hỏng cả sổ."""
+    openpyxl = pytest.importorskip("openpyxl")
+    js = tmp_path / "ctrl.js"
+    js.write_text(XLSX_CTRL_JS, encoding="utf-8")
+    duong = tmp_path / "ctrl.xlsx"
+    subprocess.run(["node", str(js), GV_TRANG, str(duong)], check=True, cwd=GOC, timeout=120)
+    wb = openpyxl.load_workbook(duong)
+    assert list(wb["1. CLB"].iter_rows(values_only=True))[1] == ("CLB Đàn tranh", "thu_2", 20)
+    hang = list(wb["2. Học sinh"].iter_rows(values_only=True))[1]
+    assert hang[:4] == ("HS 1", "Thí sinh", "CLB Đàn tranh", 0)
+
+
+XLSX_DIEM0_JS = r"""
+const fs = require('fs');
+const html = fs.readFileSync(process.argv[2], 'utf8');
+const logic = html.split('/*LOGIC-BEGIN*/')[1].split('/*LOGIC-END*/')[0];
+const xlsx = html.split('/*XLSX-BEGIN*/')[1].split('/*XLSX-END*/')[0];
+const api = new Function(logic + '\n' + xlsx + '\nreturn {chamTheoCLB, dungXlsx, BUOI};')();
+const d = api.BUOI[0], c = d.clubs[0];
+const ten = c.name + ' (' + c.id + ')';
+const p = { student_id: 'HS 900', name: 'Điểm không', ['di-' + d.ma]: 'Có', [d.ma + '-top-1']: ten,
+            ['chon-' + d.ma]: [ten], ['thi-' + d.ma]: ten };
+c.de.forEach((q, j) => { p[c.id + '-' + (j + 1)] = q.opts.find(o => o !== q.dung); });
+const kq = api.chamTheoCLB([p]);
+fs.writeFileSync(process.argv[3], Buffer.from(api.dungXlsx([{ ten: '2. Học sinh', dong: kq.hs }])));
+"""
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="cần Node.js để chạy logic chấm và bộ ghi .xlsx")
+def test_diem_0_vao_so_nhap_la_so_0(tmp_path):
+    """Học sinh đã làm bài và được 0 điểm phải có ô số 0 trong sổ, không phải ô trống (trống nghĩa là không thi)."""
+    openpyxl = pytest.importorskip("openpyxl")
+    js = tmp_path / "diem0.js"
+    js.write_text(XLSX_DIEM0_JS, encoding="utf-8")
+    duong = tmp_path / "diem0.xlsx"
+    subprocess.run(["node", str(js), GV_TRANG, str(duong)], check=True, cwd=GOC, timeout=120)
+    wb = openpyxl.load_workbook(duong)
+    hang = list(wb["2. Học sinh"].iter_rows(values_only=True))[1]
+    assert hang[0] == "HS 900"
+    assert hang[3] == 0 and type(hang[3]) is int
+
+
+WALK_CHI_TIEU_JS = r"""
+const { chromium } = require('playwright');
+const url = 'file://' + process.argv[2];
+(async () => {
+  const browser = await chromium.launch({
+    executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+    args: ['--no-sandbox'], headless: true,
+  });
+  const ctx = await browser.newContext({ acceptDownloads: true });
+  const page = await ctx.newPage();
+  const loi = [];
+  page.on('pageerror', e => loi.push('pageerror: ' + e.message));
+  let soTep = 0;
+  page.on('download', () => { soTep++; });
+  await page.goto(url);
+  const out = { loi: loi, tuChoi: [] };
+  // Mọi CLB được 20; riêng CLB đầu nhận giá trị v.
+  const nhapChiTieu = v => page.evaluate((v) => {
+    document.querySelectorAll('input[data-cap]').forEach(i => { i.value = '20'; i.dispatchEvent(new Event('input', { bubbles: true })); });
+    const dau = document.querySelector('input[data-cap]');
+    dau.value = v;
+    dau.dispatchEvent(new Event('input', { bubbles: true }));
+  }, v);
+  for (const v of ['0', '-1', '2.5', '1e3', '007', '1000', ' ']) {
+    await nhapChiTieu(v);
+    await page.locator('#gv-tai-xlsx').click();
+    out.tuChoi.push(await page.locator('#gv-so').textContent());
+    await page.locator('#gv-tai-clb').click();
+    out.tuChoi.push(await page.locator('#gv-so').textContent());
+  }
+  await page.waitForTimeout(300);
+  out.taiKhiChoi = soTep;
+  await nhapChiTieu('999');
+  await page.locator('#gv-tai-xlsx').click();
+  await page.waitForTimeout(300);
+  out.sauKhiDung = await page.locator('#gv-so').textContent();
+  out.taiSauKhiDung = soTep;
+  console.log(JSON.stringify(out));
+  await browser.close();
+})().catch(e => { console.error('FAILED ' + e.stack); process.exit(1); });
+"""
+
+
+@pytest.mark.skipif(not _co_playwright(), reason="cần Node.js, Playwright và Chromium có sẵn")
+def test_chi_tieu_sai_bi_chan_ca_hai_nut_va_thong_bao_duoc_xoa(tmp_path):
+    js = tmp_path / "chi_tieu.js"
+    js.write_text(WALK_CHI_TIEU_JS, encoding="utf-8")
+    r = subprocess.run(["node", str(js), GV_TRANG], capture_output=True, text=True,
+                       encoding="utf-8", cwd=GOC, timeout=300)
+    assert r.returncode == 0, r.stderr
+    out = json.loads(r.stdout.strip().splitlines()[-1])
+    assert out["loi"] == []
+    assert len(out["tuChoi"]) == 14
+    assert all("Chưa xuất được" in m for m in out["tuChoi"]), out["tuChoi"]
+    assert out["taiKhiChoi"] == 0, "có tệp tải về dù chỉ tiêu sai"
+    assert "Đã tải SO_NHAP_CLB.xlsx" in out["sauKhiDung"]
+    assert "Chưa xuất" not in out["sauKhiDung"]
+    assert out["taiSauKhiDung"] == 1

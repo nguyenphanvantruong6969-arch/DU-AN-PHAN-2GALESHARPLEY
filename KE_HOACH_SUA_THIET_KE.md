@@ -714,3 +714,5 @@ phiếu delivery is manual for now.
 
 This entry does not update the PDF copy of the AI log kept outside the repository (artifact
 `1369e5c3-3d9f-4d8f-8c00-0328bc1b5131`, see BAN_GIAO.md); that copy needs Truong's decision.
+
+Follow-up for the same page (commit 53bcac1 and the next commit): AI assistance added the `.xlsx` export, the per-club capacity inputs (integers 1 to 999, enforced on both export buttons), the control-character filter in the XML writer, and the split of the teacher part into `giao_vien.html` so that the student page no longer shows it. Tests: `tests/test_trang_thi_12_clb.py`.

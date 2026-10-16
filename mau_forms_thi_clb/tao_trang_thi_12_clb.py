@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Sinh docs/thi_12_clb/index.html: trang thi 12 CLB mỗi buổi, một tệp HTML tự chứa.
+"""Sinh hai trang HTML tự chứa trong docs/thi_12_clb: index.html (học sinh) và giao_vien.html (giáo viên).
 
 Học sinh xếp Top 1–10 mỗi buổi, tick CLB muốn thi (tối đa 5 mỗi buổi, có thể 0 đến 5), rồi chỉ
 làm đề của những CLB đã chọn. Khi nộp, học sinh chỉ thấy "đã nộp" và tải được tệp phiếu (.json).
@@ -13,6 +13,7 @@ Dữ liệu 60 CLB lấy từ de_thi_12_clb.du_lieu(). Không sửa tay tệp HT
 
 import json
 import os
+import re
 import sys
 
 THU_MUC = os.path.dirname(os.path.abspath(__file__))
@@ -21,6 +22,7 @@ import de_thi_12_clb  # noqa: E402  (60 CLB: 50 của bộ mẫu và 10 nháp)
 import tao_website_mau as tw  # noqa: E402  (khối LOGIC chấm, đã đối chiếu với .gs)
 
 RA = os.path.normpath(os.path.join(THU_MUC, os.pardir, "docs", "thi_12_clb", "index.html"))
+RA_GV = os.path.normpath(os.path.join(THU_MUC, os.pardir, "docs", "thi_12_clb", "giao_vien.html"))
 
 # Chữ trợ giúp dùng đúng các câu của biểu mẫu Google (xem CAU_TRO_GIUP_CO_NGUON). Riêng trang này
 # có thêm một câu về trần Top 1–10 vì chỉ có 10 ô xếp; không có trong biểu mẫu.
@@ -66,7 +68,7 @@ KHUON = r"""<!doctype html>
   <span class="badge">Bản thử · dữ liệu mô phỏng</span>
   <h1>Thi tuyển CLB: 12 câu lạc bộ mỗi buổi</h1>
   <p>Em xếp các CLB muốn vào (Top 1 đến Top 10 mỗi buổi), tick những CLB muốn thi (tối đa 5 mỗi buổi, có thể thi 0 đến 5 CLB), rồi chỉ làm đề của những CLB em đã chọn. Sau khi nộp, em sẽ không thấy điểm; giáo viên sẽ chấm.</p>
-  <nav class="top"><a href="#thi">Làm bài</a><a href="#gv">Giáo viên</a></nav>
+  <nav class="top"><a href="#thi">Làm bài</a><!--GV-BEGIN--><a href="#gv">Giáo viên</a><!--GV-END--></nav>
 </header>
 
 <section id="thi" class="card">
@@ -74,13 +76,13 @@ KHUON = r"""<!doctype html>
   <div id="form"></div>
 </section>
 
-<section id="gv" class="card">
-  <h2>Giáo viên: nạp phiếu và tải sổ học sinh</h2>
-  <p class="muted">Chọn các tệp phiếu (.json) học sinh đã gửi. Trang chấm lại theo đáp án và hiện bảng. Hai tệp CSV dùng để dán vào hai trang "1. CLB" và "2. Học sinh" của SO_NHAP_CLB.xlsx; chưa kiểm được nạp thẳng vào phần mềm. Cột chỉ tiêu, suất ưu tiên và nhóm ưu tiên của trang "1. CLB" phải điền tay.</p>
+<!--GV-BEGIN--><section id="gv" class="card">
+  <h2>Giáo viên: nạp phiếu, chỉ tiêu và tải sổ nhập</h2>
+  <p class="muted">Chọn các tệp phiếu (.json) học sinh đã gửi. Trang chấm lại theo đáp án và hiện bảng. Nhập chỉ tiêu cho từng CLB, rồi tải sổ nhập (.xlsx). Tệp .xlsx đã được kiểm nhập vào phần mềm rbda-kiosk trên dữ liệu thử; chưa mở bằng Excel thật. Suất ưu tiên và nhóm ưu tiên để trống.</p>
   <input type="file" id="gv-tep" accept=".json,application/json" multiple>
   <p id="gv-so" class="muted"></p>
   <h3>Chỉ tiêu mỗi CLB (bắt buộc trước khi tải sổ nhập)</h3>
-  <p class="help">Số nguyên dương. Kiosk không nhận sổ khi chỉ tiêu trống hoặc sai.</p>
+  <p class="help">Số nguyên từ 1 đến 999. Phần mềm không nhận sổ khi chỉ tiêu trống hoặc sai.</p>
   <div id="gv-chi-tieu"></div>
   <div class="toolbar">
     <button class="btn" id="gv-tai-xlsx">Tải sổ nhập (.xlsx)</button>
@@ -92,7 +94,7 @@ KHUON = r"""<!doctype html>
   <div id="gv-ket-qua" class="tablewrap"></div>
   <h3>Cảnh báo</h3>
   <div id="gv-canh" class="tablewrap"></div>
-</section>
+</section><!--GV-END-->
 
 <footer>Trang này do <code>mau_forms_thi_clb/tao_trang_thi_12_clb.py</code> sinh ra từ dữ liệu trong <code>de_thi_12_clb.py</code>. Đề của 10 CLB mới là bản nháp, chờ giáo viên duyệt. Không sửa tay.</footer>
 </main>
@@ -102,6 +104,7 @@ __LOGIC__
 /*LOGIC-END*/
 const TRO_GIUP = __TRO_GIUP__;
 
+/*GV-BEGIN*/
 /*XLSX-BEGIN*/
 // Bộ ghi .xlsx tối thiểu, không thư viện: gói ZIP không nén, mỗi trang là một sheet với ô chữ inlineStr.
 // danhSach: [{ten, dong: [[ô, ô, ...], ...]}]. Ô rỗng hoặc null thì bỏ; số thì ghi thành số.
@@ -119,7 +122,9 @@ function dungXlsx(danhSach){
     return (c ^ 0xFFFFFFFF) >>> 0;
   }
   function xml(s){
-    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    // Bỏ ký tự điều khiển không hợp lệ trong XML (ví dụ dấu ngắt mềm chép từ Word): nếu không sẽ làm hỏng cả tệp.
+    return String(s).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F￾￿]/g, '')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;').replace(/'/g, '&apos;');
   }
   function cot(n){
@@ -194,6 +199,7 @@ function dungXlsx(danhSach){
   return tong;
 }
 /*XLSX-END*/
+/*GV-END*/
 
 (function(){
   'use strict';
@@ -229,6 +235,7 @@ function dungXlsx(danhSach){
   function moi(thongBao){ return {cur: 0, path: [0], ans: {}, loi: '', thongBao: thongBao || ''}; }
   let st = moi();
   let DA_NOP = null;
+  /*GV-BEGIN*/
   const GV = [];      // phiếu đã nạp, kèm thời điểm nộp
   const DA_NAP = {};  // nội dung tệp đã nạp, để bỏ bản sao
   // Chấm theo thời điểm nộp, không theo thứ tự chọn tệp: "giữ phiếu đầu" là bản nộp sớm nhất.
@@ -238,6 +245,7 @@ function dungXlsx(danhSach){
       return x < y ? -1 : (x > y ? 1 : 0);
     }).map(function(w){ return w.phieu; });
   }
+  /*GV-END*/
 
   // CLB đã tick trong buổi (theo thứ tự buổi). Chỉ các CLB này được chọn để làm bài.
   function daTick(ng){
@@ -534,6 +542,7 @@ function dungXlsx(danhSach){
     a.click();
     setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 0);
   }
+  /*GV-BEGIN*/
   function taiCSV(ten, rows){
     const dong = rows.map(function(r){
       return r.map(function(x){
@@ -589,7 +598,10 @@ function dungXlsx(danhSach){
       renderGV();
     });
   });
-  $('#gv-tai-clb').addEventListener('click', function(){ taiCSV('1_CLB.csv', chamTheoCLB(phieuTheoNopLuc()).clb); });
+  $('#gv-tai-clb').addEventListener('click', function(){
+    if(!kiemChiTieuTruoc()) return;
+    taiCSV('1_CLB.csv', chamTheoCLB(phieuTheoNopLuc()).clb);
+  });
   $('#gv-tai-so').addEventListener('click', function(){ taiCSV('2_Hoc_sinh.csv', chamTheoCLB(phieuTheoNopLuc()).hs); });
   $('#gv-tai-canh').addEventListener('click', function(){ taiCSV('canh_bao.csv', chamTheoCLB(phieuTheoNopLuc()).canh); });
   $('#gv-xoa').addEventListener('click', function(){
@@ -617,20 +629,26 @@ function dungXlsx(danhSach){
     const el = e.target;
     if(el && el.getAttribute && el.getAttribute('data-cap')) CHI_TIEU[el.getAttribute('data-cap')] = el.value;
   });
-  // CLB chưa có chỉ tiêu hợp lệ (số nguyên dương, không có số 0 đứng đầu).
+  // CLB chưa có chỉ tiêu hợp lệ: số nguyên từ 1 đến 999, không có số 0 đứng đầu.
   function thieuChiTieu(){
     const thieu = [];
     BUOI.forEach(function(d){ d.clubs.forEach(function(c){
-      if(!/^[1-9][0-9]*$/.test(String(CHI_TIEU[c.id] || '').trim())) thieu.push(c.name);
+      if(!/^[1-9][0-9]{0,2}$/.test(String(CHI_TIEU[c.id] || '').trim())) thieu.push(c.name);
     }); });
     return thieu;
   }
-  $('#gv-tai-xlsx').addEventListener('click', function(){
+  // Chặn mọi lối xuất sổ khi thiếu chỉ tiêu; báo rõ CLB nào còn thiếu.
+  function kiemChiTieuTruoc(){
     const thieu = thieuChiTieu();
     if(thieu.length){
-      $('#gv-so').textContent = 'Chưa xuất được. Thiếu hoặc sai chỉ tiêu của ' + thieu.length + ' CLB: ' + thieu.join(', ') + '.';
-      return;
+      $('#gv-so').textContent = 'Chưa xuất được. Thiếu hoặc sai chỉ tiêu (số nguyên từ 1 đến 999) của ' +
+        thieu.length + ' CLB: ' + thieu.join(', ') + '.';
+      return false;
     }
+    return true;
+  }
+  $('#gv-tai-xlsx').addEventListener('click', function(){
+    if(!kiemChiTieuTruoc()) return;
     const kq = chamTheoCLB(phieuTheoNopLuc());
     const sheetClb = [['Tên CLB', 'Buổi', 'Chỉ tiêu', 'Suất ưu tiên', 'Nhóm ưu tiên', 'Mã CLB']];
     BUOI.forEach(function(d){ d.clubs.forEach(function(c){
@@ -638,11 +656,17 @@ function dungXlsx(danhSach){
     }); });
     const bytes = dungXlsx([{ten: '1. CLB', dong: sheetClb}, {ten: '2. Học sinh', dong: kq.hs}]);
     taiTep('SO_NHAP_CLB.xlsx', new Blob([bytes], {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+    $('#gv-so').textContent = 'Đã tải SO_NHAP_CLB.xlsx.';
   });
+  /*GV-END*/
 
+  /*GV-BEGIN*/
   veChiTieu();
+  /*GV-END*/
   render();
+  /*GV-BEGIN*/
   renderGV();
+  /*GV-END*/
 })();
 </script>
 </body>
@@ -668,19 +692,31 @@ def _js(v):
     return json.dumps(v, ensure_ascii=False).replace("</", "<\\/")
 
 
-def noi_dung():
-    """Toàn bộ tệp HTML, dữ liệu 60 CLB lấy từ de_thi_12_clb.du_lieu()."""
+def _dien(khuon):
+    """Điền CSS, LOGIC chấm, dữ liệu 60 CLB và chữ trợ giúp vào khuôn."""
     logic = _logic().replace("__DU_LIEU__", _js(de_thi_12_clb.du_lieu()))
-    return (KHUON.replace("__CSS__", _css())
+    return (khuon.replace("__CSS__", _css())
                  .replace("__LOGIC__", logic)
                  .replace("__TRO_GIUP__", _js(TRO_GIUP)))
+
+
+def noi_dung_hoc_sinh():
+    """Trang học sinh: bỏ hẳn mọi đoạn đánh dấu GV-BEGIN…GV-END (HTML và JS) của phần giáo viên."""
+    return re.sub(r"<!--GV-BEGIN-->.*?<!--GV-END-->|/\*GV-BEGIN\*/.*?/\*GV-END\*/", "", _dien(KHUON), flags=re.S)
+
+
+def noi_dung_giao_vien():
+    """Trang giáo viên: giữ nguyên nội dung, chỉ bỏ các dấu đánh dấu."""
+    return re.sub(r"<!--GV-BEGIN-->|<!--GV-END-->|/\*GV-BEGIN\*/|/\*GV-END\*/", "", _dien(KHUON))
 
 
 def main():
     os.makedirs(os.path.dirname(RA), exist_ok=True)
     with open(RA, "w", encoding="utf-8", newline="\n") as f:
-        f.write(noi_dung())
-    print("Đã ghi %s" % RA)
+        f.write(noi_dung_hoc_sinh())
+    with open(RA_GV, "w", encoding="utf-8", newline="\n") as f:
+        f.write(noi_dung_giao_vien())
+    print("Đã ghi %s và %s" % (RA, RA_GV))
 
 
 if __name__ == "__main__":

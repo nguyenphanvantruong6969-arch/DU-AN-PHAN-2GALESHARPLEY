@@ -3,12 +3,14 @@
 ## 2026-10-16 — Trang thi 12 CLB: xuất sổ nhập .xlsx và chỉ tiêu (demo, ngoài sổ đăng ký)
 
 Dữ liệu mô phỏng. Phạm vi thu hẹp theo yêu cầu: chỉ cần tệp xuất nhập được vào kiosk và trang chạy được trên Vercel.
-- **Chỉ tiêu.** Trang giáo viên có ô chỉ tiêu cho 60 CLB, nhận số nguyên dương, bắt buộc. Thiếu thì nút xuất bị chặn và báo rõ CLB nào.
-- **Sổ nhập .xlsx.** Nút "Tải sổ nhập (.xlsx)" tạo `SO_NHAP_CLB.xlsx` với hai trang `1. CLB` và `2. Học sinh` theo `so_nhap.py` (`COT_CLB`, `COT_HS_DAU`). Điểm từng CLB và tên CLB lấy từ `chamTheoCLB`.
+- **Chỉ tiêu.** Trang giáo viên có ô chỉ tiêu cho 60 CLB, nhận số nguyên từ 1 đến 999, bắt buộc. Thiếu hoặc sai thì cả nút `.xlsx` và nút CSV "1. CLB" đều bị chặn và báo rõ CLB nào.
+- **Sổ nhập .xlsx.** Nút "Tải sổ nhập (.xlsx)" tạo `SO_NHAP_CLB.xlsx` với hai trang `1. CLB` và `2. Học sinh` theo `so_nhap.py` (`COT_CLB`, `COT_HS_DAU`). Điểm từng CLB lấy từ `chamTheoCLB`. Tên CLB ở trang `1. CLB` lấy trực tiếp từ dữ liệu đề (hiện không có tên trùng).
 - **Không thêm thư viện.** Bộ ghi `.xlsx` viết bằng JavaScript thuần: gói ZIP không nén, CRC-32 tính tay, ô chữ dạng `inlineStr`.
-- **Kiểm.** Test `test_bo_ghi_xlsx_doc_duoc_bang_openpyxl`: openpyxl đọc đúng từng ô, kể cả `&`, `<` và chữ bắt đầu bằng `=`. Test Chromium: xuất bị chặn khi thiếu chỉ tiêu; sau khi nhập thì tệp xuất qua `so_nhap.doc_so_nhap` không có lỗi; HS 101 có điểm 10 và 5.
-- **Chưa kiểm.** Chưa mở tệp bằng Excel hoặc LibreOffice thật. Phần giáo viên vẫn nằm cùng trang với phần học sinh, nên học sinh có thể nạp phiếu để xem điểm. Đây là giới hạn đã nêu trong kế hoạch, chưa tách trang.
-- **Triển khai.** Chỉ tải thư mục `docs/thi_12_clb/` lên Vercel như dự án tĩnh, không tải mã nguồn.
+- **Kiểm.** Test `test_bo_ghi_xlsx_doc_duoc_bang_openpyxl`: openpyxl đọc đúng từng ô, kể cả `&`, `<` và chữ bắt đầu bằng `=`. Test Chromium: xuất bị chặn khi thiếu chỉ tiêu; sau khi nhập thì tệp xuất qua `so_nhap.doc_so_nhap` không có lỗi; HS 101 có điểm 10 và 5. Ký tự điều khiển trong tên, điểm 0 (phải là ô số 0, không phải ô trống), và các chỉ tiêu sai (`0`, `-1`, `2.5`, `1e3`, `007`, `1000`, khoảng trắng) đều có test. Tệp xuất được đọc bằng `read_only` như kiosk.
+- **Tách trang.** `index.html` cho học sinh, không có phần giáo viên. `giao_vien.html` cho giáo viên. Cả hai sinh từ một khuôn. Hàm chấm vẫn nằm trong mã của trang học sinh nhưng không có giao diện nào dùng đến.
+- **Ký tự điều khiển.** Bộ ghi `.xlsx` bỏ các ký tự điều khiển không hợp lệ trong XML (ví dụ dấu ngắt mềm chép từ Word), để một ô lỗi không làm hỏng cả sổ.
+- **Chưa kiểm.** Chưa mở tệp bằng Excel thật (lần rà soát độc lập đã mở bằng LibreOffice). Đáp án vẫn nằm trong HTML, ai xem mã nguồn cũng thấy. Phiếu `.json` không có chữ ký nên có thể bị sửa trước khi gửi. `giao_vien.html` không có xác thực.
+- **Triển khai.** Chỉ tải thư mục `docs/thi_12_clb/` (gồm `index.html` và `giao_vien.html`) lên Vercel như dự án tĩnh, không tải mã nguồn.
 - Sinh lại: `python mau_forms_thi_clb/tao_trang_thi_12_clb.py`.
 
 ## 2026-10-16 — Trang thi 12 CLB mỗi buổi: học sinh chỉ làm đề của CLB đã chọn (ngoài sổ đăng ký, theo yêu cầu chủ dự án)
@@ -34,7 +36,7 @@ Dữ liệu mô phỏng. `docs/thi_12_clb/index.html` là một tệp HTML tự 
   trong 16/20 câu và học sinh chọn đầu được 80% điểm mà không cần biết bài.
 - **Chấm.** Dùng lại khối LOGIC của `tao_website_mau.py`, đã đối chiếu với `.gs` trên chín kịch bản phiếu.
 - **Giới hạn.** Khoá đề chỉ là khoá trong giao diện: mã nguồn đọc được. Không đăng nhập, không kiểm danh.
-- **Kiểm.** `tests/test_trang_thi_12_clb.py` (11 test): 60 CLB, 12 mỗi buổi, 2 câu mỗi CLB, mã và tên không trùng,
+- **Kiểm.** `tests/test_trang_thi_12_clb.py` (16 test): 60 CLB, 12 mỗi buổi, 2 câu mỗi CLB, mã và tên không trùng,
   10 CLB nháp, đáp án CLB mới đã xáo; tệp khớp bản sinh lại; mọi câu chữ trợ giúp đang hiển thị có trong `.gs`; logic trùng
   `chamTheoCLB` của `.gs` trên chín kịch bản; kịch bản riêng của 12 CLB: không thi CLB nào (không điểm, không cảnh
   báo), thi CLB không xếp Top (không điểm, có cảnh báo). Chromium (luồng chính ở 390px): chỉ đề CLB đã chọn được dựng; tick tối đa 5; mã trống bị chặn;

@@ -1,0 +1,782 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Thi tuyển CLB: 12 câu lạc bộ mỗi buổi</title>
+<style>
+:root{--bg:#f6f6f3;--fg:#1d1d1b;--muted:#5f5f59;--card:#fff;--line:#d9d9d1;--accent:#2f5d8c;--soft:#eaf1f9;--ok-fg:#1f6b3a;--ok-bg:#e7f4ec;--err-fg:#b42318;--warn-fg:#8a5a00;--warn-bg:#fdf3e1}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#161716;--fg:#ecebe6;--muted:#a9a9a1;--card:#20211f;--line:#3d3f3b;--accent:#8fb4dd;--soft:#263140;--ok-fg:#9fe0b4;--ok-bg:#1d3326;--err-fg:#ff8a80;--warn-fg:#ffcf8a;--warn-bg:#3a2c1b}}
+:root[data-theme="dark"]{--bg:#161716;--fg:#ecebe6;--muted:#a9a9a1;--card:#20211f;--line:#3d3f3b;--accent:#8fb4dd;--soft:#263140;--ok-fg:#9fe0b4;--ok-bg:#1d3326;--err-fg:#ff8a80;--warn-fg:#ffcf8a;--warn-bg:#3a2c1b}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--fg);font:15px/1.6 system-ui,"Segoe UI",Roboto,Arial,sans-serif}
+main{max-width:880px;margin:0 auto;padding:16px}
+h1{font-size:24px;margin:6px 0 4px;line-height:1.3}
+h2{font-size:18px;margin:0 0 8px;color:var(--accent)}
+h3{font-size:16px;margin:14px 0 4px}
+p{margin:6px 0}
+.muted{color:var(--muted);font-size:13px}
+.hero{padding:18px 0 6px}
+.badge{display:inline-block;font-size:12px;font-weight:600;color:var(--warn-fg);background:var(--warn-bg);padding:2px 10px;border-radius:999px;margin:0 0 6px}
+nav.top{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 4px}
+nav.top a{color:var(--accent);text-decoration:none;font-size:14px;border:1px solid var(--line);border-radius:999px;padding:4px 12px;background:var(--card)}
+section.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin:14px 0}
+ol.steps{padding-left:20px;margin:6px 0}
+ol.steps li{margin:6px 0}
+.rules{background:var(--soft);border-radius:10px;padding:10px 14px;margin-top:10px}
+.rules ul{margin:4px 0;padding-left:20px}
+.pagebox{border:1px solid var(--line);border-radius:10px;padding:14px;background:var(--bg)}
+fieldset.q{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:10px 0;background:var(--card);min-width:0}
+fieldset.q legend{font-weight:600;padding:0 6px}
+.help{color:var(--muted);font-size:13.5px;margin:4px 0 8px}
+label.opt{display:flex;align-items:flex-start;gap:8px;padding:6px 4px;border-radius:6px;cursor:pointer}
+label.opt input{margin-top:5px}
+label.rowsel{display:grid;grid-template-columns:70px 1fr;gap:8px;align-items:center;margin:6px 0}
+select,input[type=text]{width:100%;font:inherit;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--fg)}
+.nav{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center;margin-top:14px}
+.btn{font:inherit;padding:8px 16px;border-radius:8px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn:disabled{opacity:.4;cursor:default}
+.linkbtn{background:none;border:none;color:var(--accent);cursor:pointer;font:inherit;padding:4px 0;text-decoration:underline}
+.ok{background:var(--ok-bg);color:var(--ok-fg);padding:8px 12px;border-radius:8px;margin-bottom:10px}
+.err{color:var(--err-fg);margin:8px 0 0;font-size:14px}
+.tablewrap{overflow-x:auto;margin-top:8px;min-width:0}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{text-align:left;vertical-align:top;padding:6px 8px;border-bottom:1px solid var(--line)}
+th{background:var(--soft);font-weight:600;white-space:nowrap}
+td{word-break:break-word}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 10px}
+footer{color:var(--muted);font-size:12.5px;padding:14px 0 30px}
+code{font-family:ui-monospace,Consolas,monospace;font-size:12.5px;background:var(--soft);padding:0 4px;border-radius:4px}
+@media (max-width:480px){main{padding:12px}section.card{padding:12px}h1{font-size:21px}}
+.warnbox{background:var(--warn-bg);color:var(--warn-fg);padding:8px 12px;border-radius:8px;font-size:14px;margin:8px 0}.cap{display:grid;grid-template-columns:1fr 110px;gap:8px;align-items:center;margin:4px 0}input[type=number]{width:100%;font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--fg)}</style>
+</head>
+<body>
+<main>
+<header class="hero">
+  <span class="badge">Bản thử · dữ liệu mô phỏng</span>
+  <h1>Thi tuyển CLB: 12 câu lạc bộ mỗi buổi</h1>
+  <p>Em xếp các CLB muốn vào (Top 1 đến Top 10 mỗi buổi), tick những CLB muốn thi (tối đa 5 mỗi buổi, có thể thi 0 đến 5 CLB), rồi chỉ làm đề của những CLB em đã chọn. Sau khi nộp, em sẽ không thấy điểm; giáo viên sẽ chấm.</p>
+  <nav class="top"><a href="#thi">Làm bài</a><a href="#gv">Giáo viên</a></nav>
+</header>
+
+<section id="thi" class="card">
+  <h2>Làm bài</h2>
+  <div id="form"></div>
+</section>
+
+<section id="gv" class="card">
+  <h2>Giáo viên: nạp phiếu, chỉ tiêu và tải sổ nhập</h2>
+  <p class="muted">Chọn các tệp phiếu (.json) học sinh đã gửi. Trang chấm lại theo đáp án và hiện bảng. Nhập chỉ tiêu cho từng CLB, rồi tải sổ nhập (.xlsx). Tệp .xlsx đã được kiểm nhập vào phần mềm rbda-kiosk trên dữ liệu thử; chưa mở bằng Excel thật. Suất ưu tiên và nhóm ưu tiên để trống.</p>
+  <input type="file" id="gv-tep" accept=".json,application/json" multiple>
+  <p id="gv-so" class="muted"></p>
+  <h3>Chỉ tiêu mỗi CLB (bắt buộc trước khi tải sổ nhập)</h3>
+  <p class="help">Số nguyên từ 1 đến 999. Phần mềm không nhận sổ khi chỉ tiêu trống hoặc sai.</p>
+  <div id="gv-chi-tieu"></div>
+  <div class="toolbar">
+    <button class="btn" id="gv-tai-xlsx">Tải sổ nhập (.xlsx)</button>
+    <button class="btn ghost" id="gv-tai-clb">Tải trang "1. CLB" (CSV)</button>
+    <button class="btn ghost" id="gv-tai-so">Tải trang "2. Học sinh" (CSV)</button>
+    <button class="btn ghost" id="gv-tai-canh">Tải cảnh báo (CSV)</button>
+    <button class="btn ghost" id="gv-xoa">Xoá danh sách đã nạp</button>
+  </div>
+  <div id="gv-ket-qua" class="tablewrap"></div>
+  <h3>Cảnh báo</h3>
+  <div id="gv-canh" class="tablewrap"></div>
+</section>
+
+<footer>Trang này do <code>mau_forms_thi_clb/tao_trang_thi_12_clb.py</code> sinh ra từ dữ liệu trong <code>de_thi_12_clb.py</code>. Đề của 10 CLB mới là bản nháp, chờ giáo viên duyệt. Không sửa tay.</footer>
+</main>
+<script>
+/*LOGIC-BEGIN*/
+const BUOI = [{"ma": "thu_2", "ten": "Thứ Hai", "clubs": [{"id": "clb_covua", "name": "CLB Cờ vua", "de": [{"q": "Quân nào đi theo hình chữ L?", "opts": ["Xe", "Hậu", "Tượng", "Mã"], "dung": "Mã"}, {"q": "Muốn nhập thành thì cần điều kiện nào?", "opts": ["Xe đã di chuyển trước đó", "Vua đang bị chiếu", "Vua chưa từng di chuyển", "Có quân đứng giữa Vua và Xe"], "dung": "Vua chưa từng di chuyển"}], "nhap": false}, {"id": "clb_vanhoc", "name": "CLB Văn học", "de": [{"q": "Truyện Kiều là tác phẩm của ai?", "opts": ["Nguyễn Du", "Nguyễn Trãi", "Nguyễn Đình Chiểu", "Hồ Xuân Hương"], "dung": "Nguyễn Du"}, {"q": "Câu “Mặt trời xuống biển như hòn lửa” dùng biện pháp tu từ nào?", "opts": ["Ẩn dụ", "Nói quá", "Hoán dụ", "So sánh"], "dung": "So sánh"}], "nhap": false}, {"id": "clb_nhiepanh", "name": "CLB Nhiếp ảnh", "de": [{"q": "Số khẩu độ nhỏ (ví dụ f/1.8) nghĩa là gì?", "opts": ["Máy chụp liên tục", "Lỗ mở nhỏ, ít ánh sáng vào", "Lỗ mở lớn, nhiều ánh sáng vào", "Ảnh sẽ thành đen trắng"], "dung": "Lỗ mở lớn, nhiều ánh sáng vào"}, {"q": "Quy tắc một phần ba giúp bức ảnh thế nào?", "opts": ["Ảnh có dung lượng nhỏ hơn", "Pin dùng lâu hơn", "Ảnh sáng hơn", "Bố cục cân đối và dễ nhìn"], "dung": "Bố cục cân đối và dễ nhìn"}], "nhap": false}, {"id": "clb_caulong", "name": "CLB Cầu lông", "de": [{"q": "Một ván cầu lông thường chơi tới bao nhiêu điểm?", "opts": ["11", "15", "25", "21"], "dung": "21"}, {"q": "Quả cầu lông thi đấu thường làm từ lông gì?", "opts": ["Lông cừu", "Lông gà", "Lông ngỗng hoặc lông vịt", "Lông công"], "dung": "Lông ngỗng hoặc lông vịt"}], "nhap": false}, {"id": "clb_hungbien", "name": "CLB Hùng biện", "de": [{"q": "Mở đầu bài nói nên làm gì?", "opts": ["Đọc nguyên văn tờ giấy", "Xin lỗi vì mình nói kém", "Nói thật nhanh cho xong", "Gây chú ý và nêu chủ đề"], "dung": "Gây chú ý và nêu chủ đề"}, {"q": "Khi nói trước đông người nên nhìn vào đâu?", "opts": ["Nhìn người nghe", "Nhắm mắt lại", "Nhìn lên trần nhà", "Nhìn xuống sàn"], "dung": "Nhìn người nghe"}], "nhap": false}, {"id": "clb_sinhhoc", "name": "CLB Sinh học", "de": [{"q": "Bộ phận nào của tế bào chứa vật chất di truyền?", "opts": ["Màng tế bào", "Thành tế bào", "Nhân tế bào", "Không bào"], "dung": "Nhân tế bào"}, {"q": "Hồng cầu có nhiệm vụ chính là gì?", "opts": ["Vận chuyển oxy", "Làm đông máu", "Tiêu hoá thức ăn", "Chống vi khuẩn"], "dung": "Vận chuyển oxy"}], "nhap": false}, {"id": "clb_guitar", "name": "CLB Guitar", "de": [{"q": "Đàn guitar thông thường có mấy dây?", "opts": ["4", "12", "6", "7"], "dung": "6"}, {"q": "Hợp âm Đô trưởng được ký hiệu là gì?", "opts": ["G", "A", "D", "C"], "dung": "C"}], "nhap": false}, {"id": "clb_baochi", "name": "CLB Báo chí", "de": [{"q": "Trước khi đăng một tin, việc cần làm đầu tiên là gì?", "opts": ["Kiểm tra lại nguồn tin", "Xoá tên nguồn tin", "Thêm chi tiết cho hấp dẫn", "Đăng ngay cho nhanh"], "dung": "Kiểm tra lại nguồn tin"}, {"q": "Một bản tin tốt phải trả lời được những câu nào?", "opts": ["Ai, cái gì, ở đâu, khi nào, vì sao, như thế nào", "Chỉ cần trả lời ai", "Chỉ cần trả lời khi nào", "Không cần trả lời câu nào"], "dung": "Ai, cái gì, ở đâu, khi nào, vì sao, như thế nào"}], "nhap": false}, {"id": "clb_truyentranh", "name": "CLB Vẽ truyện tranh", "de": [{"q": "Ô chứa lời nói của nhân vật trong truyện tranh gọi là gì?", "opts": ["Mục lục", "Khung tranh", "Trang bìa", "Bóng thoại"], "dung": "Bóng thoại"}, {"q": "Truyện tranh Nhật Bản thường được gọi là gì?", "opts": ["Ngụ ngôn", "Comic", "Manhwa", "Manga"], "dung": "Manga"}], "nhap": false}, {"id": "clb_boiloi", "name": "CLB Bơi lội", "de": [{"q": "Kiểu bơi nào nằm ngửa trên mặt nước?", "opts": ["Bơi bướm", "Bơi ếch", "Bơi ngửa", "Bơi sải"], "dung": "Bơi ngửa"}, {"q": "Trước khi xuống nước nên làm gì?", "opts": ["Chạy quanh hồ bơi", "Ăn thật no", "Nhảy xuống ngay", "Khởi động kỹ"], "dung": "Khởi động kỹ"}], "nhap": false}, {"id": "clb_dantranh", "name": "CLB Đàn tranh", "de": [{"q": "Đàn tranh thường có bao nhiêu dây?", "opts": ["25", "21", "16", "12"], "dung": "16"}, {"q": "Đàn tranh thuộc nhóm nhạc cụ nào?", "opts": ["Phím hơi", "Hơi", "Dây gảy", "Gõ"], "dung": "Dây gảy"}], "nhap": true}, {"id": "clb_camhoa", "name": "CLB Cắm hoa", "de": [{"q": "Nghệ thuật cắm hoa của Nhật Bản gọi là gì?", "opts": ["Origami", "Ikebana", "Bonsai", "Sushi"], "dung": "Ikebana"}, {"q": "Yếu tố quan trọng nhất khi cắm hoa là gì?", "opts": ["Bố cục cân đối", "Nhiều màu nhất", "Cắm càng cao càng đẹp", "Dùng hoa giả"], "dung": "Bố cục cân đối"}], "nhap": true}]}, {"ma": "thu_3", "ten": "Thứ Ba", "clubs": [{"id": "clb_tienganh", "name": "CLB Tiếng Anh", "de": [{"q": "She ___ to school every day.", "opts": ["goes", "going", "go", "gone"], "dung": "goes"}, {"q": "Từ trái nghĩa với “ancient” là gì?", "opts": ["old", "modern", "huge", "quiet"], "dung": "modern"}], "nhap": false}, {"id": "clb_mythuat", "name": "CLB Mỹ thuật", "de": [{"q": "Ba màu cơ bản trong hội hoạ truyền thống là gì?", "opts": ["Đỏ, vàng, lam", "Đen, trắng, xám", "Cam, tím, lục", "Đỏ, lục, lam"], "dung": "Đỏ, vàng, lam"}, {"q": "Màu bổ túc của màu đỏ là màu nào?", "opts": ["Lục", "Vàng", "Cam", "Tím"], "dung": "Lục"}], "nhap": false}, {"id": "clb_bongda", "name": "CLB Bóng đá", "de": [{"q": "Mỗi đội bóng đá có bao nhiêu cầu thủ trên sân?", "opts": ["9", "10", "11", "12"], "dung": "11"}, {"q": "Cầu thủ nhận thẻ đỏ thì sao?", "opts": ["Chỉ bị nhắc nhở", "Được đá phạt", "Phải rời sân, không được thi đấu tiếp", "Được nghỉ giữa hiệp"], "dung": "Phải rời sân, không được thi đấu tiếp"}], "nhap": false}, {"id": "clb_tiengnhat", "name": "CLB Tiếng Nhật", "de": [{"q": "Bảng chữ Hiragana dùng cho tiếng nước nào?", "opts": ["Tiếng Nhật", "Tiếng Hàn", "Tiếng Trung", "Tiếng Thái"], "dung": "Tiếng Nhật"}, {"q": "“Arigatou” nghĩa là gì?", "opts": ["Cảm ơn", "Xin chào", "Tạm biệt", "Xin lỗi"], "dung": "Cảm ơn"}], "nhap": false}, {"id": "clb_kich", "name": "CLB Kịch", "de": [{"q": "Nhân vật nói một mình để bộc lộ suy nghĩ gọi là gì?", "opts": ["Độc thoại", "Phụ đề", "Đối thoại", "Lời dẫn chuyện"], "dung": "Độc thoại"}, {"q": "Ai là người chỉ đạo diễn viên trong một vở kịch?", "opts": ["Khán giả", "Đạo diễn", "Nhạc công", "Người soát vé"], "dung": "Đạo diễn"}], "nhap": false}, {"id": "clb_hoahoc", "name": "CLB Hoá học", "de": [{"q": "Công thức hoá học của nước là gì?", "opts": ["CO2", "NaCl", "H2O", "O2"], "dung": "H2O"}, {"q": "Dung dịch có độ pH nhỏ hơn 7 là loại gì?", "opts": ["Nước cất", "Axit", "Bazơ", "Trung tính"], "dung": "Axit"}], "nhap": false}, {"id": "clb_nauan", "name": "CLB Nấu ăn", "de": [{"q": "Vì sao phải rửa tay trước khi nấu ăn?", "opts": ["Không cần rửa tay", "Để giữ vệ sinh, an toàn thực phẩm", "Để tay đẹp hơn", "Để nấu nhanh hơn"], "dung": "Để giữ vệ sinh, an toàn thực phẩm"}, {"q": "Thịt sống và đồ ăn chín nên để thế nào?", "opts": ["Để riêng, dùng thớt riêng", "Rửa chung một chậu", "Để chung một thớt", "Trộn lẫn với nhau"], "dung": "Để riêng, dùng thớt riêng"}], "nhap": false}, {"id": "clb_thietke", "name": "CLB Thiết kế đồ hoạ", "de": [{"q": "Hệ màu dùng cho màn hình máy tính là gì?", "opts": ["CMYK", "Pantone", "Đen trắng", "RGB"], "dung": "RGB"}, {"q": "Ảnh vector khác ảnh thường ở điểm nào?", "opts": ["Không in ra được", "Luôn có nhiều màu hơn", "Chỉ có hai màu", "Phóng to không bị vỡ hình"], "dung": "Phóng to không bị vỡ hình"}], "nhap": false}, {"id": "clb_cotuong", "name": "CLB Cờ tướng", "de": [{"q": "Quân Tượng trong cờ tướng có được qua sông không?", "opts": ["Có", "Chỉ khi ăn quân", "Không", "Chỉ ở nước đi đầu"], "dung": "Không"}, {"q": "Quân Mã bị cản khi nào?", "opts": ["Khi gặp quân Tướng", "Khi đi qua sông", "Có quân đứng sát ngay hướng đi", "Có quân ở cuối đường đi"], "dung": "Có quân đứng sát ngay hướng đi"}], "nhap": false}, {"id": "clb_mua", "name": "CLB Múa", "de": [{"q": "Múa sạp là điệu múa nổi tiếng của dân tộc nào?", "opts": ["Dân tộc Khmer", "Dân tộc Thái", "Dân tộc Hoa", "Dân tộc Chăm"], "dung": "Dân tộc Thái"}, {"q": "Khởi động trước khi tập múa giúp gì?", "opts": ["Tránh chấn thương", "Mệt nhanh hơn", "Dễ quên động tác", "Không có tác dụng"], "dung": "Tránh chấn thương"}], "nhap": false}, {"id": "clb_khieuvu", "name": "CLB Khiêu vũ", "de": [{"q": "Điệu Waltz thường đếm theo nhịp mấy?", "opts": ["4", "3", "6", "2"], "dung": "3"}, {"q": "Khởi động trước khi nhảy để làm gì?", "opts": ["Giảm thời gian luyện tập chính", "Thay đổi nhịp điệu bài nhảy", "Tránh chấn thương", "Thay cho việc luyện tập kỹ thuật"], "dung": "Tránh chấn thương"}], "nhap": true}, {"id": "clb_cocaro", "name": "CLB Cờ caro", "de": [{"q": "Bàn cờ caro thường có bao nhiêu ô?", "opts": ["10 x 10", "20 x 20", "15 x 15", "8 x 8"], "dung": "15 x 15"}, {"q": "Mục tiêu của cờ caro là gì?", "opts": ["Đưa quân về cuối bàn", "Chiếm nhiều ô nhất", "Bắt hết quân đối phương", "Xếp 5 quân liên tiếp"], "dung": "Xếp 5 quân liên tiếp"}], "nhap": true}]}, {"ma": "thu_4", "ten": "Thứ Tư", "clubs": [{"id": "clb_robotics", "name": "CLB Robotics", "de": [{"q": "Cảm biến siêu âm trên robot dùng để làm gì?", "opts": ["Đo độ ẩm", "Đo nhiệt độ", "Đo khoảng cách", "Nhận biết màu"], "dung": "Đo khoảng cách"}, {"q": "Vòng lặp trong lập trình dùng để làm gì?", "opts": ["Nối dây điện", "Dừng chương trình", "Xoá biến", "Lặp lại một nhóm lệnh"], "dung": "Lặp lại một nhóm lệnh"}], "nhap": false}, {"id": "clb_khoahoc", "name": "CLB Khoa học", "de": [{"q": "Ở áp suất tiêu chuẩn, nước sôi ở bao nhiêu độ C?", "opts": ["100", "50", "90", "0"], "dung": "100"}, {"q": "Cây xanh tạo chất hữu cơ nhờ ánh sáng qua quá trình nào?", "opts": ["Hô hấp", "Quang hợp", "Thoát hơi nước", "Lên men"], "dung": "Quang hợp"}], "nhap": false}, {"id": "clb_kynang", "name": "CLB Kỹ năng sống", "de": [{"q": "Số điện thoại gọi cứu hoả ở Việt Nam là số nào?", "opts": ["113", "114", "115", "111"], "dung": "114"}, {"q": "Bị lạc ở nơi đông người, em nên làm gì?", "opts": ["Đi theo người lạ", "Đứng yên ở chỗ dễ thấy và nhờ người có trách nhiệm", "Chạy khắp nơi để tìm", "Ngồi khóc và chờ"], "dung": "Đứng yên ở chỗ dễ thấy và nhờ người có trách nhiệm"}], "nhap": false}, {"id": "clb_thienvan", "name": "CLB Thiên văn", "de": [{"q": "Hành tinh nào gần Mặt Trời nhất?", "opts": ["Sao Thuỷ", "Trái Đất", "Sao Kim", "Sao Hoả"], "dung": "Sao Thuỷ"}, {"q": "Trái Đất quay một vòng quanh Mặt Trời mất khoảng bao lâu?", "opts": ["Một năm", "Mười năm", "Một tháng", "Một ngày"], "dung": "Một năm"}], "nhap": false}, {"id": "clb_dialy", "name": "CLB Địa lý", "de": [{"q": "Đỉnh núi cao nhất Việt Nam là đỉnh nào?", "opts": ["Bà Đen", "Lang Biang", "Fansipan", "Tây Côn Lĩnh"], "dung": "Fansipan"}, {"q": "Đường xích đạo chia Trái Đất thành hai phần nào?", "opts": ["Lục địa và đại dương", "Ngày và đêm", "Bán cầu Bắc và bán cầu Nam", "Bán cầu Đông và bán cầu Tây"], "dung": "Bán cầu Bắc và bán cầu Nam"}], "nhap": false}, {"id": "clb_bongchuyen", "name": "CLB Bóng chuyền", "de": [{"q": "Mỗi đội bóng chuyền có mấy người trên sân?", "opts": ["6", "5", "7", "11"], "dung": "6"}, {"q": "Một đội được chạm bóng tối đa mấy lần trước khi đưa bóng qua lưới?", "opts": ["2", "3", "5", "4"], "dung": "3"}], "nhap": false}, {"id": "clb_lamphim", "name": "CLB Làm phim", "de": [{"q": "Kịch bản phân cảnh (vẽ trước từng cảnh) dùng để làm gì?", "opts": ["Chọn nhạc nền", "Tính tiền vé", "Viết phụ đề", "Lên kế hoạch cho từng cảnh quay"], "dung": "Lên kế hoạch cho từng cảnh quay"}, {"q": "Cảnh quay sát khuôn mặt nhân vật gọi là gì?", "opts": ["Cận cảnh", "Toàn cảnh", "Trung cảnh", "Viễn cảnh"], "dung": "Cận cảnh"}], "nhap": false}, {"id": "clb_moitruong", "name": "CLB Môi trường", "de": [{"q": "Loại rác nào sau đây tái chế được?", "opts": ["Thức ăn thừa", "Chai nhựa đã rửa sạch", "Vỏ chuối", "Khăn giấy đã dùng"], "dung": "Chai nhựa đã rửa sạch"}, {"q": "Ngày Môi trường Thế giới là ngày nào?", "opts": ["22 tháng 4", "8 tháng 3", "1 tháng 6", "5 tháng 6"], "dung": "5 tháng 6"}], "nhap": false}, {"id": "clb_tienghan", "name": "CLB Tiếng Hàn", "de": [{"q": "Bảng chữ cái tiếng Hàn gọi là gì?", "opts": ["Kanji", "Hangul", "Pinyin", "Katakana"], "dung": "Hangul"}, {"q": "“Annyeonghaseyo” nghĩa là gì?", "opts": ["Chúc ngủ ngon", "Xin chào", "Tạm biệt", "Cảm ơn"], "dung": "Xin chào"}], "nhap": false}, {"id": "clb_khoinghiep", "name": "CLB Khởi nghiệp", "de": [{"q": "Lợi nhuận được tính thế nào?", "opts": ["Chỉ tính chi phí", "Doanh thu cộng chi phí", "Doanh thu trừ chi phí", "Chỉ tính doanh thu"], "dung": "Doanh thu trừ chi phí"}, {"q": "Khách hàng mục tiêu là ai?", "opts": ["Nhà cung cấp", "Đối thủ cạnh tranh", "Mọi người trên thế giới", "Nhóm người mà sản phẩm hướng tới"], "dung": "Nhóm người mà sản phẩm hướng tới"}], "nhap": false}, {"id": "clb_aothuat", "name": "CLB Ảo thuật", "de": [{"q": "Đánh lạc hướng khán giả trong ảo thuật nghĩa là gì?", "opts": ["Làm vật biến mất ngay", "Khiến khán giả chú ý vào chỗ khác", "Đọc được suy nghĩ", "Tăng tốc động tác"], "dung": "Khiến khán giả chú ý vào chỗ khác"}, {"q": "Ảo thuật gia cần chuẩn bị điều gì trước khi biểu diễn?", "opts": ["Giấu kín mọi thủ pháp", "Chọn đạo cụ đắt tiền nhất", "Tập luyện kỹ thủ pháp", "Dự đoán trước suy nghĩ của khán giả"], "dung": "Tập luyện kỹ thủ pháp"}], "nhap": true}, {"id": "clb_yoga", "name": "CLB Yoga", "de": [{"q": "Tư thế cây trong yoga có tên tiếng Phạn là gì?", "opts": ["Shavasana", "Vrikshasana", "Trikonasana", "Bhujangasana"], "dung": "Vrikshasana"}, {"q": "Shavasana là tư thế gì?", "opts": ["Cây", "Nằm thư giãn", "Chiến binh", "Rắn hổ mang"], "dung": "Nằm thư giãn"}], "nhap": true}]}, {"ma": "thu_5", "ten": "Thứ Năm", "clubs": [{"id": "clb_tinhoc", "name": "CLB Tin học", "de": [{"q": "1 byte bằng bao nhiêu bit?", "opts": ["10", "16", "8", "2"], "dung": "8"}, {"q": "Hệ nhị phân dùng những chữ số nào?", "opts": ["A đến F", "0 và 1", "1 và 2", "0 đến 9"], "dung": "0 và 1"}], "nhap": false}, {"id": "clb_amnhac", "name": "CLB Âm nhạc", "de": [{"q": "Có bao nhiêu tên nốt nhạc cơ bản?", "opts": ["7", "12", "5", "8"], "dung": "7"}, {"q": "Một nốt tròn dài bằng mấy nốt đen?", "opts": ["4", "8", "1", "2"], "dung": "4"}], "nhap": false}, {"id": "clb_tinhnguyen", "name": "CLB Tình nguyện", "de": [{"q": "Hoạt động tình nguyện là gì?", "opts": ["Bài tập bắt buộc có điểm", "Hoạt động quảng cáo", "Tự nguyện giúp cộng đồng, không nhận tiền công", "Làm thêm có lương"], "dung": "Tự nguyện giúp cộng đồng, không nhận tiền công"}, {"q": "Quyên góp quần áo cũ thì nên làm gì?", "opts": ["Góp cả đồ đã rách nát", "Nhét chung vào một túi", "Để nguyên đồ bẩn", "Giặt sạch và phân loại trước"], "dung": "Giặt sạch và phân loại trước"}], "nhap": false}, {"id": "clb_vatly", "name": "CLB Vật lý", "de": [{"q": "Đơn vị đo điện trở là gì?", "opts": ["Oát", "Vôn", "Ôm", "Ampe"], "dung": "Ôm"}, {"q": "Ánh sáng đi nhanh nhất trong môi trường nào?", "opts": ["Chân không", "Kim loại", "Nước", "Thuỷ tinh"], "dung": "Chân không"}], "nhap": false}, {"id": "clb_hopxuong", "name": "CLB Hợp xướng", "de": [{"q": "Giọng nữ cao nhất trong hợp xướng gọi là gì?", "opts": ["Soprano", "Alto", "Tenor", "Bass"], "dung": "Soprano"}, {"q": "Giọng nam trầm nhất gọi là gì?", "opts": ["Tenor", "Bass", "Alto", "Soprano"], "dung": "Bass"}], "nhap": false}, {"id": "clb_tranhbien", "name": "CLB Tranh biện", "de": [{"q": "Một lập luận tốt cần có những gì?", "opts": ["Chỉ cần cảm xúc", "Nói thật to", "Chê bai người khác", "Luận điểm, dẫn chứng và giải thích"], "dung": "Luận điểm, dẫn chứng và giải thích"}, {"q": "Khi phản bác, em nên nhắm vào đâu?", "opts": ["Trường của đối phương", "Lập luận của đối phương", "Ngoại hình đối phương", "Giọng nói đối phương"], "dung": "Lập luận của đối phương"}], "nhap": false}, {"id": "clb_vothuat", "name": "CLB Võ thuật", "de": [{"q": "Vovinam là võ thuật của nước nào?", "opts": ["Hàn Quốc", "Nhật Bản", "Thái Lan", "Việt Nam"], "dung": "Việt Nam"}, {"q": "Karate bắt nguồn từ nước nào?", "opts": ["Hàn Quốc", "Trung Quốc", "Brazil", "Nhật Bản"], "dung": "Nhật Bản"}], "nhap": false}, {"id": "clb_game", "name": "CLB Lập trình game", "de": [{"q": "Scratch là gì?", "opts": ["Một hệ điều hành", "Một trình duyệt web", "Công cụ lập trình bằng cách kéo thả khối lệnh", "Một máy chơi game"], "dung": "Công cụ lập trình bằng cách kéo thả khối lệnh"}, {"q": "Biến trong lập trình dùng để làm gì?", "opts": ["Nối mạng", "Lưu một giá trị để dùng lại", "Vẽ hình tròn", "Tắt máy tính"], "dung": "Lưu một giá trị để dùng lại"}], "nhap": false}, {"id": "clb_sach", "name": "CLB Đọc sách", "de": [{"q": "Truyện ngắn “Lão Hạc” là của ai?", "opts": ["Tô Hoài", "Nam Cao", "Thạch Lam", "Kim Lân"], "dung": "Nam Cao"}, {"q": "“Dế Mèn phiêu lưu ký” là của ai?", "opts": ["Xuân Diệu", "Tô Hoài", "Nam Cao", "Nguyễn Nhật Ánh"], "dung": "Tô Hoài"}], "nhap": false}, {"id": "clb_thucong", "name": "CLB Thủ công", "de": [{"q": "Nghệ thuật gấp giấy của Nhật Bản gọi là gì?", "opts": ["Bonsai", "Sushi", "Ikebana", "Origami"], "dung": "Origami"}, {"q": "Keo nến thường dùng với dụng cụ nào?", "opts": ["Máy khâu", "Thước kẻ", "Kéo", "Súng bắn keo"], "dung": "Súng bắn keo"}], "nhap": false}, {"id": "clb_tiengthai", "name": "CLB Tiếng Thái", "de": [{"q": "Tiếng Thái thuộc họ ngôn ngữ nào?", "opts": ["Hán-Tạng", "Tai-Kadai", "Nam Á", "Ấn-Âu"], "dung": "Tai-Kadai"}, {"q": "Thủ đô của Thái Lan là gì?", "opts": ["Pattaya", "Bangkok", "Phuket", "Chiang Mai"], "dung": "Bangkok"}], "nhap": true}, {"id": "clb_daukiem", "name": "CLB Đấu kiếm", "de": [{"q": "Đấu kiếm thể thao dùng thiết bị gì để ghi điểm?", "opts": ["Ánh sáng", "Thiết bị điện tử", "Chuông", "Cờ"], "dung": "Thiết bị điện tử"}, {"q": "Đấu kiếm thể thao có mấy loại kiếm phổ biến?", "opts": ["3", "4", "2", "5"], "dung": "3"}], "nhap": true}]}, {"ma": "thu_6", "ten": "Thứ Sáu", "clubs": [{"id": "clb_toan", "name": "CLB Toán tư duy", "de": [{"q": "Số tiếp theo của dãy 2, 4, 8, 16 là gì?", "opts": ["18", "32", "24", "20"], "dung": "32"}, {"q": "Lớp có 30 học sinh, 40% là nữ. Lớp có bao nhiêu bạn nữ?", "opts": ["18", "14", "10", "12"], "dung": "12"}], "nhap": false}, {"id": "clb_lichsu", "name": "CLB Lịch sử", "de": [{"q": "Chiến thắng Điện Biên Phủ diễn ra năm nào?", "opts": ["1954", "1975", "1945", "1968"], "dung": "1954"}, {"q": "Ngô Quyền đánh thắng quân Nam Hán trên sông nào?", "opts": ["Sông Hương", "Sông Như Nguyệt", "Sông Hồng", "Sông Bạch Đằng"], "dung": "Sông Bạch Đằng"}], "nhap": false}, {"id": "clb_bongro", "name": "CLB Bóng rổ", "de": [{"q": "Một cú ném từ ngoài vạch ba điểm được mấy điểm?", "opts": ["3", "4", "2", "1"], "dung": "3"}, {"q": "Mỗi đội bóng rổ có mấy người trên sân?", "opts": ["5", "11", "7", "6"], "dung": "5"}], "nhap": false}, {"id": "clb_tiengtrung", "name": "CLB Tiếng Trung", "de": [{"q": "Cách ghi âm tiếng Trung bằng chữ cái Latinh gọi là gì?", "opts": ["Kanji", "Romaji", "Pinyin", "Hangul"], "dung": "Pinyin"}, {"q": "“Nǐ hǎo” nghĩa là gì?", "opts": ["Xin chào", "Cảm ơn", "Tạm biệt", "Xin lỗi"], "dung": "Xin chào"}], "nhap": false}, {"id": "clb_socuu", "name": "CLB Sơ cứu", "de": [{"q": "Số điện thoại cấp cứu y tế ở Việt Nam là số nào?", "opts": ["114", "115", "116", "113"], "dung": "115"}, {"q": "Bị bỏng nhẹ thì nên làm gì trước tiên?", "opts": ["Bôi kem đánh răng", "Chườm đá thật lâu", "Chọc vỡ chỗ phồng", "Xả nước mát lên chỗ bỏng"], "dung": "Xả nước mát lên chỗ bỏng"}], "nhap": false}, {"id": "clb_kinhte", "name": "CLB Kinh tế", "de": [{"q": "Lạm phát là gì?", "opts": ["Giá cả nói chung tăng lên theo thời gian", "Giá cả nói chung giảm xuống", "Lương tăng gấp đôi", "Ngân hàng đóng cửa"], "dung": "Giá cả nói chung tăng lên theo thời gian"}, {"q": "Tiết kiệm là gì?", "opts": ["Để dành một phần tiền kiếm được", "Đi vay tiền", "Mua thật nhiều đồ", "Tiêu hết số tiền có"], "dung": "Để dành một phần tiền kiếm được"}], "nhap": false}, {"id": "clb_dienkinh", "name": "CLB Điền kinh", "de": [{"q": "Cự ly chạy ngắn phổ biến nhất là bao nhiêu?", "opts": ["42 km", "10 km", "100 m", "5 km"], "dung": "100 m"}, {"q": "Chạy marathon dài khoảng bao nhiêu?", "opts": ["42 km", "10 km", "21 km", "100 km"], "dung": "42 km"}], "nhap": false}, {"id": "clb_bongban", "name": "CLB Bóng bàn", "de": [{"q": "Một ván bóng bàn chơi tới mấy điểm?", "opts": ["11", "15", "21", "25"], "dung": "11"}, {"q": "Bóng bàn còn được gọi là gì?", "opts": ["Bóng ném", "Cầu mây", "Ping pong", "Quần vợt"], "dung": "Ping pong"}], "nhap": false}, {"id": "clb_dangian", "name": "CLB Văn hoá dân gian", "de": [{"q": "Tết Trung thu vào ngày nào âm lịch?", "opts": ["Mùng 5 tháng Năm", "Rằm tháng Giêng", "Rằm tháng Tám", "Mùng 1 tháng Giêng"], "dung": "Rằm tháng Tám"}, {"q": "Bánh chưng gắn với dịp nào?", "opts": ["Rằm tháng Bảy", "Tết Trung thu", "Tết Đoan ngọ", "Tết Nguyên đán"], "dung": "Tết Nguyên đán"}], "nhap": false}, {"id": "clb_truyenthong", "name": "CLB Truyền thông", "de": [{"q": "Muốn dùng ảnh của người khác thì cần làm gì?", "opts": ["Đổi màu ảnh là được", "Xin phép và ghi nguồn", "Cứ dùng, không cần hỏi", "Cắt bỏ tên tác giả"], "dung": "Xin phép và ghi nguồn"}, {"q": "Bài đăng cho trang của trường nên thế nào?", "opts": ["Đăng tin chưa kiểm tra", "Rõ ràng, đúng thông tin, lời lẽ lịch sự", "Càng nhiều chữ viết tắt càng tốt", "Dùng ảnh mờ cho nhanh"], "dung": "Rõ ràng, đúng thông tin, lời lẽ lịch sự"}], "nhap": false}, {"id": "clb_caumay", "name": "CLB Cầu mây", "de": [{"q": "Cầu mây (sepak takraw) phổ biến ở khu vực nào?", "opts": ["Bắc Âu", "Trung Đông", "Nam Mỹ", "Đông Nam Á"], "dung": "Đông Nam Á"}, {"q": "Mỗi đội cầu mây có mấy người trên sân?", "opts": ["4", "5", "6", "3"], "dung": "3"}], "nhap": true}, {"id": "clb_thuphap", "name": "CLB Thư pháp", "de": [{"q": "Thư pháp là nghệ thuật gì?", "opts": ["Chạm khắc gỗ", "Vẽ phong cảnh", "Viết chữ đẹp bằng bút lông", "Làm gốm"], "dung": "Viết chữ đẹp bằng bút lông"}, {"q": "Dụng cụ chính của thư pháp là gì?", "opts": ["Cọ sơn dầu", "Phấn màu", "Bút chì", "Bút lông và mực"], "dung": "Bút lông và mực"}], "nhap": true}]}];
+const DIEM_CAU = 5, TRAN_THI = 5;
+const CO_BUOI = "Có", KHONG_BUOI = "Không, em bận buổi này";
+const KHONG_THI = "Em không thi CLB nào buổi này";
+const DUNG = "Em không thi thêm CLB nào buổi này";
+const BO_TRONG = "(Bỏ trống)";
+
+function nhan(c){ return c.name + ' (' + c.id + ')'; }
+function maClb(v){ const m = String(v == null ? '' : v).match(/\(([A-Za-z0-9_]+)\)\s*$/); return m ? m[1] : ''; }
+function chuanHoa(s){ return String(s == null ? '' : s).trim().replace(/\s+/g, ' ').toLowerCase(); }
+
+function docTopPhieu(d, tl){
+  const ds = []; let coThaXuong = false;
+  d.clubs.forEach(function(_, k){
+    const ma = d.ma + '-top-' + (k + 1);
+    if(!(ma in tl)) return;
+    coThaXuong = true;
+    const id = maClb(tl[ma]);
+    if(id) ds.push({id: id, top: k + 1});
+  });
+  return coThaXuong ? ds : [];
+}
+
+function chamTheoCLB(phieuList){
+  const daCo = {}, daThuong = {}, hocSinh = [], canhBao = [];
+  phieuList.forEach(function(tl, i){
+    const sid = String(tl.student_id || '').trim();
+    const khoa = sid.replace(/\s+/g, '');
+    const dong = 'Phiếu thứ ' + (i + 1);
+    if(!sid){ canhBao.push([dong, '', 'Không có mã học sinh, bỏ cả phiếu']); return; }
+    if(daCo[khoa]){ canhBao.push([dong, sid, 'Nộp lần nữa. Bỏ phiếu này, giữ phiếu đầu (' + daCo[khoa] + ')']); return; }
+    daCo[khoa] = dong;
+    const chuThuong = sid.toLowerCase();
+    if(daThuong[chuThuong] && daThuong[chuThuong] !== sid){
+      canhBao.push([dong, sid, 'Chỉ khác hoa thường với mã ' + daThuong[chuThuong] + ' đã nộp: giữ cả hai, nên soát.']);
+    } else {
+      daThuong[chuThuong] = sid;
+    }
+    const hs = {sid: sid, ten: String(tl.name || '').trim(), nv: {}, diem: {}, thi: []};
+    BUOI.forEach(function(d){
+      if(tl['di-' + d.ma] !== CO_BUOI) return;
+      const top = docTopPhieu(d, tl);
+      let truoc = 0; const topCua = {}; const nv = [];
+      top.forEach(function(x){
+        if(x.top !== truoc + 1){
+          canhBao.push([dong, sid, d.ten + ': bỏ trống Top ' + (truoc + 1) + ' nhưng có chọn Top ' + x.top + ', đã dồn lên.']);
+        }
+        truoc = x.top;
+        if(topCua[x.id]){
+          canhBao.push([dong, sid, d.ten + ': chọn ' + x.id + ' ở cả Top ' + topCua[x.id] + ' và Top ' + x.top + ', giữ Top ' + topCua[x.id] + '.']);
+          return;
+        }
+        topCua[x.id] = x.top; nv.push(x.id);
+      });
+      if(!nv.length) canhBao.push([dong, sid, d.ten + ': đăng ký buổi nhưng không xếp CLB nào.']);
+      hs.nv[d.ma] = nv;
+
+      const daTick = {};
+      [].concat(tl['chon-' + d.ma] || []).forEach(function(v){ const m = maClb(v); if(m) daTick[m] = true; });
+      const daLam = {};
+      [tl['thi-' + d.ma]].concat(d.clubs.map(function(c){ return tl['thi-sau-' + c.id]; })).forEach(function(v){
+        const id = maClb(v); if(id) daLam[id] = true;
+      });
+
+      let soThi = 0;
+      d.clubs.forEach(function(c){
+        if(!daLam[c.id]){
+          if(daTick[c.id]) canhBao.push([dong, sid, d.ten + ': tick ' + c.name + ' nhưng không làm bài.']);
+          return;
+        }
+        if(!daTick[c.id]){
+          canhBao.push([dong, sid, d.ten + ': làm bài ' + c.name + ' nhưng không tick ở câu chọn CLB thi, không tính điểm.']);
+          return;
+        }
+        if(nv.indexOf(c.id) < 0){
+          canhBao.push([dong, sid, d.ten + ': làm bài ' + c.name + ' nhưng không chọn CLB này ở Top nào, không tính điểm.']);
+          return;
+        }
+        if(soThi >= TRAN_THI){
+          canhBao.push([dong, sid, d.ten + ': quá ' + TRAN_THI + ' CLB, bỏ bài ' + c.name + '.']);
+          return;
+        }
+        soThi++;
+        let dung = 0;
+        c.de.forEach(function(q, j){ if(chuanHoa(tl[c.id + '-' + (j + 1)]) === chuanHoa(q.dung)) dung++; });
+        hs.diem[c.id] = dung * DIEM_CAU;
+        hs.thi.push(c.id);
+      });
+    });
+    hocSinh.push(hs);
+  });
+
+  const tenClb = {}, daDung = {};
+  BUOI.forEach(function(d){ d.clubs.forEach(function(c){
+    let ten = c.name;
+    if(daDung[ten.toLowerCase()]) ten = c.name + ' (' + d.ten + ')';
+    if(daDung[ten.toLowerCase()]) ten = c.name + ' (' + c.id + ')';
+    daDung[ten.toLowerCase()] = true;
+    tenClb[c.id] = ten;
+  }); });
+  const soNv = Math.max.apply(null, [1].concat(hocSinh.map(function(h){
+    return BUOI.reduce(function(n, d){ return n + (h.nv[d.ma] || []).length; }, 0);
+  })));
+  const tHs = ['Mã HS', 'Họ tên'];
+  for(let i = 1; i <= soNv; i++) tHs.push('NV' + i, 'Điểm ' + i);
+  const soHs = [tHs].concat(hocSinh.map(function(h){
+    const row = [h.sid, h.ten];
+    BUOI.forEach(function(d){
+      (h.nv[d.ma] || []).forEach(function(id){
+        row.push(tenClb[id] || id, h.diem.hasOwnProperty(id) ? h.diem[id] : '');
+      });
+    });
+    while(row.length < tHs.length) row.push('');
+    return row;
+  }));
+  const soClb = [['Tên CLB', 'Buổi', 'Chỉ tiêu', 'Suất ưu tiên', 'Nhóm ưu tiên', 'Mã CLB']];
+  BUOI.forEach(function(d){ d.clubs.forEach(function(c){ soClb.push([tenClb[c.id], d.ma, '', '', '', c.id]); }); });
+  const canh = [['Phiếu', 'Mã HS', 'Nội dung']].concat(canhBao.length ? canhBao : [['', '', 'Không có cảnh báo nào.']]);
+  return {clb: soClb, hs: soHs, canh: canh};
+}
+/*LOGIC-END*/
+const TRO_GIUP = {"top": "Top 1 là CLB em thích nhất. Bấm vào từng Top để chọn CLB trong danh sách. Mỗi CLB chỉ chọn một lần. Không muốn thêm thì để (Bỏ trống). Muốn CLB được chấm điểm: xếp CLB đó ở một Top, tick ở ô bên dưới, rồi làm bài thi. Trang này chỉ có Top 1 đến Top 10.", "tick": "Không thi CLB nào thì bỏ trống. CLB được chấm điểm khi vừa được xếp ở một Top, vừa được tick ở đây, và vừa được làm bài.", "first": "Chọn CLB đứng trên cùng (đứng đầu trong danh sách) trong số các CLB em đã tick. Không thi CLB nào thì chọn \"Em không thi CLB nào buổi này\". Làm xong thì chỉ chọn được CLB đứng sau.", "tiep": "Chỉ hiện các CLB đứng sau CLB vừa làm. Chọn CLB em đã tick tiếp theo; hết rồi thì chọn Không thi thêm."};
+
+
+/*XLSX-BEGIN*/
+// Bộ ghi .xlsx tối thiểu, không thư viện: gói ZIP không nén, mỗi trang là một sheet với ô chữ inlineStr.
+// danhSach: [{ten, dong: [[ô, ô, ...], ...]}]. Ô rỗng hoặc null thì bỏ; số thì ghi thành số.
+function dungXlsx(danhSach){
+  const enc = new TextEncoder();
+  const bang = new Uint32Array(256);
+  for(let n = 0; n < 256; n++){
+    let c = n;
+    for(let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1;
+    bang[n] = c >>> 0;
+  }
+  function crc(b){
+    let c = 0xFFFFFFFF;
+    for(let i = 0; i < b.length; i++) c = bang[(c ^ b[i]) & 0xFF] ^ (c >>> 8);
+    return (c ^ 0xFFFFFFFF) >>> 0;
+  }
+  function xml(s){
+    // Bỏ ký tự điều khiển không hợp lệ trong XML (ví dụ dấu ngắt mềm chép từ Word): nếu không sẽ làm hỏng cả tệp.
+    return String(s).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F￾￿]/g, '')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+  }
+  function cot(n){
+    let s = '';
+    n++;
+    while(n > 0){ const r = (n - 1) % 26; s = String.fromCharCode(65 + r) + s; n = Math.floor((n - 1) / 26); }
+    return s;
+  }
+  const KHAI = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
+  function trang(dong){
+    let x = KHAI + '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>';
+    dong.forEach(function(r, i){
+      x += '<row r="' + (i + 1) + '">';
+      r.forEach(function(v, j){
+        if(v === '' || v === null || v === undefined) return;
+        const ref = cot(j) + (i + 1);
+        if(typeof v === 'number') x += '<c r="' + ref + '"><v>' + v + '</v></c>';
+        else x += '<c r="' + ref + '" t="inlineStr"><is><t xml:space="preserve">' + xml(v) + '</t></is></c>';
+      });
+      x += '</row>';
+    });
+    return x + '</sheetData></worksheet>';
+  }
+  const tep = [];
+  tep.push(['[Content_Types].xml', KHAI + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
+    '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
+    '<Default Extension="xml" ContentType="application/xml"/>' +
+    '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>' +
+    danhSach.map(function(s, i){ return '<Override PartName="/xl/worksheets/sheet' + (i + 1) +
+      '.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'; }).join('') +
+    '</Types>']);
+  tep.push(['_rels/.rels', KHAI + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+    '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>' +
+    '</Relationships>']);
+  tep.push(['xl/workbook.xml', KHAI + '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" ' +
+    'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>' +
+    danhSach.map(function(s, i){ return '<sheet name="' + xml(s.ten) + '" sheetId="' + (i + 1) + '" r:id="rId' + (i + 1) + '"/>'; }).join('') +
+    '</sheets></workbook>']);
+  tep.push(['xl/_rels/workbook.xml.rels', KHAI + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+    danhSach.map(function(s, i){ return '<Relationship Id="rId' + (i + 1) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet' + (i + 1) + '.xml"/>'; }).join('') +
+    '</Relationships>']);
+  danhSach.forEach(function(s, i){ tep.push(['xl/worksheets/sheet' + (i + 1) + '.xml', trang(s.dong)]); });
+
+  const phan = [], dau = [];
+  let pos = 0;
+  tep.forEach(function(mucTep){
+    const tenB = enc.encode(mucTep[0]), dl = enc.encode(mucTep[1]), c = crc(dl);
+    const h = new DataView(new ArrayBuffer(30));
+    h.setUint32(0, 0x04034b50, true); h.setUint16(4, 20, true); h.setUint16(6, 0x0800, true);
+    h.setUint16(8, 0, true); h.setUint16(10, 0, true); h.setUint16(12, 0x21, true);
+    h.setUint32(14, c, true); h.setUint32(18, dl.length, true); h.setUint32(22, dl.length, true);
+    h.setUint16(26, tenB.length, true); h.setUint16(28, 0, true);
+    phan.push(new Uint8Array(h.buffer), tenB, dl);
+    const cd = new DataView(new ArrayBuffer(46));
+    cd.setUint32(0, 0x02014b50, true); cd.setUint16(4, 20, true); cd.setUint16(6, 20, true);
+    cd.setUint16(8, 0x0800, true); cd.setUint16(10, 0, true); cd.setUint16(12, 0, true);
+    cd.setUint16(14, 0x21, true); cd.setUint32(16, c, true); cd.setUint32(20, dl.length, true);
+    cd.setUint32(24, dl.length, true); cd.setUint16(28, tenB.length, true);
+    cd.setUint16(30, 0, true); cd.setUint16(32, 0, true); cd.setUint16(34, 0, true);
+    cd.setUint16(36, 0, true); cd.setUint32(38, 0, true); cd.setUint32(42, pos, true);
+    dau.push(new Uint8Array(cd.buffer), tenB);
+    pos += 30 + tenB.length + dl.length;
+  });
+  const cdDai = dau.reduce(function(n, b){ return n + b.length; }, 0);
+  const kt = new DataView(new ArrayBuffer(22));
+  kt.setUint32(0, 0x06054b50, true); kt.setUint16(8, tep.length, true); kt.setUint16(10, tep.length, true);
+  kt.setUint32(12, cdDai, true); kt.setUint32(16, pos, true);
+  const tong = new Uint8Array(pos + cdDai + 22);
+  let p = 0;
+  phan.concat(dau).forEach(function(b){ tong.set(b, p); p += b.length; });
+  tong.set(new Uint8Array(kt.buffer), p);
+  return tong;
+}
+/*XLSX-END*/
+
+
+(function(){
+  'use strict';
+  function $(s){ return document.querySelector(s); }
+  function esc(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+      return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c];
+    });
+  }
+
+  // Trang theo thứ tự: mỗi buổi là trang buổi, trang xếp Top và tick, trang CLB thi đầu tiên,
+  // rồi trang đề và trang "tiếp theo" cho từng CLB. Chỉ trang hiện tại được dựng.
+  const TRANG = [{loai: 'info'}];
+  const NGAY = [];
+  BUOI.forEach(function(d, k){
+    const coThi = d.clubs.filter(function(c){ return c.de.length; });
+    const ng = {d: d, k: k, coThi: coThi, iDi: 0, iTop: 0, iFirst: -1, iExam: [], iTiep: []};
+    ng.iDi = TRANG.push({loai: 'di', k: k}) - 1;
+    ng.iTop = TRANG.push({loai: 'top', k: k}) - 1;
+    if(coThi.length){
+      ng.iFirst = TRANG.push({loai: 'first', k: k}) - 1;
+      coThi.forEach(function(c, i){
+        ng.iExam.push(TRANG.push({loai: 'exam', k: k, i: i}) - 1);
+        ng.iTiep.push(i + 1 < coThi.length ? TRANG.push({loai: 'tiep', k: k, i: i}) - 1 : -1);
+      });
+    }
+    NGAY.push(ng);
+  });
+  TRANG.push({loai: 'nop'});
+  const IDX_NOP = TRANG.length - 1;
+  function tiepNgay(k){ return k + 1 < NGAY.length ? NGAY[k + 1].iDi : IDX_NOP; }
+
+  function moi(thongBao){ return {cur: 0, path: [0], ans: {}, loi: '', thongBao: thongBao || ''}; }
+  let st = moi();
+  let DA_NOP = null;
+  
+  const GV = [];      // phiếu đã nạp, kèm thời điểm nộp
+  const DA_NAP = {};  // nội dung tệp đã nạp, để bỏ bản sao
+  // Chấm theo thời điểm nộp, không theo thứ tự chọn tệp: "giữ phiếu đầu" là bản nộp sớm nhất.
+  function phieuTheoNopLuc(){
+    return GV.slice().sort(function(a, b){
+      const x = a.nop_luc || '￿', y = b.nop_luc || '￿';
+      return x < y ? -1 : (x > y ? 1 : 0);
+    }).map(function(w){ return w.phieu; });
+  }
+  
+
+  // CLB đã tick trong buổi (theo thứ tự buổi). Chỉ các CLB này được chọn để làm bài.
+  function daTick(ng){
+    const dang = st.ans['chon-' + ng.d.ma] || [];
+    return ng.coThi.filter(function(c){ return dang.indexOf(nhan(c)) >= 0; });
+  }
+  // Các nhãn CLB đã xếp trong Top 1–10 của buổi.
+  function xepTop(ng){
+    const ds = [];
+    for(let k = 1; k <= 10; k++){
+      const v = st.ans[ng.d.ma + '-top-' + k];
+      if(v && v !== BO_TRONG) ds.push(v);
+    }
+    return ds;
+  }
+  // Trang chọn đầu: chỉ các CLB đã tick. Trang "tiếp theo" sau CLB ở vị trí i: chỉ CLB đã tick đứng sau.
+  function luaChonDau(ng){
+    return daTick(ng).map(nhan).concat([KHONG_THI]);
+  }
+  function luaChonTiep(ng, i){
+    return daTick(ng).filter(function(c){ return ng.coThi.indexOf(c) > i; }).map(nhan).concat([DUNG]);
+  }
+  // Bỏ câu trả lời không còn hợp lệ (ví dụ vừa bỏ tick CLB đó).
+  function donDep(key, ops){
+    if(st.ans[key] !== undefined && ops.indexOf(st.ans[key]) < 0) delete st.ans[key];
+  }
+
+  // Trang kế tiếp khi bấm Tiếp, theo câu trả lời hiện có (-1 nếu chưa hợp lệ).
+  function sang(idx){
+    const p = TRANG[idx], a = st.ans;
+    if(p.loai === 'info') return NGAY[0].iDi;
+    const ng = NGAY[p.k], ma = ng.d.ma;
+    if(p.loai === 'di') return a['di-' + ma] === CO_BUOI ? ng.iTop : tiepNgay(p.k);
+    if(p.loai === 'top') return ng.coThi.length ? ng.iFirst : tiepNgay(p.k);
+    if(p.loai === 'first'){
+      const v = a['thi-' + ma];
+      if(v === KHONG_THI) return tiepNgay(p.k);
+      const c = daTick(ng).find(function(x){ return nhan(x) === v; });
+      return c ? ng.iExam[ng.coThi.indexOf(c)] : -1;
+    }
+    if(p.loai === 'exam') return ng.iTiep[p.i] >= 0 ? ng.iTiep[p.i] : tiepNgay(p.k);
+    if(p.loai === 'tiep'){
+      const v = a['thi-sau-' + ng.coThi[p.i].id];
+      if(v === DUNG) return tiepNgay(p.k);
+      const c = daTick(ng).find(function(x){ return nhan(x) === v && ng.coThi.indexOf(x) > p.i; });
+      return c ? ng.iExam[ng.coThi.indexOf(c)] : -1;
+    }
+    return -1;
+  }
+
+  function thieu(idx){
+    const p = TRANG[idx], a = st.ans;
+    if(p.loai === 'info'){
+      if(!String(a.student_id || '').trim()) return 'Em cần ghi mã học sinh.';
+      if(!String(a.name || '').trim()) return 'Em cần ghi họ và tên.';
+      return '';
+    }
+    if(p.loai === 'di') return a['di-' + NGAY[p.k].d.ma] ? '' : 'Em cần chọn có hoặc không.';
+    if(p.loai === 'first') return a['thi-' + NGAY[p.k].d.ma] ? '' : 'Em cần chọn một CLB, hoặc chọn Không thi.';
+    if(p.loai === 'exam'){
+      const c = NGAY[p.k].coThi[p.i];
+      for(let j = 0; j < c.de.length; j++){
+        if(!a[c.id + '-' + (j + 1)]) return 'Em cần trả lời đủ các câu của đề.';
+      }
+      return '';
+    }
+    if(p.loai === 'tiep') return a['thi-sau-' + NGAY[p.k].coThi[p.i].id] ? '' : 'Em cần chọn một lựa chọn.';
+    return '';
+  }
+
+  // Khoá câu trả lời của một trang: chỉ những trang đã đi qua mới được gửi.
+  function keysOf(idx){
+    const p = TRANG[idx];
+    if(p.loai === 'info') return ['student_id', 'name'];
+    if(p.loai === 'nop') return [];
+    const ng = NGAY[p.k], ma = ng.d.ma;
+    if(p.loai === 'di') return ['di-' + ma];
+    if(p.loai === 'top'){
+      const ks = [];
+      for(let k = 1; k <= 10; k++) ks.push(ma + '-top-' + k);
+      ks.push('chon-' + ma);
+      return ks;
+    }
+    if(p.loai === 'first') return ['thi-' + ma];
+    if(p.loai === 'exam'){
+      const c = ng.coThi[p.i];
+      return c.de.map(function(_, j){ return c.id + '-' + (j + 1); });
+    }
+    if(p.loai === 'tiep') return ['thi-sau-' + ng.coThi[p.i].id];
+    return [];
+  }
+
+  function head(t, sub){ return '<h3>' + esc(t) + '</h3>' + (sub ? '<p class="help">' + esc(sub) + '</p>' : ''); }
+
+  function radios(key, legend, opts){
+    let h = '<fieldset class="q"><legend>' + esc(legend) + '</legend>';
+    opts.forEach(function(o){
+      h += '<label class="opt"><input type="radio" name="' + esc(key) + '" data-key="' + esc(key) + '" value="' + esc(o) + '"' +
+        (st.ans[key] === o ? ' checked' : '') + '><span>' + esc(o) + '</span></label>';
+    });
+    return h + '</fieldset>';
+  }
+
+  function oText(key, legend, placeholder){
+    return '<fieldset class="q"><legend>' + esc(legend) + '</legend><input type="text" data-key="' + esc(key) +
+      '" value="' + esc(st.ans[key] || '') + '" placeholder="' + esc(placeholder) + '" autocomplete="off"></fieldset>';
+  }
+
+  function tomTat(){
+    const dong = [];
+    st.path.forEach(function(idx){
+      const p = TRANG[idx];
+      if(p.loai === 'nop') return;
+      if(p.loai === 'info'){
+        dong.push(['Thí sinh', (st.ans.name || '') + ' (' + (st.ans.student_id || '') + ')']);
+        return;
+      }
+      const ng = NGAY[p.k];
+      if(p.loai === 'di'){
+        dong.push([ng.d.ten, st.ans['di-' + ng.d.ma] === CO_BUOI ? 'Có sinh hoạt' : 'Bận buổi này']);
+      } else if(p.loai === 'top'){
+        const tops = xepTop(ng);
+        dong.push([ng.d.ten + ': xếp Top', tops.length ? tops.join('; ') : 'Không xếp CLB nào']);
+        const chon = st.ans['chon-' + ng.d.ma] || [];
+        dong.push([ng.d.ten + ': CLB muốn thi', chon.length ? chon.join('; ') : 'Không thi CLB nào']);
+      } else if(p.loai === 'exam'){
+        const c = ng.coThi[p.i];
+        const da = c.de.filter(function(_, j){ return st.ans[c.id + '-' + (j + 1)]; }).length;
+        dong.push(['Đề ' + c.name, 'Đã trả lời ' + da + '/' + c.de.length + ' câu']);
+      } else if(p.loai === 'first'){
+        dong.push([ng.d.ten + ': làm bài trước', st.ans['thi-' + ng.d.ma] || '']);
+      } else if(p.loai === 'tiep'){
+        dong.push([ng.d.ten + ': làm tiếp theo', st.ans['thi-sau-' + ng.coThi[p.i].id] || '']);
+      }
+    });
+    return bang(['Mục', 'Lựa chọn'], dong);
+  }
+
+  function noiDung(p){
+    if(p.loai === 'info') return head('Thông tin thí sinh', 'Ghi đúng mã trên thẻ học sinh.') +
+      oText('student_id', 'Mã học sinh', 'Ví dụ: HS001') + oText('name', 'Họ và tên', 'Họ và tên học sinh');
+    if(p.loai === 'nop') return head('Xem lại lựa chọn', 'Bấm "Nộp bài": trình duyệt sẽ tải tệp phiếu về máy, em gửi tệp đó cho giáo viên. Em sẽ không thấy điểm; giáo viên sẽ chấm.') + tomTat();
+    const ng = NGAY[p.k], ma = ng.d.ma;
+    if(p.loai === 'di') return head(ng.d.ten, '') +
+      radios('di-' + ma, 'Em có đăng ký sinh hoạt ' + ng.d.ten + ' không?', [CO_BUOI, KHONG_BUOI]);
+    if(p.loai === 'top'){
+      let h = head(ng.d.ten + ': xếp Top và tick CLB muốn thi', TRO_GIUP.top);
+      const cacNhan = [BO_TRONG].concat(ng.d.clubs.map(nhan));
+      for(let k = 1; k <= 10; k++){
+        const key = ma + '-top-' + k;
+        h += '<label class="rowsel"><span>Top ' + k + '</span><select data-key="' + esc(key) + '">' +
+          '<option value="">Chọn CLB</option>' +
+          cacNhan.map(function(o){ return '<option value="' + esc(o) + '"' + (st.ans[key] === o ? ' selected' : '') + '>' + esc(o) + '</option>'; }).join('') +
+          '</select></label>';
+      }
+      if(!ng.coThi.length) return h;
+      const dang = st.ans['chon-' + ma] || [];
+      h += '<fieldset class="q"><legend>Chọn CLB em muốn thi ' + esc(ng.d.ten) + ' (tối đa ' + TRAN_THI + ', có thể thi 0 đến ' + TRAN_THI + ' CLB)</legend>' +
+        '<p class="help">' + esc(TRO_GIUP.tick) + '</p>';
+      ng.coThi.forEach(function(c){
+        const o = nhan(c);
+        h += '<label class="opt"><input type="checkbox" data-chon="1" data-key="chon-' + esc(ma) + '" value="' + esc(o) + '"' +
+          (dang.indexOf(o) >= 0 ? ' checked' : '') + '><span>' + esc(o) + '</span></label>';
+      });
+      return h + '</fieldset>';
+    }
+    if(p.loai === 'first'){
+      const ops = luaChonDau(ng);
+      donDep('thi-' + ma, ops);
+      const chuaXep = daTick(ng).filter(function(c){ return xepTop(ng).indexOf(nhan(c)) < 0; });
+      let h = head(ng.d.ten + ': chọn CLB làm bài trước', TRO_GIUP.first);
+      if(chuaXep.length){
+        h += '<p class="warnbox">CLB chưa được xếp trong Top 1 đến Top 10 sẽ không được tính điểm: ' +
+          esc(chuaXep.map(function(c){ return c.name; }).join(', ')) + '.</p>';
+      }
+      if(!daTick(ng).length) h += '<p class="help">Em chưa tick CLB nào buổi này. Chọn Không thi.</p>';
+      return h + radios('thi-' + ma, 'Em thi CLB nào trước? Chỉ hiện các CLB em đã tick.', ops);
+    }
+    if(p.loai === 'exam'){
+      const c = ng.coThi[p.i];
+      let h = head('Đề thi ' + c.name, 'Mỗi câu ' + DIEM_CAU + ' điểm. Trả lời đủ các câu để đi tiếp.');
+      c.de.forEach(function(q, j){ h += radios(c.id + '-' + (j + 1), q.q, q.opts); });
+      return h;
+    }
+    if(p.loai === 'tiep'){
+      const c = ng.coThi[p.i];
+      const ops = luaChonTiep(ng, p.i);
+      donDep('thi-sau-' + c.id, ops);
+      return head(ng.d.ten + ': CLB làm tiếp theo', TRO_GIUP.tiep) +
+        radios('thi-sau-' + c.id, 'Em thi CLB nào tiếp theo? Chỉ còn các CLB em đã tick và đứng sau CLB vừa làm.', ops);
+    }
+    return '';
+  }
+
+  function bang(tieu, dong){
+    let h = '<table><thead><tr>' + tieu.map(function(t){ return '<th>' + esc(t) + '</th>'; }).join('') + '</tr></thead><tbody>';
+    if(!dong.length) h += '<tr><td colspan="' + tieu.length + '" class="muted">Không có dòng nào.</td></tr>';
+    dong.forEach(function(r){
+      h += '<tr>' + tieu.map(function(_, i){ return '<td>' + esc(r[i] == null ? '' : r[i]) + '</td>'; }).join('') + '</tr>';
+    });
+    return h + '</tbody></table>';
+  }
+
+  function render(){
+    const p = TRANG[st.cur];
+    let h = '';
+    if(st.thongBao){
+      h += '<div class="ok">' + esc(st.thongBao) +
+        (DA_NOP ? ' <button class="btn ghost" id="tai-phieu">Tải lại tệp phiếu (.json)</button>' : '') + '</div>';
+    }
+    h += '<div class="pagebox">' + noiDung(p) + '</div>';
+    h += '<div class="nav"><button class="btn ghost" id="quay"' + (st.path.length < 2 ? ' disabled' : '') + '>Quay lại</button>';
+    h += '<div>' + (p.loai === 'nop' ? '<button class="btn" id="nop">Nộp bài</button>' : '<button class="btn" id="tiep">Tiếp</button>') + '</div></div>';
+    h += st.loi ? '<p class="err">' + esc(st.loi) + '</p>' : '';
+    h += '<p><button class="linkbtn" id="lam-lai">Làm lại từ đầu</button></p>';
+    $('#form').innerHTML = h;
+  }
+
+  function tiepTrang(){
+    const loi = thieu(st.cur);
+    if(loi){ st.loi = loi; render(); return; }
+    const nx = sang(st.cur);
+    if(nx < 0){ st.loi = 'Lựa chọn này không còn hợp lệ. Em hãy chọn lại.'; render(); return; }
+    st.cur = nx; st.path.push(nx); st.loi = ''; st.thongBao = '';
+    render();
+    $('#thi').scrollIntoView({behavior: 'smooth', block: 'start'});
+  }
+
+  function nopBai(){
+    const phieu = {};
+    st.path.forEach(function(idx){
+      keysOf(idx).forEach(function(k){ if(st.ans[k] !== undefined) phieu[k] = st.ans[k]; });
+    });
+    DA_NOP = {loai: 'phieu_thi_12_clb', nop_luc: new Date().toISOString(), phieu: phieu};
+    taiPhieu();
+    st = moi('Đã nộp bài của ' + (phieu.name || 'thí sinh') + '. Nếu trình duyệt chưa tải tệp phiếu, bấm nút bên dưới. Em gửi tệp phiếu cho giáo viên. Cảm ơn em.');
+    render();
+  }
+  function taiPhieu(){
+    taiTep('phieu_' + String(DA_NOP.phieu.student_id || 'thi_sinh').replace(/[^A-Za-z0-9]+/g, '_') + '.json',
+      new Blob([JSON.stringify(DA_NOP, null, 1)], {type: 'application/json'}));
+  }
+
+  function onChange(e){
+    const el = e.target;
+    if(!el || !el.getAttribute || !el.getAttribute('data-key')) return;
+    if(e.type === 'input' && el.type !== 'text') return;
+    if(e.type === 'change' && el.type === 'text') return;
+    const key = el.getAttribute('data-key');
+    if(el.type === 'checkbox'){
+      const cac = Array.prototype.slice.call(document.querySelectorAll('input[type=checkbox][data-key="' + key + '"]:checked'))
+        .map(function(x){ return x.value; });
+      if(cac.length > TRAN_THI){
+        el.checked = false;
+        st.loi = 'Chỉ được tick tối đa ' + TRAN_THI + ' CLB trong một buổi.';
+        render();
+        return;
+      }
+      if(cac.length) st.ans[key] = cac; else delete st.ans[key];
+      st.loi = '';
+      render();
+      return;
+    }
+    if(el.value === '') delete st.ans[key]; else st.ans[key] = el.value;
+    st.loi = '';
+    if(el.type !== 'text') render();
+  }
+
+  $('#form').addEventListener('change', onChange);
+  $('#form').addEventListener('input', onChange);
+  $('#form').addEventListener('click', function(e){
+    const b = e.target.closest ? e.target.closest('button') : null;
+    if(!b) return;
+    if(b.id === 'quay' && st.path.length > 1){
+      st.path.pop(); st.cur = st.path[st.path.length - 1]; st.loi = ''; st.thongBao = '';
+      render();
+    } else if(b.id === 'tiep'){
+      tiepTrang();
+    } else if(b.id === 'nop'){
+      nopBai();
+    } else if(b.id === 'tai-phieu'){
+      taiPhieu();
+    } else if(b.id === 'lam-lai'){
+      st = moi();
+      render();
+    }
+  });
+
+  function taiTep(ten, blob){
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = ten;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 0);
+  }
+  
+  function taiCSV(ten, rows){
+    const dong = rows.map(function(r){
+      return r.map(function(x){
+        // Ô bắt đầu bằng = + - @ (hoặc tab, CR) có thêm dấu nháy đơn để Excel không chạy như công thức.
+        // Cùng quy tắc với api_chung.py; api_nhap.py gỡ dấu này khi nạp lại.
+        const s = x == null ? '' : String(x);
+        const an = /^[=+\-@\t\r]/.test(s) ? "'" + s : s;
+        return /[",\n\r]/.test(an) ? '"' + an.replace(/"/g, '""') + '"' : an;
+      }).join(',');
+    }).join('\r\n');
+    taiTep(ten, new Blob(['﻿' + dong], {type: 'text/csv;charset=utf-8'}));
+  }
+  function docTep(file){
+    return new Promise(function(resolve, reject){
+      const r = new FileReader();
+      r.onload = function(){ resolve(r.result); };
+      r.onerror = reject;
+      r.readAsText(file, 'utf-8');
+    });
+  }
+  function renderGV(){
+    const kq = chamTheoCLB(phieuTheoNopLuc());
+    $('#gv-ket-qua').innerHTML = bang(kq.hs[0], kq.hs.slice(1));
+    $('#gv-canh').innerHTML = bang(kq.canh[0], kq.canh.slice(1));
+  }
+  $('#gv-tep').addEventListener('change', function(e){
+    const files = Array.prototype.slice.call(e.target.files || []);
+    Promise.all(files.map(docTep)).then(function(texts){
+      const loi = [], top11 = [];
+      let trung = 0;
+      texts.forEach(function(t, i){
+        let obj = null;
+        try { obj = JSON.parse(t); } catch(err){ obj = null; }
+        if(!(obj && obj.loai === 'phieu_thi_12_clb' && obj.phieu)){ loi.push(files[i].name); return; }
+        // Cùng nội dung (kể cả thời điểm nộp) thì là cùng một tệp đã nạp rồi: bỏ bản sao.
+        const khoa = JSON.stringify(obj);
+        if(DA_NAP[khoa]){ trung++; return; }
+        DA_NAP[khoa] = true;
+        const p = obj.phieu;
+        let coTop11 = false;
+        // Trang chỉ cho Top 1–10, nhưng tệp có thể bị sửa tay: bỏ Top 11 trở lên trước khi chấm.
+        Object.keys(p).forEach(function(k){
+          const m = /-top-(\d+)$/.exec(k);
+          if(m && Number(m[1]) > 10){ delete p[k]; coTop11 = true; }
+        });
+        if(coTop11) top11.push(String(p.student_id || files[i].name));
+        GV.push({nop_luc: String(obj.nop_luc || ''), phieu: p});
+      });
+      $('#gv-so').textContent = 'Đã nạp ' + GV.length + ' phiếu.' +
+        (trung ? ' Bỏ ' + trung + ' tệp trùng nội dung.' : '') +
+        (loi.length ? ' Không đọc được: ' + loi.join(', ') + '.' : '') +
+        (top11.length ? ' Đã bỏ Top 11 trở lên (trang chỉ có Top 1–10) của: ' + top11.join(', ') + '.' : '');
+      renderGV();
+    });
+  });
+  $('#gv-tai-clb').addEventListener('click', function(){
+    if(!kiemChiTieuTruoc()) return;
+    taiCSV('1_CLB.csv', chamTheoCLB(phieuTheoNopLuc()).clb);
+  });
+  $('#gv-tai-so').addEventListener('click', function(){ taiCSV('2_Hoc_sinh.csv', chamTheoCLB(phieuTheoNopLuc()).hs); });
+  $('#gv-tai-canh').addEventListener('click', function(){ taiCSV('canh_bao.csv', chamTheoCLB(phieuTheoNopLuc()).canh); });
+  $('#gv-xoa').addEventListener('click', function(){
+    GV.length = 0;
+    Object.keys(DA_NAP).forEach(function(k){ delete DA_NAP[k]; });
+    $('#gv-so').textContent = '';
+    $('#gv-tep').value = '';
+    renderGV();
+  });
+
+  // Chỉ tiêu do giáo viên nhập. Giữ trong bộ nhớ trang; tải lại trang thì nhập lại.
+  const CHI_TIEU = {};
+  function veChiTieu(){
+    let h = '';
+    BUOI.forEach(function(d){
+      h += '<h3>' + esc(d.ten) + '</h3>';
+      d.clubs.forEach(function(c){
+        h += '<div class="cap"><span>' + esc(c.name) + '</span><input type="number" inputmode="numeric" min="1" step="1" data-cap="' +
+          esc(c.id) + '" value="' + esc(CHI_TIEU[c.id] || '') + '"></div>';
+      });
+    });
+    $('#gv-chi-tieu').innerHTML = h;
+  }
+  $('#gv-chi-tieu').addEventListener('input', function(e){
+    const el = e.target;
+    if(el && el.getAttribute && el.getAttribute('data-cap')) CHI_TIEU[el.getAttribute('data-cap')] = el.value;
+  });
+  // CLB chưa có chỉ tiêu hợp lệ: số nguyên từ 1 đến 999, không có số 0 đứng đầu.
+  function thieuChiTieu(){
+    const thieu = [];
+    BUOI.forEach(function(d){ d.clubs.forEach(function(c){
+      if(!/^[1-9][0-9]{0,2}$/.test(String(CHI_TIEU[c.id] || '').trim())) thieu.push(c.name);
+    }); });
+    return thieu;
+  }
+  // Chặn mọi lối xuất sổ khi thiếu chỉ tiêu; báo rõ CLB nào còn thiếu.
+  function kiemChiTieuTruoc(){
+    const thieu = thieuChiTieu();
+    if(thieu.length){
+      $('#gv-so').textContent = 'Chưa xuất được. Thiếu hoặc sai chỉ tiêu (số nguyên từ 1 đến 999) của ' +
+        thieu.length + ' CLB: ' + thieu.join(', ') + '.';
+      return false;
+    }
+    return true;
+  }
+  $('#gv-tai-xlsx').addEventListener('click', function(){
+    if(!kiemChiTieuTruoc()) return;
+    const kq = chamTheoCLB(phieuTheoNopLuc());
+    const sheetClb = [['Tên CLB', 'Buổi', 'Chỉ tiêu', 'Suất ưu tiên', 'Nhóm ưu tiên', 'Mã CLB']];
+    BUOI.forEach(function(d){ d.clubs.forEach(function(c){
+      sheetClb.push([c.name, d.ma, Number(String(CHI_TIEU[c.id]).trim()), '', '', c.id]);
+    }); });
+    const bytes = dungXlsx([{ten: '1. CLB', dong: sheetClb}, {ten: '2. Học sinh', dong: kq.hs}]);
+    taiTep('SO_NHAP_CLB.xlsx', new Blob([bytes], {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+    $('#gv-so').textContent = 'Đã tải SO_NHAP_CLB.xlsx.';
+  });
+  
+
+  
+  veChiTieu();
+  
+  render();
+  
+  renderGV();
+  
+})();
+</script>
+</body>
+</html>
