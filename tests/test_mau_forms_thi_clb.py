@@ -373,6 +373,22 @@ def test_google_forms_noi_ro_dieu_kien_duoc_cham_diem():
     assert "Chỉ hiện các CLB đứng sau CLB vừa làm." in gs
 
 
+def test_trang_web_mau_khop_tep_da_sinh():
+    """Sửa đề hoặc khuôn mà quên sinh lại docs/website_mau/index.html thì đỏ."""
+    import tao_website_mau as tw
+    with open(os.path.join(THU_MUC, os.pardir, "docs", "website_mau", "index.html"), encoding="utf-8") as f:
+        assert f.read() == tw.noi_dung()
+
+
+def test_trang_web_dung_cau_tro_giup_cua_bieu_mau():
+    """Câu trợ giúp trên trang web lấy đúng chữ của biểu mẫu Google (không để hai nơi lệch nhau)."""
+    import tao_google_forms as tg
+    import tao_website_mau as tw
+    gs = tg.noi_dung()
+    for cau in tw.CAU_TRO_GIUP_CO_NGUON:
+        assert cau in gs, cau
+
+
 def test_raw_google_khop_tai_lieu_dinh_dang():
     """Cột raw trong .gs phải đúng như DINH_DANG_RAW.md mô tả (skill đọc theo tài liệu)."""
     import re

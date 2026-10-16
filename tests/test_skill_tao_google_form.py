@@ -310,3 +310,122 @@ def test_ma_chi_khac_hoa_thuong_giu_ca_hai_va_canh_bao(tmp_path):
     assert [r[0] for r in hs[1:]] == ["HS001", "hs001"], hs
     canh_bao = " | ".join(json.loads(dong["Cảnh"].split(" ", 1)[1]))
     assert "khác hoa thường" in canh_bao and "Nộp lần nữa" not in canh_bao, canh_bao
+
+
+HARNESS_WEB_JS = r"""
+const fs = require('fs');
+const html = fs.readFileSync(process.argv[2], 'utf8');
+const logic = html.split('/*LOGIC-BEGIN*/')[1].split('/*LOGIC-END*/')[0];
+const dsPhieu = JSON.parse(fs.readFileSync(process.argv[3], 'utf8'));
+const kq = new Function('__ds', logic + '\nreturn chamTheoCLB(__ds);')(dsPhieu);
+console.log(JSON.stringify({hs: kq.hs, canh: kq.canh}));
+"""
+
+HARNESS_GS_DUOI_JS = r"""
+const dsPhieu = JSON.parse(fs.readFileSync(process.argv[4], 'utf8'));
+responses = dsPhieu.map(resp);
+chamTheoCLB();
+const by = n => sheets.filter(s => s.n === n).pop().data;
+console.log(JSON.stringify({hs: by('2. Học sinh'), canh: by('Cảnh báo')}));
+"""
+
+
+def _kich_ban_trang_web(du):
+    """Các kịch bản phiếu (cùng hình dạng với câu trả lời Forms) cho cả .gs lẫn trang web."""
+    ng0 = du[0]
+    c0, c1, c2 = ng0["clubs"][0], ng0["clubs"][1], ng0["clubs"][2]
+    lab = lambda c: "%s (%s)" % (c["name"], c["id"])  # noqa: E731
+    bo, kt, dung_t, kb, co = ("(Bỏ trống)", "Em không thi CLB nào buổi này",
+                              "Em không thi thêm CLB nào buổi này", "Không, em bận buổi này", "Có")
+
+    def nen(sid, ten=""):
+        p = {"student_id": sid, "name": ten}
+        for d in du:
+            p["di-" + d["ma"]] = kb
+        p["di-" + ng0["ma"]] = co
+        return p
+
+    def top(p, *nhan):
+        for k, v in enumerate(nhan, 1):
+            p[ng0["ma"] + "-top-%d" % k] = v
+        return p
+
+    def lam(p, c, n_dung):
+        for j, q in enumerate(c["de"]):
+            p[c["id"] + "-" + str(j + 1)] = (q["dung"] if j < n_dung
+                                             else next(o for o in q["opts"] if o != q["dung"]))
+        return p
+
+    def mot_mon(sid, ten=""):
+        p = top(nen(sid, ten), lab(c0))
+        p["chon-" + ng0["ma"]] = [lab(c0)]
+        p["thi-" + ng0["ma"]] = lab(c0)
+        lam(p, c0, 2)
+        p["thi-sau-" + c0["id"]] = dung_t
+        return p
+
+    p1 = top(nen("HS001", "Học sinh một"), lab(c2), bo, lab(c0), lab(c2), lab(c1))
+    p1["chon-" + ng0["ma"]] = [lab(c0), lab(c2)]
+    p1["thi-" + ng0["ma"]] = lab(c0)
+    lam(p1, c0, 2)
+    p1["thi-sau-" + c0["id"]] = lab(c2)
+    lam(p1, c2, 1)
+    p1["thi-sau-" + c2["id"]] = dung_t
+
+    tick_khong_lam = top(nen("HS020", "Học sinh tick"), lab(c0))
+    tick_khong_lam["chon-" + ng0["ma"]] = [lab(c0), lab(c1)]
+    tick_khong_lam["thi-" + ng0["ma"]] = kt
+
+    lam_khong_tick = top(nen("HS030", "Học sinh làm"), lab(c0))
+    lam_khong_tick["thi-" + ng0["ma"]] = lab(c0)
+    lam(lam_khong_tick, c0, 2)
+    lam_khong_tick["thi-sau-" + c0["id"]] = dung_t
+
+    lam_khong_xep = top(nen("HS040", "Học sinh lệch"), lab(c1))
+    lam_khong_xep["chon-" + ng0["ma"]] = [lab(c0)]
+    lam_khong_xep["thi-" + ng0["ma"]] = lab(c0)
+    lam(lam_khong_xep, c0, 2)
+    lam_khong_xep["thi-sau-" + c0["id"]] = dung_t
+
+    bo_buoi = nen("HS050", "Học sinh bận")
+    bo_buoi["di-" + ng0["ma"]] = kb
+
+    return {
+        "day_du": [p1],
+        "trung_khoang_trang": [mot_mon("HS001", "Một"), mot_mon("HS 001", "Một lần 2")],
+        "khac_hoa_thuong": [mot_mon("HS001", "Một"), mot_mon("hs001", "Chữ thường")],
+        "khong_ma": [mot_mon("", "Không mã"), mot_mon("HS010", "Có mã")],
+        "tick_khong_lam": [tick_khong_lam],
+        "lam_khong_tick": [lam_khong_tick],
+        "lam_khong_xep": [lam_khong_xep],
+        "bo_buoi": [bo_buoi],
+        "khong_phieu": [],
+    }
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="cần Node.js để chạy trang web và .gs")
+def test_trang_web_cham_giong_chamtheoclb(tmp_path):
+    """Trang web mẫu và chamTheoCLB phải cho cùng hàng học sinh và cùng cảnh báo trên mọi kịch bản."""
+    import sys
+    mau = os.path.join(GOC, "mau_forms_thi_clb")
+    sys.path.insert(0, mau)
+    import tao_google_forms as tg
+    gs = os.path.join(mau, "TAO_GOOGLE_FORM.gs")
+    web = os.path.join(GOC, "docs", "website_mau", "index.html")
+    tien_to = CHAM.split("const d=BUOI[0]")[0]
+    harness_gs = tmp_path / "gs.js"
+    harness_gs.write_text(tien_to + HARNESS_GS_DUOI_JS, encoding="utf-8")
+    harness_web = tmp_path / "web.js"
+    harness_web.write_text(HARNESS_WEB_JS, encoding="utf-8")
+    for ten, ds in _kich_ban_trang_web(tg.du_lieu_gs()).items():
+        p = tmp_path / (ten + ".json")
+        p.write_text(json.dumps(ds, ensure_ascii=False), encoding="utf-8")
+        gs_kq = json.loads(subprocess.run(
+            ["node", str(harness_gs), gs, str(tmp_path / "x.json"), str(p)],
+            capture_output=True, text=True, encoding="utf-8", check=True).stdout)
+        web_kq = json.loads(subprocess.run(
+            ["node", str(harness_web), web, str(p)],
+            capture_output=True, text=True, encoding="utf-8", check=True).stdout)
+        bo_trong = lambda rows: [[x for x in r if x != ""] for r in rows]  # noqa: E731
+        assert bo_trong(web_kq["hs"]) == bo_trong(gs_kq["hs"]), ten
+        assert web_kq["canh"] == gs_kq["canh"], ten

@@ -1,5 +1,20 @@
 # CHANGELOG
 
+## 2026-10-16 — Trang web mẫu đăng ký CLB: giới thiệu và mô phỏng biểu mẫu (ngoài sổ đăng ký, theo yêu cầu chủ dự án)
+
+Dữ liệu mô phỏng. `docs/website_mau/index.html` là một tệp HTML tự chứa (không CDN, không máy chủ), do
+`mau_forms_thi_clb/tao_website_mau.py` sinh ra từ cùng dữ liệu đề với `TAO_GOOGLE_FORM.gs`.
+- **Nội dung.** Phần giới thiệu quy trình và quy tắc so trùng mã. Phần mô phỏng đúng bản Google hiện tại:
+  Top 1–10 thả xuống, tick tối đa 5 CLB, thi lần lượt, "Không thi thêm", chữ trợ giúp lấy từ cùng nguồn.
+  Phần sổ nhập mẫu chấm bằng quy tắc của `chamTheoCLB` (khoá so trùng chỉ bỏ khoảng trắng; hoa thường giữ
+  cả hai và có cảnh báo) và hiện bảng "1. CLB", "2. Học sinh", "Cảnh báo".
+- **Không làm.** Không chạy xếp CLB trên trang; không thay thế Google Forms thật; không gửi dữ liệu đi đâu.
+- **Kiểm.** `test_trang_web_mau_khop_tep_da_sinh` (tệp khớp bản sinh lại); `test_trang_web_dung_cau_tro_giup_cua_bieu_mau`
+  (chữ trợ giúp có nguồn trong `.gs`); `test_trang_web_cham_giong_chamtheoclb` (Node: chín kịch bản phiếu, so hàng
+  học sinh và cảnh báo của trang với `chamTheoCLB`). Kiểm tay bằng Chromium: một phiếu đầy đủ, nộp, ba phiếu mẫu,
+  không tràn ngang ở 390px.
+- Sinh lại: `python mau_forms_thi_clb/tao_website_mau.py`.
+
 ## 2026-10-15 — Biểu mẫu Google Forms CLB: sáu điểm Cao và Trung của bản phân tích (ngoài sổ đăng ký, theo yêu cầu chủ dự án)
 
 Nguồn: bảng "Điểm cần cải thiện", mục 1–6, của sơ đồ biểu mẫu. Số liệu là dữ liệu mô phỏng.
