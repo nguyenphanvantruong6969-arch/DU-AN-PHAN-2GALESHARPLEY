@@ -1,5 +1,35 @@
 # CHANGELOG
 
+## 2026-10-16 — Trang thi 12 CLB mỗi buổi: học sinh chỉ làm đề của CLB đã chọn (ngoài sổ đăng ký, theo yêu cầu chủ dự án)
+
+Dữ liệu mô phỏng. `docs/thi_12_clb/index.html` là một tệp HTML tự chứa (không CDN, không máy chủ), do
+`mau_forms_thi_clb/tao_trang_thi_12_clb.py` sinh ra từ `mau_forms_thi_clb/de_thi_12_clb.py`. Không sửa tay.
+- **Dữ liệu.** Năm buổi, mỗi buổi 12 CLB, tổng 60 CLB; mỗi CLB 2 câu. 50 CLB đầu lấy từ bộ mẫu (không đổi).
+  10 CLB mới (2 mỗi buổi, 20 câu) có `nhap=True`: **bản nháp do trợ lý soạn, chưa được giáo viên duyệt**, không dùng
+  cho thi thật khi chưa duyệt. Biểu mẫu Google Forms và `TAO_GOOGLE_FORM.gs` không đổi (vẫn 50 CLB, 212 câu).
+- **Luồng học sinh.** Xếp Top 1–10 (thả xuống, không bắt buộc); tick tối đa 5 CLB mỗi buổi (có thể 0 đến 5);
+  chọn CLB làm bài trước trong số CLB đã tick; làm đề của CLB đó; CLB tiếp theo chỉ là CLB đã tick và đứng sau CLB
+  vừa làm; hết thì chọn "Em không thi thêm CLB nào buổi này". Đề của CLB không được chọn không được dựng trong trang.
+- **Khác biểu mẫu Google.** Trang chỉ đưa ra CLB đã tick ở bước chọn đầu và bước tiếp theo (biểu mẫu đưa mọi CLB
+  đứng sau). Trang chỉ có Top 1–10 (10 ô xếp); CLB không nằm trong Top 1–10 không được tính điểm, theo `chamTheoCLB`.
+- **Nộp và giáo viên.** Khi nộp, trình duyệt tự tải tệp phiếu `.json`; học sinh thấy "đã nộp" và được dặn gửi tệp
+  cho giáo viên. Việc gửi phiếu là thủ công (tạm thời). Trang giáo viên nạp nhiều tệp phiếu, hiện bảng và cảnh báo;
+  tải trang "1. CLB" và "2. Học sinh" dưới dạng CSV (có BOM, trích dẫn đúng) để dán vào `SO_NHAP_CLB.xlsx`. Chưa kiểm
+  được nạp thẳng vào phần mềm; chỉ tiêu, suất ưu tiên và nhóm ưu tiên của "1. CLB" phải điền tay.
+- **Tệp sửa tay.** Trang chỉ cho Top 1–10, nhưng phiếu có thể bị sửa: trang giáo viên bỏ Top 11 trở lên trước khi
+  chấm và báo tên học sinh bị bỏ.
+- **Đáp án.** Đáp án 20 câu mới được xáo bằng đúng `tg.xao` của bộ mẫu. Nếu không xáo, đáp án đúng nằm ở vị trí đầu
+  trong 16/20 câu và học sinh chọn đầu được 80% điểm mà không cần biết bài.
+- **Chấm.** Dùng lại khối LOGIC của `tao_website_mau.py`, đã đối chiếu với `.gs` trên chín kịch bản phiếu.
+- **Giới hạn.** Khoá đề chỉ là khoá trong giao diện: mã nguồn đọc được. Không đăng nhập, không kiểm danh.
+- **Kiểm.** `tests/test_trang_thi_12_clb.py` (10 test): 60 CLB, 12 mỗi buổi, 2 câu mỗi CLB, mã và tên không trùng,
+  10 CLB nháp, đáp án CLB mới xáo đều; tệp khớp bản sinh lại; câu trợ giúp có nguồn trong `.gs`; logic trùng
+  `chamTheoCLB` của `.gs` trên chín kịch bản; kịch bản riêng của 12 CLB: không thi CLB nào (không điểm, không cảnh
+  báo), thi CLB không xếp Top (không điểm, có cảnh báo). Chromium 390px: chỉ đề CLB đã chọn được dựng; tick tối đa 5;
+  CLB tiếp theo chỉ là CLB đứng sau; nộp tự tải phiếu; điểm trong CSV đúng (10 và 5); Top 11 bị bỏ; sổ "1. CLB" đủ
+  60 dòng; không tràn ngang.
+- Sinh lại: `python mau_forms_thi_clb/tao_trang_thi_12_clb.py`.
+
 ## 2026-10-16 — Trang web mẫu đăng ký CLB: giới thiệu và mô phỏng biểu mẫu (ngoài sổ đăng ký, theo yêu cầu chủ dự án)
 
 Dữ liệu mô phỏng. `docs/website_mau/index.html` là một tệp HTML tự chứa (không CDN, không máy chủ), do

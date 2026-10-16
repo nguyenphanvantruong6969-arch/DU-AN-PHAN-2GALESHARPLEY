@@ -698,3 +698,19 @@ AI-written files also changed: `i18n.js`, `i18n_errors.py` (new messages; the
 JS copy of the error catalog removed), `recovery.html`, the build workflow,
 `README.md`, `HUONG_DAN_SU_DUNG.md`, and five existing test files (each change
 explained in its commit message; no assertion loosened).
+
+## 12. AI-log entry: 12-CLB exam page (outside the registration plan, 16/10/2026)
+
+Per CLAUDE.md ("ghi thêm khi làm việc lớn"), the code and text below were written by AI (Claude) at
+Truong's request. Instruction (verbatim): *"make a functional HTML that can perform for 12 CLB. And include
+the test in it. Make sure the candiadate only take the test of the club they selected"*. Answers recorded
+in the session: 12 CLB per day (60 total); tick and take at most 5 per day, 0 to 5 allowed; only Top 1–10
+can be ranked per day; students see only "đã nộp"; the teacher downloads CSV; UI-only lock accepted;
+phiếu delivery is manual for now.
+
+| Task | AI-written (new) | Student-written code modified |
+|---|---|---|
+| 12-CLB exam page | `mau_forms_thi_clb/tao_trang_thi_12_clb.py`, `mau_forms_thi_clb/de_thi_12_clb.py` (the 10 new clubs and 20 new questions are **drafts**, `nhap=True`, pending teacher review), `docs/thi_12_clb/index.html` (generated), `tests/test_trang_thi_12_clb.py` | none (`tao_google_forms.py` and `TAO_GOOGLE_FORM.gs` unchanged; the page reuses the LOGIC block of `tao_website_mau.py`) |
+
+This entry does not update the PDF copy of the AI log kept outside the repository (artifact
+`1369e5c3-3d9f-4d8f-8c00-0328bc1b5131`, see BAN_GIAO.md); that copy needs Truong's decision.
