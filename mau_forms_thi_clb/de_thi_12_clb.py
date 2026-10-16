@@ -28,7 +28,7 @@ CLB_MOI = {
     "thu_3": [
         {"id": "clb_khieuvu", "name": "CLB Khiêu vũ", "de": [
             {"q": "Điệu Waltz thường đếm theo nhịp mấy?", "opts": ["2", "3", "4", "6"], "dung": "3"},
-            {"q": "Khởi động trước khi nhảy để làm gì?", "opts": ["Tránh chấn thương", "Mệt nhanh hơn", "Quên động tác", "Không cần thiết"], "dung": "Tránh chấn thương"},
+            {"q": "Khởi động trước khi nhảy để làm gì?", "opts": ["Tránh chấn thương", "Thay đổi nhịp điệu bài nhảy", "Thay cho việc luyện tập kỹ thuật", "Giảm thời gian luyện tập chính"], "dung": "Tránh chấn thương"},
         ]},
         {"id": "clb_cocaro", "name": "CLB Cờ caro", "de": [
             {"q": "Bàn cờ caro thường có bao nhiêu ô?", "opts": ["8 x 8", "10 x 10", "15 x 15", "20 x 20"], "dung": "15 x 15"},
@@ -38,7 +38,7 @@ CLB_MOI = {
     "thu_4": [
         {"id": "clb_aothuat", "name": "CLB Ảo thuật", "de": [
             {"q": "Đánh lạc hướng khán giả trong ảo thuật nghĩa là gì?", "opts": ["Khiến khán giả chú ý vào chỗ khác", "Làm vật biến mất ngay", "Đọc được suy nghĩ", "Tăng tốc động tác"], "dung": "Khiến khán giả chú ý vào chỗ khác"},
-            {"q": "Ảo thuật gia cần chuẩn bị điều gì trước khi biểu diễn?", "opts": ["Tập luyện kỹ thủ pháp", "Mặc thật nhiều áo", "Bỏ qua kịch bản", "Không cần tập"], "dung": "Tập luyện kỹ thủ pháp"},
+            {"q": "Ảo thuật gia cần chuẩn bị điều gì trước khi biểu diễn?", "opts": ["Tập luyện kỹ thủ pháp", "Dự đoán trước suy nghĩ của khán giả", "Chọn đạo cụ đắt tiền nhất", "Giấu kín mọi thủ pháp"], "dung": "Tập luyện kỹ thủ pháp"},
         ]},
         {"id": "clb_yoga", "name": "CLB Yoga", "de": [
             {"q": "Tư thế cây trong yoga có tên tiếng Phạn là gì?", "opts": ["Vrikshasana", "Trikonasana", "Shavasana", "Bhujangasana"], "dung": "Vrikshasana"},

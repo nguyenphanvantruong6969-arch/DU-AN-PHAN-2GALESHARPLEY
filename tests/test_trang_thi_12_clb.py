@@ -13,6 +13,7 @@ import importlib.util
 import io
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -95,8 +96,8 @@ def test_dung_10_clb_nhap_danh_dau_ro_rang():
 
 
 def test_dap_an_clb_moi_da_xao_khong_tap_trung_o_vi_tri_dau():
-    """Đáp án CLB mới được xáo như bộ mẫu. Nếu không, đáp án đúng nằm ở vị trí đầu và học sinh chọn
-    lựa chọn đầu sẽ được điểm tối đa."""
+    """Đáp án CLB mới được xáo như bộ mẫu. Nếu không, đáp án đúng nằm ở vị trí đầu (16/20 câu) và học sinh
+    chọn lựa chọn đầu sẽ được khoảng 80% số điểm của các CLB mới mà không cần biết bài."""
     moi = [q for d in _du_lieu() for c in d["clubs"] if c["nhap"] for q in c["de"]]
     assert len(moi) == 20
     dem = Counter(q["opts"].index(q["dung"]) for q in moi)
@@ -109,6 +110,22 @@ def test_tep_trang_khop_ban_sinh():
     import tao_trang_thi_12_clb as tt
     with open(TRANG, encoding="utf-8") as f:
         assert f.read() == tt.noi_dung()
+
+
+def test_moi_cau_tro_giup_hien_thi_co_nguon_trong_bieu_mau():
+    """Mọi câu của chữ trợ giúp đang hiển thị (TRO_GIUP) phải có trong biểu mẫu Google, trừ câu riêng của
+    trang (trần Top 1–10). Kiểm chữ thật sự hiển thị, không chỉ danh sách viết tay."""
+    sys.path.insert(0, MAU)
+    import tao_google_forms as tg
+    import tao_trang_thi_12_clb as tt
+    gs = (tg.noi_dung().replace("' + BO_TRONG + '", "(Bỏ trống)")
+          .replace("' + KHONG_THI + '", "Em không thi CLB nào buổi này")
+          .replace("' + '", ""))
+    rieng = {"Trang này chỉ có Top 1 đến Top 10."}
+    for doan in tt.TRO_GIUP.values():
+        for cau in re.split(r"(?<=\.)\s+", doan):
+            if cau not in rieng:
+                assert cau in gs, cau
 
 
 def test_cau_tro_giup_co_nguon_trong_bieu_mau():
@@ -213,7 +230,8 @@ const kb = JSON.parse(process.argv[4]);
   const tick = o => page.locator('input[type=checkbox][data-key="chon-thu_2"][value="' + o + '"]').click();
 
   await page.fill('input[data-key="student_id"]', 'HS 101');
-  await page.fill('input[data-key="name"]', 'Thí sinh thử');
+  // Tên bắt đầu bằng dấu "=" để kiểm sổ CSV không ghi công thức Excel.
+  await page.fill('input[data-key="name"]', '=Thí sinh thử');
   await page.click('#tiep');
   await page.locator('input[type=radio][name="di-thu_2"][value="Có"]').check();
   await page.click('#tiep');
@@ -267,7 +285,18 @@ const kb = JSON.parse(process.argv[4]);
   const top11 = { loai: 'phieu_thi_12_clb', phien: 1, phieu: { student_id: 'HS 303', name: 'Tệp sửa tay', 'di-thu_2': 'Có' } };
   kb.top11.forEach((o, i) => { top11.phieu['thu_2-top-' + (i + 1)] = o; });
   fs.writeFileSync(path.join(thuMuc, 'phieu_top11.json'), JSON.stringify(top11));
-  await page.locator('#gv-tep').setInputFiles([path.join(thuMuc, 'phieu.json'), path.join(thuMuc, 'phieu_top11.json')]);
+  // Học sinh nộp lại sau với đáp án sai, và một bản sao y hệt của tệp đầu. Dù giáo viên chọn bản sau trước,
+  // trang phải giữ bản nộp sớm nhất (điểm 10 và 5) và bỏ bản sao.
+  const lai = JSON.parse(fs.readFileSync(path.join(thuMuc, 'phieu.json'), 'utf8'));
+  lai.nop_luc = new Date(Date.parse(lai.nop_luc) + 3600000).toISOString();
+  lai.phieu[kb.A.id + '-1'] = kb.A.sai[0];
+  lai.phieu[kb.A.id + '-2'] = kb.A.sai[1];
+  fs.writeFileSync(path.join(thuMuc, 'phieu_lai.json'), JSON.stringify(lai));
+  fs.copyFileSync(path.join(thuMuc, 'phieu.json'), path.join(thuMuc, 'phieu_ban_sao.json'));
+  await page.locator('#gv-tep').setInputFiles([
+    path.join(thuMuc, 'phieu_lai.json'), path.join(thuMuc, 'phieu.json'),
+    path.join(thuMuc, 'phieu_ban_sao.json'), path.join(thuMuc, 'phieu_top11.json'),
+  ]);
   await page.waitForTimeout(300);
   out.gvSo = await page.locator('#gv-so').textContent();
   out.gvBang = await page.locator('#gv-ket-qua').textContent();
@@ -289,7 +318,8 @@ def test_hoc_sinh_chi_thay_de_cua_clb_da_chon(tmp_path):
     d0 = _du_lieu()[0]
     A, B, C = d0["clubs"][0], d0["clubs"][1], d0["clubs"][2]
     kb = {
-        "A": {"label": _nhan(A), "id": A["id"], "dap": [q["dung"] for q in A["de"]]},
+        "A": {"label": _nhan(A), "id": A["id"], "dap": [q["dung"] for q in A["de"]],
+              "sai": [_sai(q) for q in A["de"]]},
         "B": {"label": _nhan(B), "id": B["id"], "dap": [B["de"][0]["dung"], _sai(B["de"][1])]},
         "ticThem": [_nhan(c) for c in d0["clubs"][2:6]],
         "top11": [_nhan(c) for c in d0["clubs"][:11]],
@@ -319,6 +349,9 @@ def test_hoc_sinh_chi_thay_de_cua_clb_da_chon(tmp_path):
     assert hang[6] == C["name"] and hang[7] == ""
     # Tệp có Top 11 bị bỏ: sổ không có cột NV11 và trang báo cho giáo viên.
     assert "Top 11" in out["gvSo"]
+    assert "Đã nạp 3 phiếu" in out["gvSo"] and "Bỏ 1 tệp trùng nội dung" in out["gvSo"]
+    # Tên có dấu "=" vào sổ CSV dưới dạng chữ, có dấu nháy đơn đứng trước.
+    assert "'=Thí sinh thử" in out["csv"]
     assert "NV11" not in out["csv"].splitlines()[0]
     assert _hang(out["csv"], "HS 303")
     # Sổ "1. CLB": 60 dòng và tiêu đề.
@@ -341,8 +374,12 @@ const url = 'file://' + process.argv[2];
   await page.goto(url);
   const out = { loi: loi };
   const idCua = s => s.match(/\(([^)]+)\)$/)[1];
-  await page.fill('input[data-key="student_id"]', 'HS 202');
+  // Mã học sinh toàn khoảng trắng không được qua trang đầu.
+  await page.fill('input[data-key="student_id"]', '   ');
   await page.fill('input[data-key="name"]', 'Thí sinh chọn sau');
+  await page.click('#tiep');
+  out.loiMaTrong = await page.locator('.err').allTextContents();
+  await page.fill('input[data-key="student_id"]', 'HS 202');
   await page.click('#tiep');
   await page.locator('input[type=radio][name="di-thu_2"][value="Có"]').check();
   await page.click('#tiep');
@@ -367,7 +404,7 @@ const url = 'file://' + process.argv[2];
 
 
 @pytest.mark.skipif(not _co_playwright(), reason="cần Node.js, Playwright và Chromium có sẵn")
-def test_tiep_theo_chi_hien_clb_dung_sau(tmp_path):
+def test_tiep_theo_chi_hien_clb_dung_sau_va_chan_ma_trong(tmp_path):
     js = tmp_path / "walk_sau.js"
     js.write_text(WALK_SAU_JS, encoding="utf-8")
     r = subprocess.run(["node", str(js), TRANG], capture_output=True, text=True,
@@ -375,4 +412,5 @@ def test_tiep_theo_chi_hien_clb_dung_sau(tmp_path):
     assert r.returncode == 0, r.stderr
     out = json.loads(r.stdout.strip().splitlines()[-1])
     assert out["loi"] == []
+    assert out["loiMaTrong"] == ["Em cần ghi mã học sinh."]
     assert out["tiep"] == [DUNG]

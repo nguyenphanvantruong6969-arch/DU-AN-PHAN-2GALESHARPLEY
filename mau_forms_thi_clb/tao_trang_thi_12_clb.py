@@ -132,7 +132,15 @@ const TRO_GIUP = __TRO_GIUP__;
   function moi(thongBao){ return {cur: 0, path: [0], ans: {}, loi: '', thongBao: thongBao || ''}; }
   let st = moi();
   let DA_NOP = null;
-  const GV = [];
+  const GV = [];      // phiếu đã nạp, kèm thời điểm nộp
+  const DA_NAP = {};  // nội dung tệp đã nạp, để bỏ bản sao
+  // Chấm theo thời điểm nộp, không theo thứ tự chọn tệp: "giữ phiếu đầu" là bản nộp sớm nhất.
+  function phieuTheoNopLuc(){
+    return GV.slice().sort(function(a, b){
+      const x = a.nop_luc || '￿', y = b.nop_luc || '￿';
+      return x < y ? -1 : (x > y ? 1 : 0);
+    }).map(function(w){ return w.phieu; });
+  }
 
   // CLB đã tick trong buổi (theo thứ tự buổi). Chỉ các CLB này được chọn để làm bài.
   function daTick(ng){
@@ -186,8 +194,8 @@ const TRO_GIUP = __TRO_GIUP__;
   function thieu(idx){
     const p = TRANG[idx], a = st.ans;
     if(p.loai === 'info'){
-      if(!a.student_id) return 'Em cần ghi mã học sinh.';
-      if(!a.name) return 'Em cần ghi họ và tên.';
+      if(!String(a.student_id || '').trim()) return 'Em cần ghi mã học sinh.';
+      if(!String(a.name || '').trim()) return 'Em cần ghi họ và tên.';
       return '';
     }
     if(p.loai === 'di') return a['di-' + NGAY[p.k].d.ma] ? '' : 'Em cần chọn có hoặc không.';
@@ -274,7 +282,7 @@ const TRO_GIUP = __TRO_GIUP__;
   function noiDung(p){
     if(p.loai === 'info') return head('Thông tin thí sinh', 'Ghi đúng mã trên thẻ học sinh.') +
       oText('student_id', 'Mã học sinh', 'Ví dụ: HS001') + oText('name', 'Họ và tên', 'Họ và tên học sinh');
-    if(p.loai === 'nop') return head('Xem lại lựa chọn', 'Bấm "Nộp bài" để gửi. Em sẽ không thấy điểm; giáo viên sẽ chấm.') + tomTat();
+    if(p.loai === 'nop') return head('Xem lại lựa chọn', 'Bấm "Nộp bài": trình duyệt sẽ tải tệp phiếu về máy, em gửi tệp đó cho giáo viên. Em sẽ không thấy điểm; giáo viên sẽ chấm.') + tomTat();
     const ng = NGAY[p.k], ma = ng.d.ma;
     if(p.loai === 'di') return head(ng.d.ten, '') +
       radios('di-' + ma, 'Em có đăng ký sinh hoạt ' + ng.d.ten + ' không?', [CO_BUOI, KHONG_BUOI]);
@@ -366,9 +374,9 @@ const TRO_GIUP = __TRO_GIUP__;
     st.path.forEach(function(idx){
       keysOf(idx).forEach(function(k){ if(st.ans[k] !== undefined) phieu[k] = st.ans[k]; });
     });
-    DA_NOP = {loai: 'phieu_thi_12_clb', phien: 1, phieu: phieu};
+    DA_NOP = {loai: 'phieu_thi_12_clb', nop_luc: new Date().toISOString(), phieu: phieu};
     taiPhieu();
-    st = moi('Đã nộp bài của ' + (phieu.name || 'thí sinh') + '. Tệp phiếu đã được tải về máy: em hãy gửi tệp đó cho giáo viên. Cảm ơn em.');
+    st = moi('Đã nộp bài của ' + (phieu.name || 'thí sinh') + '. Nếu trình duyệt chưa tải tệp phiếu, bấm nút bên dưới. Em gửi tệp phiếu cho giáo viên. Cảm ơn em.');
     render();
   }
   function taiPhieu(){
@@ -432,8 +440,11 @@ const TRO_GIUP = __TRO_GIUP__;
   function taiCSV(ten, rows){
     const dong = rows.map(function(r){
       return r.map(function(x){
+        // Ô bắt đầu bằng = + - @ (hoặc tab, CR) có thêm dấu nháy đơn để Excel không chạy như công thức.
+        // Cùng quy tắc với api_chung.py; api_nhap.py gỡ dấu này khi nạp lại.
         const s = x == null ? '' : String(x);
-        return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+        const an = /^[=+\-@\t\r]/.test(s) ? "'" + s : s;
+        return /[",\n\r]/.test(an) ? '"' + an.replace(/"/g, '""') + '"' : an;
       }).join(',');
     }).join('\r\n');
     taiTep(ten, new Blob(['﻿' + dong], {type: 'text/csv;charset=utf-8'}));
@@ -447,7 +458,7 @@ const TRO_GIUP = __TRO_GIUP__;
     });
   }
   function renderGV(){
-    const kq = chamTheoCLB(GV);
+    const kq = chamTheoCLB(phieuTheoNopLuc());
     $('#gv-ket-qua').innerHTML = bang(kq.hs[0], kq.hs.slice(1));
     $('#gv-canh').innerHTML = bang(kq.canh[0], kq.canh.slice(1));
   }
@@ -455,32 +466,38 @@ const TRO_GIUP = __TRO_GIUP__;
     const files = Array.prototype.slice.call(e.target.files || []);
     Promise.all(files.map(docTep)).then(function(texts){
       const loi = [], top11 = [];
+      let trung = 0;
       texts.forEach(function(t, i){
         let obj = null;
         try { obj = JSON.parse(t); } catch(err){ obj = null; }
-        if(obj && obj.loai === 'phieu_thi_12_clb' && obj.phieu){
-          const p = obj.phieu;
-          let coTop11 = false;
-          // Trang chỉ cho Top 1–10, nhưng tệp có thể bị sửa tay: bỏ Top 11 trở lên trước khi chấm.
-          Object.keys(p).forEach(function(k){
-            const m = /-top-(\d+)$/.exec(k);
-            if(m && Number(m[1]) > 10){ delete p[k]; coTop11 = true; }
-          });
-          if(coTop11) top11.push(String(p.student_id || files[i].name));
-          GV.push(p);
-        } else loi.push(files[i].name);
+        if(!(obj && obj.loai === 'phieu_thi_12_clb' && obj.phieu)){ loi.push(files[i].name); return; }
+        // Cùng nội dung (kể cả thời điểm nộp) thì là cùng một tệp đã nạp rồi: bỏ bản sao.
+        const khoa = JSON.stringify(obj);
+        if(DA_NAP[khoa]){ trung++; return; }
+        DA_NAP[khoa] = true;
+        const p = obj.phieu;
+        let coTop11 = false;
+        // Trang chỉ cho Top 1–10, nhưng tệp có thể bị sửa tay: bỏ Top 11 trở lên trước khi chấm.
+        Object.keys(p).forEach(function(k){
+          const m = /-top-(\d+)$/.exec(k);
+          if(m && Number(m[1]) > 10){ delete p[k]; coTop11 = true; }
+        });
+        if(coTop11) top11.push(String(p.student_id || files[i].name));
+        GV.push({nop_luc: String(obj.nop_luc || ''), phieu: p});
       });
       $('#gv-so').textContent = 'Đã nạp ' + GV.length + ' phiếu.' +
+        (trung ? ' Bỏ ' + trung + ' tệp trùng nội dung.' : '') +
         (loi.length ? ' Không đọc được: ' + loi.join(', ') + '.' : '') +
         (top11.length ? ' Đã bỏ Top 11 trở lên (trang chỉ có Top 1–10) của: ' + top11.join(', ') + '.' : '');
       renderGV();
     });
   });
-  $('#gv-tai-clb').addEventListener('click', function(){ taiCSV('1_CLB.csv', chamTheoCLB(GV).clb); });
-  $('#gv-tai-so').addEventListener('click', function(){ taiCSV('2_Hoc_sinh.csv', chamTheoCLB(GV).hs); });
-  $('#gv-tai-canh').addEventListener('click', function(){ taiCSV('canh_bao.csv', chamTheoCLB(GV).canh); });
+  $('#gv-tai-clb').addEventListener('click', function(){ taiCSV('1_CLB.csv', chamTheoCLB(phieuTheoNopLuc()).clb); });
+  $('#gv-tai-so').addEventListener('click', function(){ taiCSV('2_Hoc_sinh.csv', chamTheoCLB(phieuTheoNopLuc()).hs); });
+  $('#gv-tai-canh').addEventListener('click', function(){ taiCSV('canh_bao.csv', chamTheoCLB(phieuTheoNopLuc()).canh); });
   $('#gv-xoa').addEventListener('click', function(){
     GV.length = 0;
+    Object.keys(DA_NAP).forEach(function(k){ delete DA_NAP[k]; });
     $('#gv-so').textContent = '';
     $('#gv-tep').value = '';
     renderGV();
