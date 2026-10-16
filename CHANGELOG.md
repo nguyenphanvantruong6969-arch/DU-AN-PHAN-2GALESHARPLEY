@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 2026-10-16 — Trang thi 12 CLB: xuất sổ nhập .xlsx và chỉ tiêu (demo, ngoài sổ đăng ký)
+
+Dữ liệu mô phỏng. Phạm vi thu hẹp theo yêu cầu: chỉ cần tệp xuất nhập được vào kiosk và trang chạy được trên Vercel.
+- **Chỉ tiêu.** Trang giáo viên có ô chỉ tiêu cho 60 CLB, nhận số nguyên dương, bắt buộc. Thiếu thì nút xuất bị chặn và báo rõ CLB nào.
+- **Sổ nhập .xlsx.** Nút "Tải sổ nhập (.xlsx)" tạo `SO_NHAP_CLB.xlsx` với hai trang `1. CLB` và `2. Học sinh` theo `so_nhap.py` (`COT_CLB`, `COT_HS_DAU`). Điểm từng CLB và tên CLB lấy từ `chamTheoCLB`.
+- **Không thêm thư viện.** Bộ ghi `.xlsx` viết bằng JavaScript thuần: gói ZIP không nén, CRC-32 tính tay, ô chữ dạng `inlineStr`.
+- **Kiểm.** Test `test_bo_ghi_xlsx_doc_duoc_bang_openpyxl`: openpyxl đọc đúng từng ô, kể cả `&`, `<` và chữ bắt đầu bằng `=`. Test Chromium: xuất bị chặn khi thiếu chỉ tiêu; sau khi nhập thì tệp xuất qua `so_nhap.doc_so_nhap` không có lỗi; HS 101 có điểm 10 và 5.
+- **Chưa kiểm.** Chưa mở tệp bằng Excel hoặc LibreOffice thật. Phần giáo viên vẫn nằm cùng trang với phần học sinh, nên học sinh có thể nạp phiếu để xem điểm. Đây là giới hạn đã nêu trong kế hoạch, chưa tách trang.
+- **Triển khai.** Chỉ tải thư mục `docs/thi_12_clb/` lên Vercel như dự án tĩnh, không tải mã nguồn.
+- Sinh lại: `python mau_forms_thi_clb/tao_trang_thi_12_clb.py`.
+
 ## 2026-10-16 — Trang thi 12 CLB mỗi buổi: học sinh chỉ làm đề của CLB đã chọn (ngoài sổ đăng ký, theo yêu cầu chủ dự án)
 
 Dữ liệu mô phỏng. `docs/thi_12_clb/index.html` là một tệp HTML tự chứa (không CDN, không máy chủ), do

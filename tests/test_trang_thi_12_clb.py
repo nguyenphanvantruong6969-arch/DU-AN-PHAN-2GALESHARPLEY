@@ -207,6 +207,57 @@ def test_logic_12_clb_thi_0_va_thi_khong_xep(tmp_path):
     assert any(r[1] == "HS 402" and r[2] == msg for r in canh), canh
 
 
+XLSX_JS = r"""
+const fs = require('fs');
+const html = fs.readFileSync(process.argv[2], 'utf8');
+const doan = html.split('/*XLSX-BEGIN*/')[1].split('/*XLSX-END*/')[0];
+const dungXlsx = new Function(doan + '\nreturn dungXlsx;')();
+const bytes = dungXlsx([
+  { ten: '1. CLB', dong: [['Tên CLB', 'Buổi', 'Chỉ tiêu'], ['CLB Đàn tranh & <Nhạc>', 'thu_2', 20]] },
+  { ten: '2. Học sinh', dong: [['Mã HS', 'Họ tên', 'NV1', 'Điểm 1'],
+                                ['HS 101', '  Thí sinh  ', 'CLB A', 10],
+                                ['HS 102', '=x', 'CLB B', '']] },
+]);
+fs.writeFileSync(process.argv[3], Buffer.from(bytes));
+"""
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="cần Node.js để chạy bộ ghi .xlsx")
+def test_bo_ghi_xlsx_doc_duoc_bang_openpyxl(tmp_path):
+    """Bộ ghi .xlsx không thư viện phải tạo tệp mà openpyxl đọc đúng từng ô, kể cả ký tự XML và chữ bắt đầu bằng '='."""
+    openpyxl = pytest.importorskip("openpyxl")
+    js = tmp_path / "xlsx.js"
+    js.write_text(XLSX_JS, encoding="utf-8")
+    duong = tmp_path / "mau.xlsx"
+    subprocess.run(["node", str(js), TRANG, str(duong)], check=True, cwd=GOC, timeout=120)
+    wb = openpyxl.load_workbook(duong)
+    assert wb.sheetnames == ["1. CLB", "2. Học sinh"]
+    assert list(wb["1. CLB"].iter_rows(values_only=True)) == [
+        ("Tên CLB", "Buổi", "Chỉ tiêu"), ("CLB Đàn tranh & <Nhạc>", "thu_2", 20)]
+    rows = list(wb["2. Học sinh"].iter_rows(values_only=True))
+    assert rows[1] == ("HS 101", "  Thí sinh  ", "CLB A", 10)
+    assert rows[2] == ("HS 102", "=x", "CLB B", None)
+
+
+def _kiem_so_nhap_xlsx(duong, A, B):
+    """Tệp xuất phải đọc được bằng openpyxl, và bộ kiểm sổ nhập của kiosk không báo lỗi."""
+    import openpyxl
+    sys.path.insert(0, GOC)
+    import so_nhap
+    wb = openpyxl.load_workbook(duong)
+    assert wb.sheetnames == ["1. CLB", "2. Học sinh"]
+    rows1 = list(wb["1. CLB"].iter_rows(values_only=True))
+    assert rows1[0] == ("Tên CLB", "Buổi", "Chỉ tiêu", "Suất ưu tiên", "Nhóm ưu tiên", "Mã CLB")
+    assert len(rows1) == 61 and all(r[2] == 20 for r in rows1[1:])
+    rows2 = list(wb["2. Học sinh"].iter_rows(values_only=True))
+    hang = next(r for r in rows2 if r[0] == "HS 101")
+    assert hang[1] == "=Thí sinh thử"
+    assert hang[2:6] == (A["name"], 10, B["name"], 5)
+    assert hang[7] is None  # CLB C xếp Top 3 nhưng không làm bài: không có điểm
+    ket = so_nhap.doc_so_nhap(wb)
+    assert ket["loi"] == [], ket["loi"]
+
+
 WALK_JS = r"""
 const { chromium } = require('playwright');
 const fs = require('fs');
@@ -300,6 +351,16 @@ const kb = JSON.parse(process.argv[4]);
   await page.waitForTimeout(300);
   out.gvSo = await page.locator('#gv-so').textContent();
   out.gvBang = await page.locator('#gv-ket-qua').textContent();
+  // Xuất .xlsx: bị chặn khi chưa có chỉ tiêu; sau khi nhập đủ thì tải được sổ nhập.
+  await page.locator('#gv-tai-xlsx').click();
+  out.thieuChiTieu = await page.locator('#gv-so').textContent();
+  await page.evaluate(() => document.querySelectorAll('input[data-cap]').forEach(i => {
+    i.value = '20';
+    i.dispatchEvent(new Event('input', { bubbles: true }));
+  }));
+  const [sheet] = await Promise.all([page.waitForEvent('download'), page.locator('#gv-tai-xlsx').click()]);
+  out.xlsxTen = sheet.suggestedFilename();
+  await sheet.saveAs(path.join(thuMuc, 'so_nhap.xlsx'));
   const [csv] = await Promise.all([page.waitForEvent('download'), page.click('#gv-tai-so')]);
   await csv.saveAs(path.join(thuMuc, 'hoc_sinh.csv'));
   out.csv = fs.readFileSync(path.join(thuMuc, 'hoc_sinh.csv'), 'utf8');
@@ -352,6 +413,9 @@ def test_hoc_sinh_chi_thay_de_cua_clb_da_chon(tmp_path):
     assert "Đã nạp 3 phiếu" in out["gvSo"] and "Bỏ 1 tệp trùng nội dung" in out["gvSo"]
     # Tên có dấu "=" vào sổ CSV dưới dạng chữ, có dấu nháy đơn đứng trước.
     assert "'=Thí sinh thử" in out["csv"]
+    assert "Thiếu hoặc sai chỉ tiêu" in out["thieuChiTieu"]
+    assert out["xlsxTen"] == "SO_NHAP_CLB.xlsx"
+    _kiem_so_nhap_xlsx(tmp_path / "so_nhap.xlsx", A, B)
     assert "NV11" not in out["csv"].splitlines()[0]
     assert _hang(out["csv"], "HS 303")
     # Sổ "1. CLB": 60 dòng và tiêu đề.

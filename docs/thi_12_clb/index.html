@@ -50,7 +50,7 @@ td{word-break:break-word}
 footer{color:var(--muted);font-size:12.5px;padding:14px 0 30px}
 code{font-family:ui-monospace,Consolas,monospace;font-size:12.5px;background:var(--soft);padding:0 4px;border-radius:4px}
 @media (max-width:480px){main{padding:12px}section.card{padding:12px}h1{font-size:21px}}
-.warnbox{background:var(--warn-bg);color:var(--warn-fg);padding:8px 12px;border-radius:8px;font-size:14px;margin:8px 0}</style>
+.warnbox{background:var(--warn-bg);color:var(--warn-fg);padding:8px 12px;border-radius:8px;font-size:14px;margin:8px 0}.cap{display:grid;grid-template-columns:1fr 110px;gap:8px;align-items:center;margin:4px 0}input[type=number]{width:100%;font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--fg)}</style>
 </head>
 <body>
 <main>
@@ -71,7 +71,11 @@ code{font-family:ui-monospace,Consolas,monospace;font-size:12.5px;background:var
   <p class="muted">Chọn các tệp phiếu (.json) học sinh đã gửi. Trang chấm lại theo đáp án và hiện bảng. Hai tệp CSV dùng để dán vào hai trang "1. CLB" và "2. Học sinh" của SO_NHAP_CLB.xlsx; chưa kiểm được nạp thẳng vào phần mềm. Cột chỉ tiêu, suất ưu tiên và nhóm ưu tiên của trang "1. CLB" phải điền tay.</p>
   <input type="file" id="gv-tep" accept=".json,application/json" multiple>
   <p id="gv-so" class="muted"></p>
+  <h3>Chỉ tiêu mỗi CLB (bắt buộc trước khi tải sổ nhập)</h3>
+  <p class="help">Số nguyên dương. Kiosk không nhận sổ khi chỉ tiêu trống hoặc sai.</p>
+  <div id="gv-chi-tieu"></div>
   <div class="toolbar">
+    <button class="btn" id="gv-tai-xlsx">Tải sổ nhập (.xlsx)</button>
     <button class="btn ghost" id="gv-tai-clb">Tải trang "1. CLB" (CSV)</button>
     <button class="btn ghost" id="gv-tai-so">Tải trang "2. Học sinh" (CSV)</button>
     <button class="btn ghost" id="gv-tai-canh">Tải cảnh báo (CSV)</button>
@@ -208,6 +212,99 @@ function chamTheoCLB(phieuList){
 }
 /*LOGIC-END*/
 const TRO_GIUP = {"top": "Top 1 là CLB em thích nhất. Bấm vào từng Top để chọn CLB trong danh sách. Mỗi CLB chỉ chọn một lần. Không muốn thêm thì để (Bỏ trống). Muốn CLB được chấm điểm: xếp CLB đó ở một Top, tick ở ô bên dưới, rồi làm bài thi. Trang này chỉ có Top 1 đến Top 10.", "tick": "Không thi CLB nào thì bỏ trống. CLB được chấm điểm khi vừa được xếp ở một Top, vừa được tick ở đây, và vừa được làm bài.", "first": "Chọn CLB đứng trên cùng (đứng đầu trong danh sách) trong số các CLB em đã tick. Không thi CLB nào thì chọn \"Em không thi CLB nào buổi này\". Làm xong thì chỉ chọn được CLB đứng sau.", "tiep": "Chỉ hiện các CLB đứng sau CLB vừa làm. Chọn CLB em đã tick tiếp theo; hết rồi thì chọn Không thi thêm."};
+
+/*XLSX-BEGIN*/
+// Bộ ghi .xlsx tối thiểu, không thư viện: gói ZIP không nén, mỗi trang là một sheet với ô chữ inlineStr.
+// danhSach: [{ten, dong: [[ô, ô, ...], ...]}]. Ô rỗng hoặc null thì bỏ; số thì ghi thành số.
+function dungXlsx(danhSach){
+  const enc = new TextEncoder();
+  const bang = new Uint32Array(256);
+  for(let n = 0; n < 256; n++){
+    let c = n;
+    for(let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1;
+    bang[n] = c >>> 0;
+  }
+  function crc(b){
+    let c = 0xFFFFFFFF;
+    for(let i = 0; i < b.length; i++) c = bang[(c ^ b[i]) & 0xFF] ^ (c >>> 8);
+    return (c ^ 0xFFFFFFFF) >>> 0;
+  }
+  function xml(s){
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+  }
+  function cot(n){
+    let s = '';
+    n++;
+    while(n > 0){ const r = (n - 1) % 26; s = String.fromCharCode(65 + r) + s; n = Math.floor((n - 1) / 26); }
+    return s;
+  }
+  const KHAI = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
+  function trang(dong){
+    let x = KHAI + '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>';
+    dong.forEach(function(r, i){
+      x += '<row r="' + (i + 1) + '">';
+      r.forEach(function(v, j){
+        if(v === '' || v === null || v === undefined) return;
+        const ref = cot(j) + (i + 1);
+        if(typeof v === 'number') x += '<c r="' + ref + '"><v>' + v + '</v></c>';
+        else x += '<c r="' + ref + '" t="inlineStr"><is><t xml:space="preserve">' + xml(v) + '</t></is></c>';
+      });
+      x += '</row>';
+    });
+    return x + '</sheetData></worksheet>';
+  }
+  const tep = [];
+  tep.push(['[Content_Types].xml', KHAI + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
+    '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
+    '<Default Extension="xml" ContentType="application/xml"/>' +
+    '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>' +
+    danhSach.map(function(s, i){ return '<Override PartName="/xl/worksheets/sheet' + (i + 1) +
+      '.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'; }).join('') +
+    '</Types>']);
+  tep.push(['_rels/.rels', KHAI + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+    '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>' +
+    '</Relationships>']);
+  tep.push(['xl/workbook.xml', KHAI + '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" ' +
+    'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>' +
+    danhSach.map(function(s, i){ return '<sheet name="' + xml(s.ten) + '" sheetId="' + (i + 1) + '" r:id="rId' + (i + 1) + '"/>'; }).join('') +
+    '</sheets></workbook>']);
+  tep.push(['xl/_rels/workbook.xml.rels', KHAI + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+    danhSach.map(function(s, i){ return '<Relationship Id="rId' + (i + 1) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet' + (i + 1) + '.xml"/>'; }).join('') +
+    '</Relationships>']);
+  danhSach.forEach(function(s, i){ tep.push(['xl/worksheets/sheet' + (i + 1) + '.xml', trang(s.dong)]); });
+
+  const phan = [], dau = [];
+  let pos = 0;
+  tep.forEach(function(mucTep){
+    const tenB = enc.encode(mucTep[0]), dl = enc.encode(mucTep[1]), c = crc(dl);
+    const h = new DataView(new ArrayBuffer(30));
+    h.setUint32(0, 0x04034b50, true); h.setUint16(4, 20, true); h.setUint16(6, 0x0800, true);
+    h.setUint16(8, 0, true); h.setUint16(10, 0, true); h.setUint16(12, 0x21, true);
+    h.setUint32(14, c, true); h.setUint32(18, dl.length, true); h.setUint32(22, dl.length, true);
+    h.setUint16(26, tenB.length, true); h.setUint16(28, 0, true);
+    phan.push(new Uint8Array(h.buffer), tenB, dl);
+    const cd = new DataView(new ArrayBuffer(46));
+    cd.setUint32(0, 0x02014b50, true); cd.setUint16(4, 20, true); cd.setUint16(6, 20, true);
+    cd.setUint16(8, 0x0800, true); cd.setUint16(10, 0, true); cd.setUint16(12, 0, true);
+    cd.setUint16(14, 0x21, true); cd.setUint32(16, c, true); cd.setUint32(20, dl.length, true);
+    cd.setUint32(24, dl.length, true); cd.setUint16(28, tenB.length, true);
+    cd.setUint16(30, 0, true); cd.setUint16(32, 0, true); cd.setUint16(34, 0, true);
+    cd.setUint16(36, 0, true); cd.setUint32(38, 0, true); cd.setUint32(42, pos, true);
+    dau.push(new Uint8Array(cd.buffer), tenB);
+    pos += 30 + tenB.length + dl.length;
+  });
+  const cdDai = dau.reduce(function(n, b){ return n + b.length; }, 0);
+  const kt = new DataView(new ArrayBuffer(22));
+  kt.setUint32(0, 0x06054b50, true); kt.setUint16(8, tep.length, true); kt.setUint16(10, tep.length, true);
+  kt.setUint32(12, cdDai, true); kt.setUint32(16, pos, true);
+  const tong = new Uint8Array(pos + cdDai + 22);
+  let p = 0;
+  phan.concat(dau).forEach(function(b){ tong.set(b, p); p += b.length; });
+  tong.set(new Uint8Array(kt.buffer), p);
+  return tong;
+}
+/*XLSX-END*/
 
 (function(){
   'use strict';
@@ -614,6 +711,47 @@ const TRO_GIUP = {"top": "Top 1 là CLB em thích nhất. Bấm vào từng Top 
     renderGV();
   });
 
+  // Chỉ tiêu do giáo viên nhập. Giữ trong bộ nhớ trang; tải lại trang thì nhập lại.
+  const CHI_TIEU = {};
+  function veChiTieu(){
+    let h = '';
+    BUOI.forEach(function(d){
+      h += '<h3>' + esc(d.ten) + '</h3>';
+      d.clubs.forEach(function(c){
+        h += '<div class="cap"><span>' + esc(c.name) + '</span><input type="number" inputmode="numeric" min="1" step="1" data-cap="' +
+          esc(c.id) + '" value="' + esc(CHI_TIEU[c.id] || '') + '"></div>';
+      });
+    });
+    $('#gv-chi-tieu').innerHTML = h;
+  }
+  $('#gv-chi-tieu').addEventListener('input', function(e){
+    const el = e.target;
+    if(el && el.getAttribute && el.getAttribute('data-cap')) CHI_TIEU[el.getAttribute('data-cap')] = el.value;
+  });
+  // CLB chưa có chỉ tiêu hợp lệ (số nguyên dương, không có số 0 đứng đầu).
+  function thieuChiTieu(){
+    const thieu = [];
+    BUOI.forEach(function(d){ d.clubs.forEach(function(c){
+      if(!/^[1-9][0-9]*$/.test(String(CHI_TIEU[c.id] || '').trim())) thieu.push(c.name);
+    }); });
+    return thieu;
+  }
+  $('#gv-tai-xlsx').addEventListener('click', function(){
+    const thieu = thieuChiTieu();
+    if(thieu.length){
+      $('#gv-so').textContent = 'Chưa xuất được. Thiếu hoặc sai chỉ tiêu của ' + thieu.length + ' CLB: ' + thieu.join(', ') + '.';
+      return;
+    }
+    const kq = chamTheoCLB(phieuTheoNopLuc());
+    const sheetClb = [['Tên CLB', 'Buổi', 'Chỉ tiêu', 'Suất ưu tiên', 'Nhóm ưu tiên', 'Mã CLB']];
+    BUOI.forEach(function(d){ d.clubs.forEach(function(c){
+      sheetClb.push([c.name, d.ma, Number(String(CHI_TIEU[c.id]).trim()), '', '', c.id]);
+    }); });
+    const bytes = dungXlsx([{ten: '1. CLB', dong: sheetClb}, {ten: '2. Học sinh', dong: kq.hs}]);
+    taiTep('SO_NHAP_CLB.xlsx', new Blob([bytes], {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+  });
+
+  veChiTieu();
   render();
   renderGV();
 })();
